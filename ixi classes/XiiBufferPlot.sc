@@ -1,3 +1,43 @@
+
+/*
+
+y = Buffer.read(s, "sounds/birta.aif"); // 2 channels
+
+b.numChannels
+b = Buffer.read(s,"sounds/a11wlk01.wav"); // 1 channel
+
+b = Buffer.alloc(s, 44100 * 2.0, 2); // a four second 1 channel Buffer
+
+a = XiiBufferPlot.new(b)
+
+// overdub
+(
+SynthDef("test",{ arg out=0,bufnum=0;
+	RecordBuf.ar(SinOsc.ar(2990*SinOsc.ar(MouseX.kr(1, 20)), 0, MouseY.kr(0, 1)!2), bufnum, 0, 1, 0);
+//	RecordBuf.ar(LoopBuf.ar(2, y.bufnum, 1, 1, 0, 0, y.numFrames), bufnum, 0, 1, 0);
+//	RecordBuf.ar(AudioIn.ar([1,2]), bufnum, 0, 1, 0); // mixes equally with existing data
+}).play(s,[\out, 0, \bufnum, b.bufnum]);
+)
+
+a.redraw
+
+
+x = SCWindow.new("aa", Rect(100,100, 600, 200)).front;
+
+a = XiiBufferPlot.new(b, x, Rect( 100,10, 490, 170))
+
+t = Task({20.do({a.redraw; 1.wait})}).play
+
+x = SCWindow.new("aa", Rect(100,100, 815, 510)).front;
+
+a = XiiBufferPlot.new(b, x, Rect( 100,10, 705, 170))
+c = XiiBufferPlot.new(b, x, Rect( 100, 190, 705, 170))
+
+{SinOsc.ar(200)}.play
+
+*/
+
+
 XiiBufferPlot {
 
 	var plotter, txt, chanArray, unlaced, val, minval, maxval, window, thumbsize, zoom, width, 
@@ -24,22 +64,30 @@ XiiBufferPlot {
 	}
 	
 	replot {arg array, numChannels;
-		minval = array.minItem;
-		maxval = array.maxItem;
+		//"REPL 1".postln;
 		unlaced = array.unlace(numChannels);
 		chanArray = Array.newClear(numChannels);
+		//[\unlaced, unlaced].postln;
+		//[\chanArray, chanArray].postln;
+		//"REPL 2".postln;
 		unlaced.do({ |chan, j|
 			val = Array.newClear(width);
-			width.do { arg i;
+			width.do({ arg i;
 				var x;
 				x = chan.blendAt(i / zoom);
-				val[i] = x.linlin(minval, maxval, 0.0, 1.0);
-			};
+				val[i] = x.linlin(-1.0, 1.0, 0.0, 1.0);
+			});
 			chanArray[j] = val;
 		});
+		//"REPL 3".postln;
 		numChannels.do({ |i|
 			chanPlotter[i].value_(chanArray[i]);
 		});
+		//"REPL 4".postln;
+	}
+	
+	setIndex_{arg index;
+		chanPlotter.do({arg plotter; {plotter.index_(index)}.defer;});
 	}
 	
 	initGUI {arg array, argwindow, argbounds, numChannels, discrete;
@@ -55,8 +103,6 @@ XiiBufferPlot {
 			thumbsize = 1;
 		};
 
-		minval = array.minItem;
-		maxval = array.maxItem;
 		unlaced = array.unlace(numChannels);
 		chanArray = Array.newClear(numChannels);
 		unlaced.do({ |chan, j|
@@ -64,7 +110,7 @@ XiiBufferPlot {
 			width.do { arg i;
 				var x;
 				x = chan.blendAt(i / zoom);
-				val[i] = x.linlin(minval, maxval, 0.0, 1.0);
+				val[i] = x.linlin(-1.0, 1.0, 0.0, 1.0);
 			};
 			chanArray[j] = val;
 		});
@@ -72,7 +118,8 @@ XiiBufferPlot {
 		window = argwindow ? SCWindow("ixi buffer plot", Rect(bounds.left, bounds.height, 			bounds.width+20, bounds.height+20), resizable: false);
 		numChannels.do({ |i|
 			chanPlotter.add(
-				SCMultiSliderView(window, Rect(bounds.left, bounds.top + ((bounds.height/numChannels)*i),
+				SCMultiSliderView(window, 
+					Rect(bounds.left, bounds.top + ((bounds.height/numChannels)*i),
 											 bounds.width, bounds.height/numChannels))
 				.readOnly_(true)
 				.drawLines_(discrete.not)
@@ -82,20 +129,26 @@ XiiBufferPlot {
 				.valueThumbSize_(1)
 				.background_(XiiColors.lightgreen)
 				.colors_(XiiColors.darkgreen, Color.blue(1.0,1.0))
+				.fillColor_(Color.white)
 				.action_({|v| 
 					var curval;
-					curval = v.currentvalue.linlin(0.0, 1.0, minval, maxval);
+					curval = v.currentvalue; // TEST!
 				})
 				.keyDownAction_({ |v, char|
 					if(char === $l) { write = write.not; v.readOnly = write.not;  };
 				})
 				.value_(chanArray[i])
 				.resize_(5)
-				.elasticMode_(1);
+				.elasticMode_(1)
+				.showIndex_(true);
+
 			);
 				
 		});
-		
 		^window.front;
+	}
+	
+	remove {
+		chanPlotter.do({arg view; view.remove;});
 	}
 }

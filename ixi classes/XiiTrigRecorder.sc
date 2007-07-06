@@ -7,7 +7,7 @@ XiiTrigRecorder {
 		}
 		
 	initXiiTrigRecorder {arg server, ch;
-		var channels; // to be arg
+		var channels;
 		
 		var bang, endFunc, sensi;
 		var analyser, recording;
@@ -28,12 +28,12 @@ XiiTrigRecorder {
 		endRecTimer =0 ;
 		rectime = 5;
 		group = Group.new;
-		filepath = "sounds/ixiquarks/TrigRecorder.aif";
+		filepath = "ixiquarks/TrigRecorder.aif";
 		
 		buffer = if(channels == 2, { 
 					Buffer.alloc(server, 65536, 2);
 				},{
-					Buffer.alloc(server, 65536, 1);
+					Buffer.alloc(server, 65536, 1);		
 				});
 		
 		win = SCWindow("TrigRecorder", Rect(point.x, point.y, 242, 106), resizable:false);
@@ -81,7 +81,7 @@ XiiTrigRecorder {
 						filepath = path;
 						if(filepath.contains(".aif").not, {filepath = filepath++".aif"});
 					},{
-						filepath = "sounds/ixiquarks/TrigRecorder.aif";
+						filepath = "ixiquarks/TrigRecorder.aif";
 					});
 				 });
 		

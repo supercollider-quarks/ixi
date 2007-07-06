@@ -81,7 +81,7 @@ XiiFreqScope {
 				.background_(scopeColor.alpha_(0.25))
 			;		
 		});
-		
+
 		scope = XiiSCFreqScope(window, Rect(pad[0], pad[2], rect.width, rect.height));
 		
 		setFreqLabelVals.value(scope.freqMode, 2048);
@@ -104,8 +104,8 @@ XiiFreqScope {
 
 		SCStaticText(window, Rect(pad[0] + rect.width + 8, rect.height - 75, pad[1], 10))
 			.string_("FrqScl")
-			.font_(font);
-			
+			.font_(font)
+		;
 		SCPopUpMenu(window, Rect(pad[0] + rect.width + 8, rect.height - 60, pad[1], 16))
 			.items_(["lin", "log"])
 			.font_(Font("Helvetica", 9))
@@ -115,7 +115,8 @@ XiiFreqScope {
 				setFreqLabelVals.value(scope.freqMode, 2048);
 			})
 			.canFocus_(false)
-			.font_(font);
+			.font_(font)
+		;
 		
 		SCStaticText(window, Rect(pad[0] + rect.width + 8, rect.height - 40, pad[1], 10))
 			.string_("dbCut")
@@ -161,7 +162,9 @@ XiiFreqScope {
 			var t; 
 			scope.kill;
 			CmdPeriod.remove(cmdPeriodFunc);
-			~globalWidgetList.do({arg widget, i; widget.postln; if(widget == this, {t = i})});
+			~globalWidgetList.do({arg widget, i;
+					if(widget == this, { t = i})
+			});
 			~globalWidgetList.removeAt(t);
 		 }).front;
 	}

@@ -15,7 +15,7 @@ XixiPrey {
 	var inbus, pitchratio;
 	var env;
 	
-	*new { | point, stageRect, soundmode=0 | 
+	*new { | point, stageRect, soundmode=1 | 
 		^super.new.initXixiPrey(point, stageRect, soundmode);
 	}
 	
@@ -57,11 +57,11 @@ XixiPrey {
 		this.setRandomBuffer; // get a random sample (if the pool is loaded)
 	}
 	
-	supplyPredatorArray {|argpredatorArray| // from above level when all preds are initialized
+	supplyPredatorArray {|argpredatorArray| 
 		predatorArray = argpredatorArray;
 	}
 	
-	supplyPreyArray {|argpreyArray| 
+	supplyPreyArray {|argpreyArray|
 		preyArray = argpreyArray;
 	}
 	
@@ -72,7 +72,6 @@ XixiPrey {
 
 	update {
 		var dist, close;
-		
 		predatorArray.do({ |predator|
 			if(rect.intersects(Rect(predator.point.x-10, predator.point.y-10, 20, 20)), {
 				predator.moveAway;
@@ -84,7 +83,7 @@ XixiPrey {
 			var amp;
 			amp = 0;
 			dist = this.distanceFrom(predator);
-        		if(dist < 96.0, { 
+        		if(dist < 96.0, { // fix this:
         			if(dist < close, {
 					rot = atan2(predator.point.y - point.y, predator.point.x - point.x);
 					close = dist;
@@ -100,19 +99,15 @@ XixiPrey {
 				Color.black.set;
 				Pen.translate(point.x, point.y);
 				Pen.moveTo(0@0);
-				
 				if(selected, {
 					Color.new(0,0,0,0.3).set;
 					Pen.strokeOval(Rect(-10, -10, 20, 20));
 					Color.black.set;
 				});
-
 				Pen.rotate(rot);
-
 		     	Pen.line(0@0, 12@3);
 		     	Pen.line(0@0, 12@ -3);
 		     	Pen.stroke;
-	
 		     	fillcolor.set;
 		    		Pen.fillOval(Rect(-5, -5, 10, 10));
 		     	Color.black.set;
@@ -122,8 +117,8 @@ XixiPrey {
 	}
 	
 	predatorAteMe {
-		if((myBufNum != -1) || (synthesis==true) , { 	// if there is a buffer
-			ateFunc.value;	// then play it
+		if((myBufNum != -1) || (synthesis==true) , {
+			ateFunc.value;
 		});
 	}
 	
@@ -135,12 +130,10 @@ XixiPrey {
 			synthesis = false;
 			try{pitchSampleField.string_("prey sample :")};
 		});
-		[\synthesis, synthesis].postln;
 		ateFunc = switch (funcnr,
 			0, { { var selStart, selEnd; // the sample player
 				selStart = ~globalBufferDict.at(poolname)[1][bufferindex][0];
 				selEnd = selStart + ~globalBufferDict.at(poolname)[1][bufferindex][1]-1;
-
 				if(myBuffer.numChannels == 1, {
 					Synth(\xiiPrey1x2, [	\outbus, outbus,
 										\bufnum, myBufNum, 
@@ -237,7 +230,6 @@ XixiPrey {
 					Synth(\xiiAudioStream,[	\outbus, outbus,
 										\inbus, inbus,
 										\pitchratio, pitchratio, 
-										//\pan, 0.7.rand2,
 										\amp, myVol,
 										\timesc, env[2]
 										]).setn(
@@ -249,8 +241,8 @@ XixiPrey {
 		
 	}
 	
-	setMyBuffer {arg argpoolnum, prey, loading = false;
-		poolnum = argpoolnum;
+	setMyBuffer {arg argpoolname, prey, loading = false;
+		poolname = argpoolname.asSymbol;
 		if(loading, { // if loading a bufferpool
 			if(myBufNum == -1, {  // if I don't have a buffer assigned then assign...
 				if(try {~globalBufferDict.at(poolname)[0] } != nil, {
@@ -291,6 +283,7 @@ XixiPrey {
 	setInBus_ {arg bus;
 		inbus = bus;
 	}
+
 	setPitchMode_ {arg mode;
 		if(mode == 1, {
 			fixedPitchMode = true;
@@ -326,11 +319,9 @@ XixiPrey {
 	setOutBus_ {arg bus;
 		outbus = bus;
 	}
-	
-	setLoc_ {|x, y|
+		setLoc_ {|x, y|
 		point = Point(x,y);
-	}
-	
+	}	
 	getLoc {
 		^point;
 	}
@@ -383,11 +374,10 @@ XixiPrey {
 	
 	mouseOver { |x, y, func|
 		if(rect.intersects(Rect(x,y,1, 1)), {
-			"mouseup".postln;
 		});
 	}	
 	
 	distanceFrom { |other|
 		^sqrt(([this.point.x, this.point.y] - [other.point.x, other.point.y]).squared.sum);
 	}
-}
+}

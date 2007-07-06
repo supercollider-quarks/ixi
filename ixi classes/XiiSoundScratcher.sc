@@ -32,7 +32,7 @@ XiiSoundScratcher {
 		var pointp, gPressure, rateMultiplier;
 		
 		s = Server.default;
-		bounds = Rect(120, 5, 800, 340); // the VIEW BOUNDS
+		bounds = Rect(120, 5, 800, 340);
 
 		win = SCWindow("SoundScratcher", 
 				Rect(310, 250, bounds.width+20, bounds.height+10), resizable:false).front;
@@ -58,7 +58,7 @@ XiiSoundScratcher {
 		bufferList = List.new; // contains bufnums of buffers (not buffers)
 		drawFlag = true;
 		graindensity = 0.1;
-		grainEnvType = 0;
+		grainEnvType = 0; // hanning envelope
 		graindur = 0.05;
 		grainList = List.new;  
 		grainFlag = false;
@@ -74,7 +74,7 @@ XiiSoundScratcher {
 		grainCircleSynthList = List.new;
 		circleGroup = Group.new;
 		wacomFlag = false;
-		rateMultiplier = 1;
+		rateMultiplier = 1; // used in grainCirles when one wants faster grains in individual synths (keys 1-4)
 		
 		soundfile = SoundFile.new;
 		soundfile.openRead("sounds/a11wlk01.wav");
@@ -91,6 +91,7 @@ XiiSoundScratcher {
 			.background_(bgColor)
 			.canFocus_(false)
 			.setSelectionColor(0, Color.new255(105, 185, 125));
+		
 		soundfile.close;
 
 		tabletView = SCTabletView(win, Rect(120, 5, bounds.width-120, bounds.height-10))
@@ -106,7 +107,7 @@ XiiSoundScratcher {
 					if(drawLineFlag && grainFlag.not && recPathFlag.not, { this.clear }); // view
 					pointp = Point((x+120).round, (y+5).round);
 					pointlist.add(pointp);
-					pointsizelist.add(gPressure); // if mouse then fix.. done ABOVE !!!
+					pointsizelist.add(gPressure); 
 					this.refresh;
 				
 					if(myTempBuffer.isNil.not, {
@@ -144,12 +145,12 @@ XiiSoundScratcher {
 						this.refresh;
 					});
 					if(myTempBuffer.isNil.not, {
-					if(grainFlag == false, {
+						if(grainFlag == false, {
 						synth.set(\vol, [0,1,\amp, 0.00001].asSpec.map(pressure)*globalvol);
 						synth.set(\freq, 1.5-(y/320));
 						synth.set(\pointer, (x-6)/680); // for warp synth
 						synth.set(\pos, ((x-6)/680) * myTempBuffer.numFrames);// scratch synth
-					});
+						});
 					});
 				});
 			})
@@ -157,10 +158,11 @@ XiiSoundScratcher {
 				var meanpressure;
 				if(grainCircles, {
 					endPoint = Point(x,y);
-					tempRect = Rect(0,0,0,0); // move the temprect away
+					tempRect = Rect(0,0,0,0);
 					meanpressure = tempPressureList.sum/tempPressureList.size;
+
 					if(startPoint == endPoint, { endPoint = startPoint+2; meanpressure = 0.5;});
-					circleList.add(	[Rect(
+					circleList.add([Rect(
 										tabletView.bounds.left+endPoint.x.min(startPoint.x)+0.5, 
 										tabletView.bounds.top+endPoint.y.min(startPoint.y)+0.5, 
 										(endPoint.x - startPoint.x).abs,
@@ -169,7 +171,6 @@ XiiSoundScratcher {
 										meanpressure,
 										rateMultiplier] // if speed is increased
 								);
-					
 					if(myTempBuffer.isNil.not, {
 						if(synthesisStylePop.value == 5, { // grainCircles
 							grainCircleSynthList.add(
@@ -217,12 +218,13 @@ XiiSoundScratcher {
 			});
 						
 		win.view.keyDownAction_({arg this, char, modifiers, unicode; 
+			[\char, char, \modifiers, modifiers, \unicode, unicode].postln;
 			if(char.asString == "c", {
 				if(synthesisStylePop.value == 4, {this.clear(true)}, {this.clear(false)});
 				if(grainCircles, {	
 					circleGroup.freeAll; 
 					circleList = List.new;
-					circleGroup = Group.new; // TESTING
+					circleGroup = Group.new;
 					this.refresh;
 				});
 			});
@@ -235,7 +237,7 @@ XiiSoundScratcher {
 			
 			if(char.asString == "d", {drawLineFlag = drawLineFlag.not});
 			if(char.asString == "r", {pointlist = pointlist.scramble});
-			if(char.asString == "z", { // undo creating a cirle
+			if(char.asString == "z", { // undo creating a cirle or square
 				if((synthesisStylePop.value==5) || (synthesisStylePop.value == 6), { // grainCirles
 					if(circleList.size > 0, {
 						circleList.pop;
@@ -342,7 +344,7 @@ XiiSoundScratcher {
 							0.1.wait;
 						});
 					}).start;
-				}); // granular
+				});
 			});
 
 		bufferPop = SCPopUpMenu(win, Rect(10, 32, 100, 16)) // 550
@@ -355,9 +357,9 @@ XiiSoundScratcher {
 					
 					if(try {~globalBufferDict.at(poolName)[0] } != nil, {
 				
-					if(synthesisStylePop.value == 2, {randomGrainTask.stop}); // granular
-					if(synthesisStylePop.value == 3, {linearGrainTask.stop}); // granular
-					if(synthesisStylePop.value == 4, {wormGrainTask.stop}); // granular
+					if(synthesisStylePop.value == 2, {randomGrainTask.stop});
+					if(synthesisStylePop.value == 3, {linearGrainTask.stop});
+					if(synthesisStylePop.value == 4, {wormGrainTask.stop});
 					if(playPathTask.isPlaying, {playPathTask.stop; restartPlayPath = true;});
 					myTempBuffer.free;
 					
@@ -374,6 +376,7 @@ XiiSoundScratcher {
 					if(soundfile.numChannels == 2, {
 				myTempBuffer = Buffer.readChannel(s, filepath, selStart, selNumFrames, [0]);
 					}, {
+					// and make a right size buffer if only part of file is selected
 				myTempBuffer = Buffer.read(s, filepath, selStart, selNumFrames);
 					});
 					soundfile.close;
@@ -386,9 +389,9 @@ XiiSoundScratcher {
 									if(restartPlayPath, {
 										playPathTask.start;
 									}, {
-									if(synthesisStylePop.value == 2, {randomGrainTask.start});
-									if(synthesisStylePop.value == 3, {linearGrainTask.start});
-									if(synthesisStylePop.value == 4, {wormGrainTask.start});
+										if(synthesisStylePop.value == 2, {randomGrainTask.start});
+										if(synthesisStylePop.value == 3, {linearGrainTask.start});
+										if(synthesisStylePop.value == 4, {wormGrainTask.start});
 									});
 									}.defer;
 									checkBufLoadTask.stop;
@@ -396,17 +399,21 @@ XiiSoundScratcher {
 								0.1.wait;
 							});
 						}).start;
-					}); // granular
+					});
 				});
  			});
 				
-		ldSndsGBufferList = {arg argPoolName;
+		ldSndsGBufferList = {arg argPoolName;			
 			poolName = argPoolName.asSymbol;
 			if(try {~globalBufferDict.at(poolName)[0] } != nil, {
 				sndNameList = [];
 				bufferList = List.new;
-				~globalBufferDict.at(poolName)[0].do({arg buffer;
-					sndNameList = sndNameList.add(buffer.path.basename);
+				~globalBufferDict.at(poolName)[0].do({arg buffer, i;
+					if(buffer.path.isNil.not, {
+						sndNameList = sndNameList.add(buffer.path.basename);
+					},{
+						sndNameList = sndNameList.add("liveBuffer "++i.asString);
+					});
 					bufferList.add(buffer.bufnum);
 				 });
 				 bufferPop.items_(sndNameList);
@@ -418,6 +425,7 @@ XiiSoundScratcher {
 		};
 		
 		ldSndsGBufferList.value(selbPool.items[0].asSymbol);
+
 		synthesisStylePop = SCPopUpMenu(win, Rect(10, 54, 100, 16)) // 550
 				.font_(Font("Helvetica", 9))
 				.items_(["warp", "scratch", "random grains", "linear grains", "worm", "grainCircles", "grainSquares"])
@@ -476,15 +484,15 @@ XiiSoundScratcher {
 				.background_(Color.white)
 				.action_({ arg popup;
 					if(grainList.size > 1, {
-						if(synthesisStylePop.value == 2, {randomGrainTask.stop}); // granular
-						if(synthesisStylePop.value == 3, {linearGrainTask.stop}); // granular
-						if(synthesisStylePop.value == 4, {wormGrainTask.stop}); // granular
+						if(synthesisStylePop.value == 2, {randomGrainTask.stop});
+						if(synthesisStylePop.value == 3, {linearGrainTask.stop});
+						if(synthesisStylePop.value == 4, {wormGrainTask.stop});
 						pointlist = grainList[popup.value][0].copy;
 						pointsizelist = grainList[popup.value][1].copy;
 						{this.refresh}.defer(0.2);
-						if(synthesisStylePop.value == 2, {randomGrainTask.start}); // granular
-						if(synthesisStylePop.value == 3, {linearGrainTask.start}); // granular
-						if(synthesisStylePop.value == 4, {wormGrainTask.start}); // granular
+						if(synthesisStylePop.value == 2, {randomGrainTask.start});
+						if(synthesisStylePop.value == 3, {linearGrainTask.start});
+						if(synthesisStylePop.value == 4, {wormGrainTask.start});
 					});
 				});
 
@@ -538,15 +546,14 @@ XiiSoundScratcher {
 			.font_(Font("Helvetica", 9))
 			.states_([["clear", Color.black, Color.clear]])
 			.action_({arg butt;
-				// if worm, don't clear all points (worm = true)
 				if(synthesisStylePop.value == 4, {this.clear(true)}, {this.clear(false)});
 				if(grainCircles, {	
 					grainCircleSynthList.do(_.free); 
 					circleGroup.freeAll;
 					circleList = List.new;
 					grainCircleSynthList = List.new;
-					rateMultiplier = 1; // reset to default
-					circleGroup = Group.new; // TESTING
+					rateMultiplier = 1;
+					circleGroup = Group.new;
 					this.clear(false);				
 				});
 			});
@@ -571,7 +578,7 @@ XiiSoundScratcher {
 					if (unicode == 16rF703, { grainDensitySl.valueAction_((grainDensitySl.value+0.1).round(0.1)) });
 					if (unicode == 16rF701, { grainDensitySl.valueAction_((grainDensitySl.value-0.1).round(0.1)) });
 					if (unicode == 16rF702, { grainDensitySl.valueAction_((grainDensitySl.value-0.1).round(0.1)) });
-						}) // I don't want any keydowns on sliders
+						}) 
 						.action_({arg sl; 
 							graindensity = sl.value.reciprocal;
 							if(grainCircles, { 
@@ -600,7 +607,7 @@ XiiSoundScratcher {
 							sineEnvRButt.switchState;
 						});
 
-		recordPathButt = SCButton(win, Rect(10, 235, 100, 16)) // NEW
+		recordPathButt = SCButton(win, Rect(10, 235, 100, 16))
 			.canFocus_(true)
 			.font_(Font("Helvetica", 9))
 			.states_([["prepare recording", Color.black, Color.clear],
@@ -609,7 +616,8 @@ XiiSoundScratcher {
 					["playing", Color.black, Color.green(alpha:0.3)]
 					])
 			.action_({arg butt;
-				if(synthesisStylePop.value != 4, { // if the worm is not active
+				[\BUTTVALUE, butt.value].postln;
+				if(synthesisStylePop.value != 4, {
 				if(butt.value==2, {this.clear; recPathFlag = true; recordPathTask.start;});
 				if(butt.value==3, {recordPathTask.stop; playPathFlag = true; recPathFlag = false; playPathTask.start});
 				if(butt.value==0, {playPathTask.stop; playPathFlag = false; synth.free; this.clear;});
@@ -733,7 +741,6 @@ XiiSoundScratcher {
 			boundaries = false;
 
 			if(myTempBuffer.isNil.not, {
-				
 				pointlist = List.new;
 				pointsizelist = List.new;
 				point = Point(420+(50.rand), 50+(60.rand));
@@ -782,18 +789,21 @@ XiiSoundScratcher {
 						});
 						this.refresh;
 					}, {
+						"waiting for grains".postln;
 						0.5.wait; // if there are no grains, wait repeatedly until there are
 					});
+					
+					
  				});
 			});
 		});
 
 		recordPathTask = Task({ 
-				inf.do({
-					recPathList.add([pointp, gPressure]);
-					0.04.wait;
-				});
+			inf.do({
+				recPathList.add([pointp, gPressure]);
+				0.04.wait;
 			});
+		});
 
 		playPathTask = Task({ //var counter;
 				if(myTempBuffer.isNil.not, {
@@ -831,6 +841,7 @@ XiiSoundScratcher {
 					});
 				});
 		});
+
 	}
 	
 	refresh {
@@ -851,7 +862,12 @@ XiiSoundScratcher {
 	}
  
 	updatePoolMenu {
-		selbPool.items_(~globalBufferDict.keys.asArray.sort);
-		ldSndsGBufferList.value(selbPool.items[0].asSymbol);
+		var pool, poolindex;
+		pool = selbPool.items.at(selbPool.value);        // get the pool name (string)
+		selbPool.items_(~globalBufferDict.keys.asArray); // put new list of pools
+		poolindex = selbPool.items.indexOf(pool);        // find the index of old pool in new array
+		if(poolindex != nil, {
+			selbPool.value_(poolindex); // so nothing changed, but new poolarray
+		});
 	}
 }

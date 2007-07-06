@@ -1,5 +1,11 @@
+
+// called from each effect in the XiiEffects.sc file
+// NOTE: The creator argument is the effect object which
+// is necessary to have here on closing the window in order to 
+// free the reference to the object in the ~globalWidgetList
+
 XiiEffectGUI {
-	var <>win; // TESTING ... TEMP .. should go back down 
+	var <>win; 
 	var slider, specs;
 	
 	*new { arg name, synthdef, param, ch, creator;
@@ -19,7 +25,10 @@ XiiEffectGUI {
 		slider = Array.newClear(param[0].size); 
 		bufnum = nil;
 		specs = param[2];
+		
+		// mono or stereo?
 		channels = ch;
+		[\channels, channels].postln;
 		stereoChList = XiiACDropDownChannels.getStereoChnList;
 		monoChList = 	 XiiACDropDownChannels.getMonoChnList;
 					
@@ -161,8 +170,8 @@ XiiEffectGUI {
 			point = Point(win.bounds.left, win.bounds.top);
 			XiiWindowLocation.storeLoc(name, point);
 			}); 
-		win.front;
-	}
+		win.front; 
+	} // end of initGui
 	
 	setSlider_ {arg slnum, val;
 		if((slnum>=0) && (slnum<slider.size), {
@@ -170,3 +179,5 @@ XiiEffectGUI {
 		});
 	}
 }
+
+

@@ -6,7 +6,6 @@ XiiScaleSynth {
 	}
 
 	initXiiScaleSynth {arg argserver;
-		
 		var win, xTable, yTable, trns1, trns2, synth, drone, tablet;
 		var screenX, screenY, tabletScreenY;
 		var setScale, setTrans, scales, scaleNames, scaleMenu;
@@ -14,10 +13,11 @@ XiiScaleSynth {
 		var transBuf, scaleBuf, outbus, outbusPoP;
 		
 		server = argserver ? Server.default;
-		// -------------------------- THESE PARAMETERS MIGHT HAVE TO BE ADJUSTED ----------------
+		//  screen resolution
 		screenX = SCWindow.screenBounds.asArray[2]; 
 		screenY = SCWindow.screenBounds.asArray[3];
 		
+		// the initials transformations of the base scale.
 		trns1 = 5; // first row up from base scale (which is in C)
 		trns2 = 7; // secon row up from the base scale.
 		
@@ -26,7 +26,6 @@ XiiScaleSynth {
 		// --------  GUI 
 		win = SCWindow(" - ", border: false);
 		win.fullScreen;
-		
 			boxColList = List.new;
 			17.do({arg j; var a;
 				var tempR, tempG, tempB;
@@ -42,7 +41,6 @@ XiiScaleSynth {
 					boxColList[j].add(Color.new(r,g,b, 0.7));
 					});
 				});
-			
 			
 		win.drawHook = { 
 			17.do({arg j;
@@ -70,7 +68,7 @@ XiiScaleSynth {
 			});
 		};
 		tablet.action = { arg  view,x,y,pressure,tiltx,tilty,deviceID, buttonNumber;
-			synth.set(\vol, pressure);			
+			synth.set(\vol, pressure);
 			17.do({arg j; // y axis
 				15.do({ arg i; var r; // x axis
 					r = Rect(3+(i*screenX/15), 2+(j*tabletScreenY/17), (screenX/15)-6, (tabletScreenY/17)-6);
@@ -85,8 +83,8 @@ XiiScaleSynth {
 			synth.set(\vol, 0);
 		};
 		
-		SCButton(win, Rect(6,screenY-34,40,20)).states_([["stop"]]).action = {win.close; 
-		scaleBuf.free; transBuf.free; synth.free; drone.free;};
+		SCButton(win, Rect(6, screenY-34, 40, 20)).states_([["stop"]]).action = {win.close; 
+		scaleBuf.free; transBuf.free};
 		OSCIISlider.new(win, Rect(60, screenY-34, 100, 10), "- decay", 0.1, 10, 4, 0.01)
 			.action_({arg sl; synth.set(\decayTime, sl.value);});
 		OSCIISlider.new(win, Rect(170, screenY-34, 100, 10), "- modul", 0.1, 6, 1, 0.01)
@@ -151,7 +149,7 @@ XiiScaleSynth {
 			synth.set(\buf2, transBuf.bufnum);
 		
 		};
-		
+		// set the initial scale
 		setScale.value(scales.at('default'));
 		setTrans.value(4, 9);
 		// -------------------
@@ -169,7 +167,6 @@ SynthDef(\scaleSynth,{ arg out=0, buf1=0, buf2 = 1, vol=0, volLag=0.1, carPartia
 	modulator = SinOsc.ar([freq * modPartial, 3 +(freq *modPartial)], 0, freq * index * LFNoise1.kr(5.reciprocal).abs );
 	carrier = SinOsc.ar((freq * carPartial) + modulator, 0, mul*Lag.kr(vol, volLag));
 
-	//oscillator = SinOsc.ar([freq,freq+2],0,Lag.kr(vol, volLag));
 	// ======= the REVERB
 	signal = OnePole.ar(carrier, 0.9);
 	5.do({ 
@@ -200,5 +197,4 @@ SynthDef(\droneSynth,{ arg out=0, vol=0.2, volLag=0.1, freq = 261;
 		drone = Synth(\droneSynth, [\vol, 0]);
 		
 }
-
 }

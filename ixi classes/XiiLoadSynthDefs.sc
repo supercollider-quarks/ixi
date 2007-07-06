@@ -9,6 +9,7 @@ XiiLoadSynthDefs {
 		
 	initXiiLoadSynthDefs { arg server;
 		s = server;
+		
 		// --- the SoundScratcher --- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		
 		// the lag time is good around 4 seconds
@@ -23,11 +24,10 @@ XiiLoadSynthDefs {
 		SynthDef(\xiiWarp, {arg outbus=0, bufnum = 0, freq=1, pointer=0, vol=0, gate=1;
 			var signal, env;
 			env = EnvGen.kr(Env.adsr(0.2, 0.2, 1, 0.21, 1, -4), gate, doneAction:2);
-			signal = Warp1.ar(bufnum, pointer, freq, 0.1, 8, 0.05) * env * vol;
+			signal = Warp1.ar(bufnum, pointer, freq, 0.09, 8, 0.2) * env * vol;
 			Out.ar(outbus, signal!2);
 		}).load(s);
 		
-		// WITH RANDOM PANNING - IN USE
 		SynthDef(\xiiGrain, {arg outbus=0, bufnum, rate=1, pos=0, dur=0.05, vol=1, envType=0;
 			var signal, env, sineenv, percenv;
 			sineenv = EnvGen.kr(Env.sine(dur, vol), doneAction:2);
@@ -51,8 +51,6 @@ XiiLoadSynthDefs {
 		SynthDef(\xiiGrainsSQ, {arg outbus=0, bufnum, dur=0.3, trate=10, rate, left=0.3, vol=0.2, globalvol=1;
 			var clk, pos, pan;
 			clk = Impulse.kr(trate);
-			//pos = TRand.kr(left, right, clk);
-			//rate = TRand.kr(ratelow, ratehigh, clk);
 			pan = WhiteNoise.kr(0.6);
 			Out.ar(outbus, TGrains.ar(2, clk, bufnum, rate, left, dur, pan, 0.8 * vol) * globalvol);
 		}).load(s);
@@ -86,8 +84,7 @@ XiiLoadSynthDefs {
 
 
 		// --- the bufferplayer --- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-		// NEW LOOPBUF
+		
 		SynthDef(\xiiBufPlayerSTEREO, {arg trigID = 10, out=0, bufnum=0, vol=0.0, pan = 1, trig=0, 
 				pitch=1.0, onOff=0, startPos=0, endPos= 1000;
 			var updateRate=40, playbuf, ampl, ampr, signal;
@@ -110,6 +107,8 @@ XiiLoadSynthDefs {
 			Out.ar(out, Pan2.ar(playbuf, pan));
 		}).load(s);
 
+
+		// --- the polymachine --- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		
 		SynthDef(\xiiPolyrhythm1x2, {arg outbus=0, bufnum=0, vol=1, pan = 1, 
 								trig=0, pitch=1, startPos=0, endPos= -1;
@@ -190,6 +189,7 @@ XiiLoadSynthDefs {
 		}).load(s);
 		
 		// ------ the predators ------- !!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 		// - the sample player
 		SynthDef(\xiiPrey1x2, {arg outbus=0, bufnum, rate=1, startPos=0, endPos= -1, timesc=1.0,
 			vol=1, levels = #[0, 0.0, 1.0, 0.8, 0.0], times = #[0.0, 0.17, 0.4, 0.162]; 
@@ -346,6 +346,80 @@ XiiLoadSynthDefs {
 		SynthDef(\xiiTrigRecorderRec2x2, {arg bufnum, inbus=120;
 			DiskOut.ar(bufnum, In.ar(inbus, 2));
 		}).load(s);
+
 				
+		// -------------- Recorder vumeter ----------------------
+		SynthDef(\xiiVuMeter, {arg bus = 0, amp = 1.0, rate = 15, rel = 1;
+			var signal, amplitude;
+			signal = InFeedback.ar(bus, 1) * amp;
+			amplitude = AmplitudeMod.kr(signal, 0.01, rel);
+			SendTrig.kr(Impulse.kr(rate), 820, amplitude);
+		}).load(s);
+		
+				
+		// -------------- LiveBuffer Synths ----------------------
+		SynthDef(\xiiLiveBufRec,{ arg  inbus=0, bufnum=0, reclevel=1.0, prelevel=0.0;
+		    var ain;
+		    ain = In.ar(inbus, 1);     // In
+		    RecordBuf.ar(ain, bufnum, recLevel: reclevel, preLevel: prelevel);
+		}, [0.2, 0.2 , 0.2, 0.2]).load(s);
+	   
+	   SynthDef(\xiiLiveBufPlay,{ arg outbus=0, bufnum,  endloop=1000, amp=1.0; 
+			var signal;
+			signal = LoopBuf.ar(1, bufnum, 1, 1, 0, 0, endLoop:endloop) * amp;
+			Out.ar(outbus, signal!2);
+		}).load(s);
+		
+		
+		// ----------------- Mushrooms --------------------
+		
+		// -------------- BufferOnsets Synth ----------------------
+	   SynthDef(\xiiBufOnset,{ arg outbus=0, bufnum,  rate=1.0, endloop=1000, amp=1.0; 
+			var signal;
+			signal = LoopBuf.ar(1, bufnum, rate, 1, 0, 0, endLoop:endloop) * amp;
+			Out.ar(outbus, signal!2);
+		}).load(s);
+		
+				// - the sample player
+		SynthDef(\xiiMush1x2, {arg outbus=0, bufnum, rate=1, startPos=0, endPos= -1, timesc=1.0,
+			vol=1; 
+			var bufplay, env;
+			bufplay = LoopBuf.ar(1, bufnum, rate, 1, startPos, startPos, endPos) * vol;
+			env = EnvGen.kr(Env.perc(0.001,0.2), timeScale: timesc, doneAction:2);
+			Out.ar(outbus, (bufplay!2)*env);
+		}).load(s);
+		
+		SynthDef(\xiiMush2x2, {arg outbus=0, bufnum, rate=1, startPos=0, endPos= -1, timesc=1.0,
+			vol=1; 
+			var bufplay, env;
+			bufplay = LoopBuf.ar(2, bufnum, rate, 1, startPos, startPos, endPos) * vol;
+			env = EnvGen.kr(Env.perc(0.001,0.2), timeScale: timesc, doneAction:2);
+			Out.ar(outbus, bufplay*env);
+		}).load(s);
+		
+		SynthDef(\xiiMushTime,{ arg outbus=0, bufnum, rate=1.0, startloop=0, endloop=1000, amp=1.0; 
+			var signal;	
+			signal = LoopBuf.ar(1, bufnum, rate, 1, startloop, startloop, endLoop:endloop) * amp;
+			Out.ar(outbus, signal!2);
+		}).load(s);
+
+		SynthDef(\xiiMushFFT, {arg outbus=0, thresh, bufnum, fftbuf, trackbuf,rate=1.0, amp=1, 
+								startloop=0, endloop=1000;
+			var sig, onsets, pips, am;
+			sig = LoopBuf.ar(1, bufnum, rate, 1, startloop, startloop, endLoop:endloop);
+			am = Amplitude.kr(sig);
+			onsets = OnsetsDS.kr(sig, fftbuf, trackbuf, thresh*8, \complex);
+			6.do{ am = max(am, Delay1.kr(am))}; // get the max power over the last 6 control periods
+			SendTrig.kr(onsets, 840, am);
+			Out.ar(outbus, ((sig * amp)).dup);
+		}).load(s);
+		
+		// the default code synth of the  mushrooms
+		SynthDef(\xiiMushroom, {arg outbus=0, freq=440, pan=0, amp=1;
+			var env, sine;
+			env = EnvGen.ar(Env.perc, doneAction:2);
+			sine = SinOsc.ar(freq, 0, env*amp);
+			Out.ar(outbus, Pan2.ar(sine, pan));
+		}).load(s);
 	}
 }	

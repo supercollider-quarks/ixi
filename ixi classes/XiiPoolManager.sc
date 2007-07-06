@@ -1,7 +1,5 @@
 XiiPoolManager {
-
 	var <>gui;
-
 	*new { arg server, channels, rect, pool;
 		^super.new.initXiiPoolManager(server, channels, rect, pool);
 		}
@@ -11,13 +9,13 @@ XiiPoolManager {
 		var selPool, txtv, saveButt, delPool, loadPool;
 		var bufferDict, name, point;
 		
-		rect = argrect ? Rect(200, 100, 160, 56);
+		rect = argrect ? Rect(200, 100, 160, 56);		
 		name = "PoolManager";
 		point = XiiWindowLocation.new(name);
-		bufferDict = if(Object.readArchive("preferences/bufferPools.ixi").isNil,{
+		bufferDict = if(Object.readArchive("bufferPools.ixi").isNil,{
 						()
 					}, {
-						Object.readArchive("preferences/bufferPools.ixi")					});
+						Object.readArchive("bufferPools.ixi")					}); // if no dict, create it
 		
 		win = SCWindow.new("PoolManager", Rect(point.x, point.y, rect.width, rect.height),
 			 resizable:false).front;
@@ -28,6 +26,7 @@ XiiPoolManager {
 			.value_(0)
 			.background_(Color.white)
 			.action_({ arg item;
+				//bufferDict.postln;
 			});
 
 		delPool = SCButton(win, Rect(10, 27, 67, 16))
@@ -37,7 +36,7 @@ XiiPoolManager {
 			.action_({
 				bufferDict.removeAt(selPool.items[selPool.value].asSymbol);
 				selPool.items_(bufferDict.keys.asArray);
-				bufferDict.writeArchive("preferences/bufferPools.ixi");
+				bufferDict.writeArchive("bufferPools.ixi");
 			});
 
 		loadPool = SCButton(win, Rect(82, 27, 67, 16))
@@ -74,7 +73,6 @@ XiiPoolManager {
 					bufferDict.add((str).asSymbol -> 
 						[pool.getFilePaths, ~globalBufferDict.at(pool.name.asSymbol)[1]]);
 					selPool.items_(bufferDict.keys.asArray);
-					// CHANGING NAMES IN THE ~globalBufferDict
 					// store the old bufferList
 					oldnamelist = ~globalBufferDict.at(pool.name.asSymbol);
 					// get rid of the old index key in ~globalBufferDict
@@ -83,7 +81,7 @@ XiiPoolManager {
 					~globalBufferDict.add(str.asSymbol -> oldnamelist);
 					// and rename the window
 					pool.setName_(str);
-					bufferDict.writeArchive("preferences/bufferPools.ixi");
+					bufferDict.writeArchive("bufferPools.ixi");
 				});
 		});
 		
@@ -91,8 +89,6 @@ XiiPoolManager {
 			var t;
 			~globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
 			~globalWidgetList.removeAt(t);
-			
-			//bufferDict.writeArchive("bufferPools.ixi");
 			point = Point(win.bounds.left, win.bounds.top);
 			XiiWindowLocation.storeLoc(name, point);
 		});

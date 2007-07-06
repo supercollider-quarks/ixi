@@ -1,4 +1,3 @@
-// warning ! Old and crappy code from 2003
 
 XiiBufferPlayer {
 	classvar classIDNum;
@@ -13,9 +12,9 @@ XiiBufferPlayer {
 
 var win, outmeterl, outmeterr, responder, bufsec, session, quitButt;
 var sndfiles;
-var channels; 
+var channels; // = 8; // 8 or 16 is IDEAL !
 var trigID;
-var sliderList; 
+var sliderList;
 var bufferList, synthList, stMonoList, argList, globalList;
 var rowspace = 110, lowRow = 0, virIndex = 0;
 var windowSize;
@@ -138,8 +137,6 @@ OSCIISlider.new(win,
 					});	
 				});
 				
-				
-				
 SCStaticText(win, Rect(5, 100, 105, 160))
 	.font_(Font("Helvetica", 16))
 	.string_("")
@@ -185,7 +182,6 @@ channels.do({ arg i;
 			.string_("oo");
 	);
 
-// global buttons
 	SCStaticText(win, Rect(172+(virIndex+i*rowspace), 87+lowRow, 60, 16))
 		.font_(Font("Helvetica", 9))
 		.string_("global:");
@@ -203,7 +199,7 @@ channels.do({ arg i;
 			.background_(Color.white)
 			.action_({ arg ch; var outbus;
 				outbus = ch.value * 2;
-				argList[i][4] = outbus;
+				argList[i][4] = outbus; //  (when synths are created)
 				if(synthList[i] !=nil, { synthList[i].set(\out, outbus) });
 			});
 	
@@ -230,12 +226,12 @@ startButtList.add(SCButton(win,Rect(177+(virIndex+i*rowspace), 110+lowRow, 41, 1
 					  \onOff, argList[i][3],
 					  \startPos, startPos,
 					  \endPos, endPos
-					  ],
+					  ], // the default out bus
 					  s, \addToHead);
 			}, {
 				Synth.new(\xiiBufPlayerMONO, 
 					[ \bufnum, ~globalBufferDict.at(poolName)[0][sfdropDownList[i].value].bufnum, 
-					  \trigID, trigID, 
+					  \trigID, trigID, // the bus for the gui update
 					  \out, argList[i][4],
 					  \vol, argList[i][0], 
 					  \pan, argList[i][1],
@@ -243,7 +239,7 @@ startButtList.add(SCButton(win,Rect(177+(virIndex+i*rowspace), 110+lowRow, 41, 1
 					  \onOff, argList[i][3],
 					  \startPos, startPos,
 					  \endPos, endPos
-					  ],
+					  ], // the default out bus
 					  s, \addToHead);
 			});
 		},{
@@ -251,6 +247,7 @@ startButtList.add(SCButton(win,Rect(177+(virIndex+i*rowspace), 110+lowRow, 41, 1
 			synthList[i] = nil;			
 		});
 		argList[i][3] = butt.value;
+		butt.value.postln;	
 		});
 	);
 
@@ -307,16 +304,16 @@ pitchSlList.add(OSCIISlider.new(win,
 		if(~globalBufferDict.at(poolName)[0].wrapAt(i).numChannels == 2, {"stereo"}, {"mono"}))
 		}.defer;
 	});
-});
+}); // end of channel loop
 
 		reLoadSndsGBufferList = {arg arggBufferPoolName;
 			
 			poolName = arggBufferPoolName;
 			sndfiles = Array.fill(~globalBufferDict.at(poolName)[0].size, { arg i;
 						~globalBufferDict.at(poolName)[0][i].path.basename});
+			
 			if(try {~globalBufferDict.at(poolName)[0]} != nil, {
 				channels.do({arg i; var startPos, endPos;
-					
 					sfdropDownList[i].items = sndfiles;
 					sfdropDownList[i].value_(i);
 					{stMonoList.at(i).string_(
@@ -346,8 +343,8 @@ pitchSlList.add(OSCIISlider.new(win,
 		createResponder = {
 			responder = OSCresponderNode(s.addr, '/tr', { arg time, responder, msg;
 				{ 
-				win.isClosed.not.if({
-					if((msg[2]-idNum >= 0) && (msg[2] <= (idNum+40)), { 
+				win.isClosed.not.if({ // if window is not closed, update GUI...
+					if((msg[2]-idNum >= 0) && (msg[2] <= (idNum+40)), {
 						sliderList.at(msg[2]-idNum).hi_(1-(msg[3].ampdb.abs * 0.01)) 
 					});
 				});
@@ -369,7 +366,12 @@ pitchSlList.add(OSCIISlider.new(win,
 	} // end of initXiiBufferPlayer
 
 	updatePoolMenu {
-		selbPool.items_( ~globalBufferDict.keys.asArray );
-		ldSndsGBufferList.value(selbPool.items[0].asSymbol);
+		var pool, poolindex;
+		pool = selbPool.items.at(selbPool.value);
+		selbPool.items_(~globalBufferDict.keys.asArray);
+		poolindex = selbPool.items.indexOf(pool);        
+		if(poolindex != nil, {
+			selbPool.value_(poolindex);
+		});
 	}
 }

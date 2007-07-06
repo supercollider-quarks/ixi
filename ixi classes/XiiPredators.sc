@@ -8,7 +8,6 @@ XiiPredators {
 	}
 
 	initXiiPredators {arg server;
-
 		var w, ww, wview, outBus, soundFuncPop, bufferList;
 		var predatorArray;
 		var sampleNameField, pitchSampleField, keybButt;
@@ -40,6 +39,7 @@ XiiPredators {
 			preyArray = preyArray.add(
 				XixiPrey.new(Point.new(100+(400.rand), 100+(200.rand)), Rect(10, 5, 620, 470)));
 		});
+		
 		4.do({
 			predatorArray = predatorArray.add(
 				XixiPredator.new(Point.new(-10, -10), Rect(10, 5, 620, 470),preyArray));
@@ -54,6 +54,7 @@ XiiPredators {
 		a.addToDrawList(predatorArray);
 		a.frameRate = 0.05;
 
+		// -- the buffers
 		ldSndsGBufferList = {arg argPoolName;
 			poolname = argPoolName.asSymbol;
 			if(try {~globalBufferDict.at(poolname)[0] } != nil, {
@@ -64,13 +65,12 @@ XiiPredators {
 					bufferList.add(buffer.bufnum);
 				 });
 				 bufferPop.items_(sndNameList);
-				 preyArray.do({|prey, i| prey.setRandomBuffer(selbPool.items[selbPool.value])});
 			}, {
-				"got no files".postln;
 				sndNameList = [];
 			});
 		};
 
+		// -- the GUI
 		// add predator
 		SCButton(w, Rect(10, 485, 65, 18))
 			.font_(Font("Helvetica", 9))
@@ -126,7 +126,7 @@ XiiPredators {
 				preyArray.do({|prey| prey.supplyPredatorArray(predatorArray)});
 				predatorArray.do({|predator| predator.supplyPreyArray(preyArray)});
 			});
-				
+		
 		pitchSampleField = SCStaticText(w, Rect(275, 535, 60, 20))
 				.font_(Font("Helvetica", 9))
 				.string_("prey sample :");
@@ -138,7 +138,7 @@ XiiPredators {
 		SCStaticText(w, Rect(265, 530, 205, 30))
 				.background_(Color.new255(255, 100, 0, 30))
 				.string_("");
-
+		
 		preyArray.do({|prey| prey.supplyTextFields([sampleNameField, pitchSampleField])});
 		
 		selbPool = SCPopUpMenu(w, Rect(265, 485, 102, 16)) // 530
@@ -148,21 +148,21 @@ XiiPredators {
 				.background_(Color.white)
 				.action_({ arg item;
 					try{
+						gBufferPoolNum = item.value;
 						ldSndsGBufferList.value(selbPool.items[item.value]);
 						bufferPop.items_(sndNameList);
 						preyArray.do({|prey, i| prey.setRandomBuffer(selbPool.items[item.value])});
 					}
 				});		
 		
-		bufferPop = SCPopUpMenu(w,Rect(265, 505, 102, 16)) // 550
+		bufferPop = SCPopUpMenu(w,Rect(265, 505, 102, 16))
 				.font_(Font("Helvetica", 9))
 				.items_(["no buffer 1", "no buffer 2"])
 				.background_(Color.new255(255, 255, 255))
 				.action_({ arg popup;
-					preyArray.do({|prey| prey.setMyBuffer(gBufferPoolNum, popup.value)});
+					preyArray.do({|prey| prey.setMyBuffer(selbPool.items[gBufferPoolNum], popup.value)});
 				})
 				.addAction({bufferPop.action.value( bufferPop.value )}, \mouseDownAction);
-		
 		
 		SCStaticText(w, Rect(375, 483, 80, 20))
 			.font_(Font("Helvetica", 9))
@@ -184,9 +184,11 @@ XiiPredators {
 					}); 
 					if(soundFuncPop.items[popup.value] == "sample", {
 						createEnvButt.value(true);
+						preyArray.do({|prey, i| prey.setRandomBuffer(selbPool.items[selbPool.value])});
 					}); 
 					preyArray.do({|prey| prey.setAteFunc_(popup.value)});
-				});
+				})
+				.value_(1);
 		
 		SCStaticText(w, Rect(375, 505, 80, 20))
 			.font_(Font("Helvetica", 9))
@@ -200,7 +202,6 @@ XiiPredators {
 					preyArray.do({|prey| prey.setOutBus_(popup.value * 2)});
 				});
 		
-		// fixed dynamic pitch
 		SCButton(w, Rect(510, 485, 70, 18))
 			.font_(Font("Helvetica", 9))
 			.states_([["fixed pitch",Color.black,Color.clear], ["locative pitch",Color.black,Color.clear]])
@@ -241,6 +242,7 @@ XiiPredators {
 					a.stop;
 				});
 			});
+		
 		
 		OSCIISlider.new(w, Rect(510, 513, 117, 10), "- vol", 0, 1, 0.4, 0.0001, \amp)
 			.font_(Font("Helvetica", 9))
@@ -283,7 +285,6 @@ XiiPredators {
 		
 		createCodeWin = {
 				var funcwin, func, subm, test, view;
-
 				funcwin = SCWindow("scode", Rect(600,700, 440, 200)).front;
 				funcwin.alwaysOnTop = true;
 				
@@ -319,11 +320,12 @@ XiiPredators {
 
 		};
 
-
 		createEnvWin = {arg index;
 			var win, envview, timesl, setButt, timeScale;
 			var selectedprey;
-			preyArray.do({|prey, i| if(prey.selected == true, {selectedprey = i})}); 
+			
+			preyArray.do({|prey, i| if(prey.selected == true, {selectedprey = i})}); // find the selected prey
+
 			timeScale = 1.0;
 			
 			win = SCWindow("asdr envelope", Rect(200, 450, 250, 130), resizable:false).front;
@@ -355,7 +357,6 @@ XiiPredators {
 						var env;
 						env = envview.view2envFormat ++ timesl.value; // levels, times, duration
 						preyArray[selectedprey].setEnvelope_(env);
-
 						win.close;
 					});
 		};
@@ -404,7 +405,12 @@ XiiPredators {
  	}
 	
 	updatePoolMenu {
-		selbPool.items_( ~globalBufferDict.keys.asArray );
-		ldSndsGBufferList.value(selbPool.items[0].asSymbol);
+		var pool, poolindex;
+		pool = selbPool.items.at(selbPool.value);        // get the pool name (string)
+		selbPool.items_(~globalBufferDict.keys.asArray); // put new list of pools
+		poolindex = selbPool.items.indexOf(pool);        // find the index of old pool in new array
+		if(poolindex != nil, {
+			selbPool.value_(poolindex); // so nothing changed, but new poolarray
+		});	
 	}
 }

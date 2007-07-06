@@ -52,7 +52,6 @@ XiiAudioIn {
 			}.defer;
 		}).add;
 			
-		// panning sliders
 		panLslider = OSCIISlider.new(window, Rect(110, 10, 100, 10), "- L pan", -1, 1, -1, 0.01)
 			.font_(Font("Helvetica", 9))
 			.action_({arg sl; audioInSynth.set(\panL, sl.value)});
@@ -60,7 +59,6 @@ XiiAudioIn {
 			.font_(Font("Helvetica", 9))		
 			.action_({arg sl; audioInSynth.set(\panR, sl.value)});
 		
-		// channels dropdown
 		SCPopUpMenu(window,Rect(110, 75, 50, 16))
 			.items_(XiiACDropDownChannels.getStereoChnList)
 			.value_(0)
@@ -108,6 +106,5 @@ XiiAudioIn {
 			point = Point(window.bounds.left, window.bounds.top);
 			XiiWindowLocation.storeLoc(name, point);
 		});
-			
 	}
 }

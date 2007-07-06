@@ -198,7 +198,7 @@ XiiEQMeter {
 				c.getn(size, {|vals|
 					{multislider.value_((vals.log2 * 0.2).max(0).min(1))}.defer;
 				});
-				refreshTime.wait;
+				refreshTime.wait; // I NEED TO EXPERIMENT WITH THIS.
 			};
 		}).start;
 	}

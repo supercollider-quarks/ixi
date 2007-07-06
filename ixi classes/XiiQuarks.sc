@@ -5,16 +5,17 @@ XiiQuarks {
 	}
 		
 	initXiiQuarks {
+	
 		var win, txtv, quarks, serv, channels;
 		var openButt, effectCodeString, monoButt, stereoButt, effect;
 		var name, point;
 		var midi, midiControllerNumbers, midiRotateWindowChannel, midiInPorts, midiOutPorts;
 		var guistyle;
 		var chosenWidget, effectnum, types, typesview, ixilogo;
-		var prefFile, preferences;
+		
 
 		////////////// preferences ///////////////////
-		Server.default = Server.local;
+		Server.default = Server.local; // EXPERIMENTAL !!!!
 		//Server.default.boot;
 		
 		XiiACDropDownChannels.numChannels = 52; // NUMBER OF AUDIO BUSSES USED
@@ -29,10 +30,11 @@ XiiQuarks {
 		midiOutPorts = 2;
 		//////////////////////////////////////////////
 		
-		XiiACDropDownChannels.numChannels_( 52 ); // NUMBER OF AUDIO BUSSES USED
-				
-		if(guistyle == "new", {
+		StartUp.add({
 			XiiLoadSynthDefs.new(Server.default);
+		});
+		
+		if(guistyle == "new", {
 	
 			name = "quarks";
 			point = XiiWindowLocation.new(name);
@@ -42,6 +44,7 @@ XiiQuarks {
 			~globalWidgetList = List.new; // keep track of active widgets
 			// (contains [List [buffers], [selstart, sellength]])
 			~globalBufferDict = ();  // ICMC
+			//~globalBufferList.add(0); // ICMC
 			~bufferPoolNum = -1;
 			
 			quarks = [ 
@@ -49,14 +52,15 @@ XiiQuarks {
 				"FreqScope", "WaveScope", "EQMeter", "MixerNode", 
 				"ChannelSplitter", "Amplifier", "TrigRecorder"],
 		
-				["SoundScratcher", "Predators", "Gridder", "BufferPlayer", "GrainBox", 
-				"PolyMachine", "ScaleSynth"], 
+				["SoundScratcher", "LiveBuffer", "Mushrooms", "Predators", 
+				"Gridder", "PolyMachine", "GrainBox", "BufferPlayer", "ScaleSynth"], 
 				
 				["Delay", "Freeverb", "AdCVerb", "Distortion", "ixiReverb", "Chorus",
-				"Octave", "Tremolo", "Equalizer", "CombVocoder", "RandomPanner", "MRRoque",
-				"MultiDelay"],
+				"Octave", "Tremolo", "Equalizer", "CombVocoder", "RandomPanner", 
+				"MRRoque", "MultiDelay"],
 				
-				["Bandpass", "Lowpass", "Highpass", "RLowpass", "RHighpass", "Resonant", "Klanks"],
+				["Bandpass", "Lowpass", "Highpass", "RLowpass", "RHighpass", 
+				"Resonant", "Klanks"],
 				
 				["Noise", "Oscillators"]
 			];
@@ -190,9 +194,7 @@ XiiQuarks {
 		
 		}, {
 			// OLD GUI STYLE 
-			
-			XiiLoadSynthDefs.new(Server.default);
-	
+				
 			name = "quarks";
 			point = XiiWindowLocation.new(name);
 			
@@ -201,6 +203,7 @@ XiiQuarks {
 			~globalWidgetList = List.new; // keep track of active widgets
 			// (contains [List [buffers], [selstart, sellength]])
 			~globalBufferDict = ();  // ICMC
+			//~globalBufferList.add(0); // ICMC
 			~bufferPoolNum = -1;
 			
 			quarks = [ 
@@ -305,7 +308,10 @@ XiiQuarks {
 				point = Point(win.bounds.left, win.bounds.top);
 				XiiWindowLocation.storeLoc(name, point);
 			}); 
+		
 			txtv.focus(true);
+		
 		});
+	
 	}
 }

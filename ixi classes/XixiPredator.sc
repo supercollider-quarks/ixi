@@ -9,8 +9,8 @@ XixiPredator {
 	var <>friction, restlessness, <>restlessSeed;
 	var xAway, yAway;
 	var chooseNewTargetCounter;
-	var energy, biteFlag, aggr; // <>aggression;
-
+	var energy, biteFlag, aggr;	
+	
 	*new { | point, stageRect, preyArray | 
 		^super.new.initXixiPredator(point, stageRect, preyArray);
 	}
@@ -49,8 +49,7 @@ XixiPredator {
 	}
 	
 	update {
-		// find the next location
-		destpoint.x = prey.point.x + xAway;		destpoint.y = prey.point.y + yAway;		// move
+		destpoint.x = prey.point.x + xAway;		destpoint.y = prey.point.y + yAway;		// move
     		if(point.x < destpoint.x, { 
     			posNegX = 1; 
     			xDistance = destpoint.x - point.x;
@@ -67,7 +66,7 @@ XixiPredator {
 		point.y = point.y + (posNegY * (yDistance/friction));
 
 		// avoid each other		predatorArray.do({ |predator|			if(predator != this, {
-        			if(this.distanceFrom(predator) < 16.0, { // fix this:          			xAway = 1.rand2 * (30 + (30.rand));          			yAway = 1.rand2 * (30 + (30.rand));          			restlessness = restlessSeed + (restlessSeed.rand);
+        			if(this.distanceFrom(predator) < 16.0, {          			xAway = 1.rand2 * (30 + (30.rand));          			yAway = 1.rand2 * (30 + (30.rand));          			restlessness = restlessSeed + (restlessSeed.rand);
           			energy = energy - 10; // they loose energy by fighting
           		});
           	});
@@ -81,9 +80,7 @@ XixiPredator {
 		});
     		// chooses a new prey to attack		chooseNewTargetCounter = chooseNewTargetCounter - 1;		if(chooseNewTargetCounter < 0, {			chooseNewTargetCounter = 100+(200.rand);			prey = preyArray.choose;		});
 		
-		//synth.set(\freq, 900-(300+point.y));
 		fillcolor = Color.new255(230-energy, 230, 230-energy);
-		//this.draw;
 	}
 	
 	draw {
@@ -129,7 +126,7 @@ XixiPredator {
 	setAggression_{arg argaggr;
 		aggr = argaggr;	
 	}
-
+	
 	setLoc_ {|x, y|
 		point = Point(x,y);
 	}
@@ -140,7 +137,6 @@ XixiPredator {
 	
 	mouseDown { |x, y, func|
 		if(Rect(point.x-10, point.y-5, 20, 10).intersects(Rect(x, y, 1, 1)), {
-			"mousedown".postln;
 			^true;
 		}, {
 			^false;

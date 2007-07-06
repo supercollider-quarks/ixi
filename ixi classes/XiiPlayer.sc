@@ -12,12 +12,12 @@ XiiPlayer {
 		var txtv, refreshButton, playButton, r, filename, timeText, secTask;
 		var soundfile, player, buffer, task, volSlider, openButton, volume;
 		var folderSounds, addedSounds, addedSoundNames, sounds, soundNames;
-		var cmdPeriodFunc, group;
+		var cmdPeriodFunc, group, openFolderButton;
 		
 		addedSounds = []; // Cocoa dialog will fill this.
 		addedSoundNames = [];
-		folderSounds = Cocoa.getPathsInDirectory("sounds/ixiquarks");
-		if(folderSounds[0]==".DS_Store", {folderSounds.removeAt(0)});
+		folderSounds = Cocoa.getPathsInDirectory("sounds/ixiquarks"); // the default sounds folder
+		if(folderSounds[0]==".DS_Store", {folderSounds.removeAt(0)}); // get rid of this shit
 		soundNames = folderSounds.copy;
 		soundNames.do({arg item, i; soundNames[i] = soundNames[i].splitext[0]; });
 
@@ -29,8 +29,9 @@ XiiPlayer {
 		filename = "";
 		name = "             File Player";
 		s = server ? Server.default;
+		
 		volume = 0;
-
+		
 		point = XiiWindowLocation.new(name);
 
 		bgColor = Color.new255(155, 205, 155);
@@ -49,9 +50,10 @@ XiiPlayer {
 			.selectedStringColor_(Color.black)
 			.action_({ arg sbs;
 				soundfile = sounds[sbs.value];
+				[\soundfile , soundfile].postln;
 			});
 
-		refreshButton = SCButton(window, Rect(100, 130, 50, 18))
+		refreshButton = SCButton(window, Rect(96, 130, 45, 18))
 			.states_([["Refresh",Color.black, Color.clear]])
 			.font_(Font("Helvetica", 9))
 			.action_({ 
@@ -59,22 +61,31 @@ XiiPlayer {
 				if(folderSounds[0]==".DS_Store", {folderSounds.removeAt(0)});
 				
 				soundNames = folderSounds.copy ++ addedSoundNames;
+				// take the file extension away
 				soundNames.do({arg item, i; soundNames[i] = soundNames[i].splitext[0]; });
-
 				folderSounds.do({arg item, i; folderSounds[i] = "sounds/ixiquarks/"++item; });
 				sounds = folderSounds ++ addedSounds;
 				txtv.items_(soundNames);
 			});	
-
-		openButton = SCButton(window, Rect(160, 130, 50, 18))
+			
+		openFolderButton = SCButton(window, Rect(147, 130, 18, 18))
+			.states_([["f",Color.black, Color.clear]])
+			.font_(Font("Helvetica", 9))
+			.action_({ arg butt;
+				("open "++(String.scDir++"/sounds/ixiquarks")).unixCmd			});
+				
+		openButton = SCButton(window, Rect(170, 130, 40, 18))
 			.states_([["Open",Color.black, Color.clear]])
 			.font_(Font("Helvetica", 9))
 			.action_({ arg butt;
 						CocoaDialog.getPaths({ arg paths;
+
 							paths.do({ arg p;
 								addedSounds = addedSounds.add(p);
 								addedSoundNames = addedSoundNames.add(p.basename);
+								p.postln;
 							});
+							
 							folderSounds = Cocoa.getPathsInDirectory("sounds/ixiquarks");
 							if(folderSounds[0]==".DS_Store", {folderSounds.removeAt(0)});
 							soundNames = folderSounds.copy ++ addedSoundNames;
@@ -94,23 +105,19 @@ XiiPlayer {
 			.states_([["Play",Color.black, Color.clear], ["Stop",Color.black,Color.green(alpha:0.2)]])
 			.font_(Font("Helvetica", 9))
 			.action_({ arg butt; var a, chNum, dur, filepath, pFunc;
-				var soundfilepath;
+				[\buttvalue, butt.value].postln;
 				if(txtv.items.size > 0, {
 					if(butt.value == 1, {
 						group = Group.new(server, \addToHead);
-
-						//soundfilepath = "../../../"++soundfile; // for local host
-						soundfilepath = soundfile; // internal host
-						
 						a = SoundFile.new;
-						
 						a.openRead(soundfile);
 						chNum = a.numChannels;
 						dur = (a.numFrames/s.sampleRate); // get the duration - add / chNum
-						a.close;											buffer = Buffer.cueSoundFile(s, soundfilepath, 0, chNum);
+						a.close;											buffer = Buffer.cueSoundFile(s, soundfile, 0, chNum);
 						// play it
 						task = Task({
 							inf.do({ 	
+								//"ooooooooooooooooo file player - looping".postln;
 								if(chNum == 1, {
 									player = Synth(\xiiPlayer1, 
 									[\outbus, outbus, \bufnum, buffer.bufnum, \vol, volume],
@@ -121,10 +128,9 @@ XiiPlayer {
 									group, \addToHead);
 									});
 								dur.wait; 
-																				player.free; 
+								player.free; 
 								buffer.close;	
-
-								buffer.close( buffer.cueSoundFileMsg(soundfilepath, 0))
+								buffer.close( buffer.cueSoundFileMsg(soundfile, 0))
 								});
 						}).play;
 						secTask.start;
@@ -132,9 +138,9 @@ XiiPlayer {
 						task.stop; 
 						secTask.stop;
 						buffer.close;
-						buffer.free;
+						buffer.free; // you need to do all these to properly cleanup
 						player.free; 
-					})
+					});
 				});
 			});	
 
@@ -179,14 +185,11 @@ XiiPlayer {
 			var t;
 			playButton.valueAction_(0);
 			CmdPeriod.remove(cmdPeriodFunc);
-			
 			~globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
 			~globalWidgetList.removeAt(t);
-
 			// write window position to archive.sctxar
 			point = Point(window.bounds.left, window.bounds.top);
 			XiiWindowLocation.storeLoc(name, point);
 		});
 	}
 }
-

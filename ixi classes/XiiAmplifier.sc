@@ -1,4 +1,3 @@
-
 XiiAmplifier {	
 	var <>gui;
 	*new { arg server, channels;
@@ -17,7 +16,7 @@ XiiAmplifier {
 		tgt = 1;
 		addAct = \addToTail;
 		
-		s = server ? Server.local;		
+		s = server ? Server.local;
 		name = "Amplifier";
 		channels = ch;
 		stereoChList = XiiACDropDownChannels.getStereoChnList;
@@ -71,7 +70,7 @@ XiiAmplifier {
 				synth.set(\outbus, outbus );
 			});
 			
-		// amp sliders
+		// amp slider
 		ampSlider = OSCIISlider.new(window, Rect(100, 10, 100, 10), "- amp", 0, 10, 1, 0.01, \amp)
 			.action_({arg sl; synth.set(\amp, sl.value)});
 		
@@ -91,10 +90,10 @@ XiiAmplifier {
 				])
 			.action_({ arg butt;
 				if(butt.value == 1, {
-					if(channels == 1, { //// HERE !!!
+					if(channels == 1, {
 		        			synth = Synth.new(\xiiAmplifier1x1, 
 										[\inbus, inbus, 
-										\outbus, outbus,
+										\outbus, outbus, 
 										\amp, ampSlider.value], 
 										target: tgt.asTarget,
 										addAction: addAct); 
@@ -110,10 +109,10 @@ XiiAmplifier {
 					synth.free;
 				});
 			});
-		
+
 		cmdPeriodFunc = { onOffButt.valueAction_(0)};
 		CmdPeriod.add(cmdPeriodFunc);
-
+			
 		window.onClose_({
 			var t;
 			onOffButt.valueAction_(0);
@@ -121,7 +120,6 @@ XiiAmplifier {
 			~globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
 			~globalWidgetList.removeAt(t);
 			synth.free;
-			// write window position to archive.sctxar
 			point = Point(window.bounds.left, window.bounds.top);
 			XiiWindowLocation.storeLoc(name, point);
 		});

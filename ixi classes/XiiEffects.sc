@@ -1,5 +1,4 @@
 XiiDelay {	
-
 	var <>gui;
 	
 	*new { arg server, channels;
@@ -12,6 +11,7 @@ XiiDelay {
 		
 		s = server ? Server.local;
 		
+		// mono
 		SynthDef(\xiiDelay1x1, {arg inbus=0,
 							outbus=0, 
 							maxDelay=2, // hardcoded here
@@ -27,6 +27,7 @@ XiiDelay {
 		   LocalOut.ar(fx * feedback); 
 		   Out.ar(outbus, (fx * fxlevel) + (sig * level)) 
 		}).load(s); 
+		
 		// stereo
 		SynthDef(\xiiDelay2x2, {arg inbus=0,
 							outbus=0, 
@@ -62,7 +63,7 @@ XiiDelay {
 
 
 XiiFreeverb {	
-	var <>gui;
+	var <>gui; // TESTING: TEMP can delete
 
 	*new { arg server, channels;
 		^super.new.initFreeverb(server, channels);
@@ -108,6 +109,7 @@ XiiFreeverb {
 
 
 XiiAdCVerb {	
+
 	var <>gui; // TESTING: TEMP can delete
 
 	*new { arg server, channels;
@@ -128,6 +130,8 @@ XiiAdCVerb {
 
 			Out.ar(outbus, LeakDC.ar(fx + (sig * level))) // Leak DC to fix Karplus-Strong problem
 		},[0.1,0.1,0.1,0.1, 0.1]).load(s); 
+		
+		// stereo
 		SynthDef(\xiiAdcverb2x2, {| inbus=0, outbus=0, revtime=3, hfdamping=0.5, mix=0.1, level=0 | 
 		   	var fx, fxIn, sig; 
 		   	sig = In.ar(inbus, 2); 
@@ -150,11 +154,11 @@ XiiAdCVerb {
 			},{				// mono
 			XiiEffectGUI.new("AdCVerb 1x1", \xiiAdcverb1x1, params, channels, this); 
 		});
+
 	}
 }
 
 XiiDistortion {	
-
 	var <>gui; // TESTING: TEMP can delete
 
 	*new { arg server, channels;
@@ -200,10 +204,7 @@ XiiDistortion {
 	}
 }
 
-
-
 XiiixiReverb {	
-
 	var <>gui; // TESTING: TEMP can delete
 
 	*new { arg server, channels;
@@ -259,7 +260,6 @@ XiiixiReverb {
 		}); 
 	}
 }
-
 
 XiiChorus {	
 	var <>gui; // TESTING: TEMP can delete
@@ -359,6 +359,7 @@ XiiOctave {
 			},{				// mono
 			XiiEffectGUI.new("Octave 1x1", \xiiOctave1x1, params, channels, this); 
 		});
+
 	}
 }
 
@@ -373,12 +374,16 @@ XiiTremolo {
 	
 		var freqSpec, params, s; 
 		s = server ? Server.local;
+		
+		// mono
 		SynthDef(\xiiTremolo1x1, {| inbus=0, outbus=0, freq=1, strength=1, fxlevel=0.5, level=0 | 
 		   var fx, sig; 
 		   sig = In.ar(inbus, 1); 
 		   fx = sig * SinOsc.ar(freq, 0, strength, 1); 
 		   Out.ar(outbus, (fxlevel * fx) + (sig * level)) // level 
 		},[0,0,0.1,0.1,0,0]).load(s); 
+		
+		// stereo
 		SynthDef(\xiiTremolo2x2, {| inbus=0, outbus=0, freq=1, strength=1, fxlevel=0.5, level=0 | 
 		   var fx, sig; 
 		   sig = In.ar(inbus, 2); 
@@ -421,17 +426,20 @@ XiiEqualizer {
 		var onOffButt, cmdPeriodFunc;
 		
 		s = server ? Server.local;
-		
+
 		if ( (Archive.global.at(\win_position).isNil), {
 			Archive.global.put(\win_position, IdentityDictionary.new);
 		});
+		// add pair if not there already else fetch the info
 		if ( (Archive.global.at(\win_position).at(name.asSymbol).isNil), {
 			point = Point(660,540);
 			Archive.global.at(\win_position).put(name.asSymbol, point);
 		}, {
 			point = Archive.global.at(\win_position).at(name.asSymbol);
 		});
+		// END OF ARCHIVE CODE... Thank's blackrain again.
 		
+		// mono
 		SynthDef(\xiiEqband1x1, { arg inbus=20, outbus=0, freq=333, rq=0.5, amp;
 			var signal, in, srq;
 			in = In.ar(inbus, 1);
@@ -440,6 +448,7 @@ XiiEqualizer {
 			Out.ar(outbus, signal ); // 15 bands dividing 1 = 0.0666
 		}).load(s);
 
+		// stereo
 		SynthDef(\xiiEqband2x2, { arg inbus=20, outbus=0, freq=333, rq=0.5, amp;
 			var signal, in, srq;
 			in = In.ar(inbus, 2);
@@ -484,6 +493,7 @@ XiiEqualizer {
 			.canFocus_(false)
 			.background_(Color.white)
 			.action_({arg xb; 
+				//("index: " ++ xb.index ++ " value: " ++ xb.value.at(xb.index) ).postln;
 				cFreqWin.string_(freqList.at(xb.index).asString);
 				bandSynthList[xb.index].set(\amp, xb.value.at(xb.index));
 			});
@@ -508,6 +518,7 @@ XiiEqualizer {
 		
 		// inBus
 		SCStaticText(win, 30 @ 15).font_(Font("Helvetica", 9)).string_("inBus").align_(\right); 
+
 		SCPopUpMenu(win, 40 @ 15)
 			.items_(if(channels==1, {monoChList},{stereoChList}))
 			.value_(0)
@@ -518,8 +529,10 @@ XiiEqualizer {
 				if(channels==1, {inbus = ch.value}, {inbus = ch.value * 2});
 				if (fxOn, { eqGroup.set(\inbus, inbus) });
 			});
+
 		// outBus
 		SCStaticText(win, 30 @ 15).font_(Font("Helvetica", 9)).string_("outBus").align_(\right); 
+		
 		SCPopUpMenu(win, 40 @ 15)
 			.items_(if(channels==1, {monoChList},{stereoChList}))
 			.value_(0)
@@ -585,9 +598,9 @@ XiiEqualizer {
 									target: eqGroup)); //addAction: \addToTail
 					})					
 				}); // end if
-				
 		       }) 
 		   }); 
+		
 		// drawing the line
 		win.drawHook = {
 				Color.new255(0, 100, 0, 100).set;
@@ -610,7 +623,6 @@ XiiEqualizer {
 			CmdPeriod.remove(cmdPeriodFunc);
 			~globalWidgetList.do({arg widget, i; if(widget == this, {t = i})});
 			~globalWidgetList.removeAt(t);
-			// write window position to archive.sctxar
 			point = Point(win.bounds.left, win.bounds.top);
 			Archive.global.at(\win_position).put(name.asSymbol, point);
 			}); 
@@ -672,7 +684,6 @@ XiiRandomPanner {
 	}
 }
 
-
 XiiCombVocoder {	
 	var <>gui; // TESTING: TEMP can delete
 
@@ -681,9 +692,9 @@ XiiCombVocoder {
 		}
 		
 	initCombVocoder {arg server, channels;
-
 		var volSpec, delayTailSpec, params, s; 
 		s = server ? Server.local;
+		// mono
 		SynthDef(\xiiCombvocoder1x1, {arg inbus=0,
 							outbus=0, 
 							maxDelay=2, // hardcoded here
@@ -691,7 +702,6 @@ XiiCombVocoder {
 							feedback=0.0, 
 							fxlevel = 0.7, 
 							level=1.0;
-							
 		   var fx, sig; 
 		   sig = In.ar(inbus,1); 
 		   fx = sig + LocalIn.ar(1); 
@@ -708,7 +718,6 @@ XiiCombVocoder {
 							feedback=0.0, 
 							fxlevel = 0.7, 
 							level=1.0;
-							
 		   var fx, sig; 
 		   sig = In.ar(inbus,2); 
 		   fx = sig + LocalIn.ar(2); 
@@ -735,7 +744,7 @@ XiiCombVocoder {
 }
 
 XiiMRRoque {	
-	var <>gui; // TESTING: TEMP can delete
+	var <>gui;
 
 	*new { arg server, channels;
 		^super.new.initMRRoque(server, channels);
@@ -801,7 +810,7 @@ XiiMRRoque {
 }
 
 XiiMultiDelay {	
-	var <>gui; // TESTING: TEMP can delete
+	var <>gui;
 
 	*new { arg server, channels;
 		^super.new.initXiiMultiDelay(server, channels);

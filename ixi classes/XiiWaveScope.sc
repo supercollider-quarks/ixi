@@ -5,7 +5,8 @@ XiiWaveScope {
 	var <server, <numChannels,  <index;
 	var <bufsize, buffer, <window, synth;
 	var n, c, d, sl, style=0, sizeToggle=0, zx, zy, ai=0;
-	var onOffButt;	
+	var onOffButt;
+	
 	
 	*new { arg server, numChannels = 2, index, bufsize = 4096, zoom, view, bufnum;
 		var w;
@@ -60,7 +61,7 @@ XiiWaveScope {
 			
 		zx = n.xZoom.log2;
 		zy = n.yZoom.log2;
-					
+							
 		SCStaticText(view, Rect(20, 18, 30, 18))
 			.string_("inbus :")
 			.resize_(9)
@@ -100,7 +101,11 @@ XiiWaveScope {
 			["Off", Color.black, Color.green(alpha:0.2)]]) 
 			.resize_(9)
 			.action_({ arg view;
-				if(view.value == 1, { this.run },{ this.stop });
+				if(view.value == 1, {
+					this.run;
+				},{
+					this.stop;
+				});
 			})
 			.font_(Font("Helvetica", 9))
 			.canFocus_(false);
@@ -137,7 +142,6 @@ XiiWaveScope {
 				if(char === $s) { this.style = (style + 1) % 2; ^this  };
 				if(char === $S) { this.style = 2;  ^this  };
 				if(char === $j) { this.index = index - 1; ^this  };
-				//if(char === $k) { this.switchRate; ^this  };
 				if(char === $l) { this.index = index + 1 };
 				
 				if(char === $-) {  zx = zx + 0.25; this.xZoom = 2 ** zx; ^this  };
@@ -152,8 +156,9 @@ XiiWaveScope {
 				if(char === $A) {  this.adjustBufferSize; ^this  };
 				if(char === $m) { this.toggleSize; ^this  };
 				if(char === $.) { if(synth.isPlaying) { synth.free } };
-	}
 
+	}
+	
 	setProperties { arg numChannels, index, bufsize=4096, zoom;
 				if(index.notNil) { this.index = index };
 				if(numChannels.notNil) { this.numChannels = numChannels };
@@ -181,7 +186,7 @@ XiiWaveScope {
 		}
 	}
 	
-	stop {
+	stop { // added by THOR
 		if(synth.isPlaying) {
 			synth.free;
 			synth.isPlaying = false;
@@ -201,7 +206,6 @@ XiiWaveScope {
 	}
 	
 	numChannels_ { arg n;
-	
 		var isPlaying;
 		if(n > 16) { "cannot display more than 16 channels at once".inform; n = 16 };
 		if(n != numChannels and: { n > 0 }) {  
@@ -254,4 +258,5 @@ XiiWaveScope {
 		if(ugenScopes.isNil, { ugenScopes = Set.new; });
 		^ugenScopes
 	}
+
 }

@@ -1,4 +1,7 @@
+
 // WARNING: THIS CODE IS 4 YEARS OLD! IT IS A PATCH CONVERTED INTO A CLASS. BAD CODING AHEAD!
+// Oh Dios!
+
 XiiGrainBox {
 	var <>gui;
 	var selbPool, ldSndsGBufferList, sndNameList, fileListPopup, gBufferPoolNum;
@@ -15,13 +18,14 @@ popup, openFile, sndNameTextField, sndNmeFieldList, sndNList, sampleDurList, cpu
 var xfield, yfield, infoFunc, infoButt, record, recorder, s, r, b;
 var startStopButt, randCntrPos;
 var paraDict1, paraDict2, getCenterPos, selbox, p;
-var cmdPeriodFunc, outbusarray;
+var cmdPeriodFunc, outbusarray, channelbuffers;
 
 gBufferPoolNum = 0;
 bufferList = List.new; // contains bufnums of buffers (not buffers)
 sndNameList = [];
 sampleDurList = List.new;
 randCntrPos = [];
+channelbuffers = [nil, nil];
 paraDict1 = ( 'delayTime': 4.55, 'cntrPosRandWidth': 0.01, 'trigRate': 7.49, 'amp': 0.45, 
   'rateRandFreq': 1.96, 'centerPos': 0.79, 'dur': 0.11, 'cntrPosRandFreq': 1.25, 'revVol': 0.03, 
   'decayTime': 1.51, 'aDelTime': 2.97, 'durRandWidth': 0.02, 'pan': 0.41, 'rateRandWidth': 0.03, 
@@ -107,7 +111,7 @@ envView.action_({arg envView; var box;
 					paraDict2.add(\dur -> myvar2);
 					});
 					},
-	{box == 1} -> {var spec, myvar; //"one - red : rate".postln; 
+	{box == 1} -> {var spec, myvar; 
 					spec = [-2, 2, \linear, 0.01, 1].asSpec;
 					myvar = spec.map(envView.value.at(1).at(box));
 					synthsList.at(i).set(\freq, myvar);
@@ -119,7 +123,7 @@ envView.action_({arg envView; var box;
 					paraDict2.add(\freq -> myvar)
 					});
 					},
-	{box == 2} -> {var spec, myvar, dur; // "two - blue : centerPos".postln;
+	{box == 2} -> {var spec, myvar, dur;
 					myvar = getCenterPos.value(envView.value.at(0).at(box), i);
 					if(myvar != nil, {synthsList.at(i).set(\centerPos, myvar)});
 					xfield.string_("centrePos");
@@ -131,7 +135,7 @@ envView.action_({arg envView; var box;
 					});
 					
 					},
-	{box == 3} -> {var spec, myvar, spec2, myvar2; //"three - yellow : pan(x) ^ vol(y)".postln;
+	{box == 3} -> {var spec, myvar, spec2, myvar2;
 					spec = [0.01, 1.0, 0, 0.01, 0.4].asSpec;
 					myvar = spec.map(envView.value.at(0).at(box));
 					spec2 = [0, 0.9, 0, 0.01, 0.1].asSpec;
@@ -147,7 +151,7 @@ envView.action_({arg envView; var box;
 					paraDict2.add(\amp -> myvar2);
 					})
 					},
-	{box == 4} -> {var spec, myvar, spec2, myvar2; //"four - blueALPH : (y)".postln;
+	{box == 4} -> {var spec, myvar, spec2, myvar2;
 					spec = [0, 0.4, 0, 0.01, 0].asSpec;
 					myvar = spec.map(envView.value.at(0).at(box));
 					spec2 = [0, 10, 0, 0.01, 0.1].asSpec;
@@ -163,7 +167,7 @@ envView.action_({arg envView; var box;
 					paraDict2.add(\cntrPosRandFreq -> myvar2);
 					});
 					},
-	{box == 5} -> {var spec, myvar, spec2, myvar2;// "five - orangeALPH : (y)".postln;
+	{box == 5} -> {var spec, myvar, spec2, myvar2;
 					spec = [0, 0.4, 0, 0.01, 0].asSpec;
 					myvar = spec.map(envView.value.at(0).at(box));
 					spec2 = [0, 10, 0, 0.01, 0.1].asSpec;
@@ -179,7 +183,7 @@ envView.action_({arg envView; var box;
 					paraDict2.add(\durRandFreq -> myvar2);
 					})
 					},
-	{box == 6} -> {var spec, myvar, spec2, myvar2; //"six - seagreen : revVol".postln;
+	{box == 6} -> {var spec, myvar, spec2, myvar2;
 					spec = [0, 0.3, 0, 0.01, 0].asSpec;
 					myvar = spec.map(envView.value.at(1).at(box)); // y axis here!
 					synthsList.at(i).set(\revVol, myvar);
@@ -191,7 +195,7 @@ envView.action_({arg envView; var box;
 					paraDict2.add(\revVol -> myvar);
 					})
 					},
-	{box == 7} -> {var spec, myvar, spec2, myvar2;//"seven - seagreenALPH : (y)".postln;
+	{box == 7} -> {var spec, myvar, spec2, myvar2;
 					spec = [0.01, 6.0, 0, 0.01, 0.1].asSpec;
 					myvar = spec.map(envView.value.at(0).at(box));
 					spec2 = [0.01, 10, 0, 0.01, 4.0].asSpec;
@@ -207,7 +211,7 @@ envView.action_({arg envView; var box;
 					paraDict2.add(\decayTime -> myvar2);
 					})
 					},
-	{box == 8} -> {var spec, myvar, spec2, myvar2; //"eight - seagreenALPH : (y)".postln;
+	{box == 8} -> {var spec, myvar, spec2, myvar2;
 					spec = [0.01, 10, 0, 0.01, 0.1].asSpec;
 					myvar = spec.map(envView.value.at(0).at(box));
 					spec2 = [0.01, 20, 0, 0.01, 0.1].asSpec;
@@ -223,7 +227,7 @@ envView.action_({arg envView; var box;
 					paraDict2.add(\aDecTime -> myvar2);
 					})
 					},
-	{box == 9} -> {var spec, myvar, spec2, myvar2; //"nine - redALPH : (y)".postln;
+	{box == 9} -> {var spec, myvar, spec2, myvar2;
 					spec = [0, 0.3, 0, 0.01, 0].asSpec;
 					myvar = spec.map(envView.value.at(0).at(box));
 					spec2 = [0, 10, 0, 0.01, 0.1].asSpec;
@@ -246,6 +250,7 @@ xLoc = Array.newClear(0);
 yLoc = Array.newClear(0); 
 boxLocList = Array.newClear(0);
 
+// make locations for the boxes
 lx = [0.02, 0.25+0.2.rand, 0.1+0.9.rand, 0.4, 0.03, 0.05, 0.5, 0.76, 0.3, 0.1];
 ly = [0.50, 0.75, 0.2, 0.4+0.1.rand, 0.1+0.3.rand, 0.1+0.3.rand, 0.1, 0.1+0.1.rand, 0.1, 0.1+0.2.rand]; // the y locations list
 
@@ -291,11 +296,15 @@ fileListPopup.add(SCPopUpMenu(w,Rect(190+(i*316), 264, 140, 18))
 				selEnd = selStart + ~globalBufferDict.at(poolName)[1][popup.value][1]-1;
 				soundfile = SoundFile.new;
 				soundfile.openRead(filepath);
+				//myBuffer = ~globalBufferList[gBufferPoolNum][0][popup.value];
 				if(soundfile.numChannels == 2, {
+				//myTempBuffer = Buffer.readChannel(s, filepath, 0, soundfile.numFrames, [0]);
 					myTempBuffer = Buffer.readChannel(s, filepath, selStart, selEnd, [0]);
 				}, {
+				// and make a right size buffer if only part of file is selected
 					myTempBuffer = Buffer.read(s, filepath, selStart, selEnd);
 				});
+				channelbuffers.at(i, myTempBuffer);
 				soundfile.close;
 				checkBufLoadTask = Task({
 						inf.do({
@@ -319,6 +328,7 @@ popupOutBus = SCPopUpMenu(w,Rect(127+(i*316), 264,50,18))
 						outbusarray[i] = outbus;
 						synthsList.at(i).set(\out, outbus);
 				});
+	
 });
 // ============================ END OF CHANNEL FUNC ==================================
 
@@ -334,45 +344,10 @@ selbPool = SCPopUpMenu(w, Rect(10, 5, 102, 16))
 		fileListPopup[0].items_(sndNameList);
 		fileListPopup[1].items_(sndNameList);
 		fileListPopup[1].value = 1;
-		
-		if(startStopButt.value == 1, { // if the grainbox is running
-			synthsList.do(_.free);
-			synthsList = List.new;
-			dictArray = [paraDict1, paraDict2];
-			
-			channels.do({arg i;
-				synthsList.add(Synth.new(\xiiGranny, [
-							\out, outbusarray[i],
-							\trigRate, dictArray[i].trigRate,
-							\freq, dictArray[i].freq, 
-							\centerPos, dictArray[i].centerPos, 
-							\dur, dictArray[i].dur, 
-							\pan, dictArray[i].pan, 
-							\amp, dictArray[i].amp, 
-							\buffer, bufferList.at(fileListPopup[i].value),
-							\cntrPosRandWidth, dictArray[i].cntrPosRandWidth,
-							\cntrPosRandFreq, dictArray[i].cntrPosRandFreq, 
-							\durRandWidth, dictArray[i].durRandWidth,  
-							\durRandFreq, dictArray[i].durRandFreq, 
-							\revVol, dictArray[i].revVol,  
-							\delayTime, dictArray[i].delayTime,
-							\decayTime, dictArray[i].decayTime,
-							\aDelTime, dictArray[i].aDelTime,
-							\aDecTime, dictArray[i].aDecTime,
-							\rateRandWidth, dictArray[i].rateRandWidth,
-							\rateRandFreq, dictArray[i].rateRandFreq							]));
-			});
-		});
-
 	});
-
-		 fileListPopup[0].items_(sndNameList);
-		 fileListPopup[1].items_(sndNameList);
-		 fileListPopup[1].value = 1;
-
-		if(sndNameList == [], {
-			selbPool.items_(["no bufferPool"]);
-		});
+	if(sndNameList == [], {
+		selbPool.items_(["no bufferPool"]);
+	});
 
 
 // -----------------------------------------------
@@ -382,6 +357,7 @@ startStopButt = SCButton(w,Rect(10, 30, 102, 18))
 			.font_(Font("Helvetica", 9))			
 			.action_({arg butt; var dictArray;
 				dictArray = [paraDict1, paraDict2];
+				fileListPopup.do({arg popup; popup.action.value(popup.value)}); // load monobuf
 				if(butt.value == 1, {
 					channels.do({arg i;
 						synthsList.add(Synth.new(\xiiGranny, [
@@ -392,7 +368,7 @@ startStopButt = SCButton(w,Rect(10, 30, 102, 18))
 									\dur, dictArray[i].dur, 
 									\pan, dictArray[i].pan, 
 									\amp, dictArray[i].amp, 
-									\buffer, bufferList.at(fileListPopup[i].value),
+									\buffer, channelbuffers.at(i),
 									\cntrPosRandWidth, dictArray[i].cntrPosRandWidth,
 									\cntrPosRandFreq, dictArray[i].cntrPosRandFreq, 
 									\durRandWidth, dictArray[i].durRandWidth,  
@@ -444,8 +420,10 @@ startStopButt = SCButton(w,Rect(10, 30, 102, 18))
 			~globalWidgetList.removeAt(t);
 		});
 
+		// loads stereo files, but converts to mono elsewhere
+
 		ldSndsGBufferList = {arg argPoolName;
-		poolName = argPoolName.asSymbol;
+			poolName = argPoolName.asSymbol;
 			if(try {~globalBufferDict.at(poolName)[0] } != nil, {
 				sndNameList = [];
 				bufferList = List.new;
@@ -455,25 +433,25 @@ startStopButt = SCButton(w,Rect(10, 30, 102, 18))
 					bufferList.add(buffer.bufnum);
 					sampleDurList.add(buffer.numFrames/44100);
 				 });
-				 fileListPopup[0].items_(sndNameList);
-				 fileListPopup[1].items_(sndNameList);
-				 fileListPopup[1].value = 1;
 			}, {
-				"got no files".postln;
 				sndNameList = [];
 			});
 		};
-		
 		ldSndsGBufferList.value(selbPool.items[0].asSymbol);
-		
-		this.updatePoolMenu; // put open pools into menu
-	} // end of init
-	
-	updatePoolMenu {
-		selbPool.items_(~globalBufferDict.keys.asArray);
-		ldSndsGBufferList.value(selbPool.items[0].asSymbol);
+		this.updatePoolMenu;
 	}
 	
+	updatePoolMenu {
+		var pool, poolindex;
+		pool = selbPool.items.at(selbPool.value);  
+		selbPool.items_(~globalBufferDict.keys.asArray);
+		poolindex = selbPool.items.indexOf(pool);
+		if(poolindex != nil, {
+			selbPool.value_(poolindex);
+		});
+	}
+	
+	// ================ THE INFO FUNCTION (CALLED FROM BUTTON) ========================	
 	infoFunc {	 
 		var w, r, colList, stringList, b;
 		colList = [

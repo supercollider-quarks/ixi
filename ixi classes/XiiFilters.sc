@@ -1,5 +1,5 @@
 XiiBandpass {	
-	var <>gui; // TESTING: TEMP can delete
+	var <>gui;
 	
 	*new { arg server, channels;
 		^super.new.initXiiBandpass(server, channels);
@@ -56,19 +56,18 @@ XiiBandpass {
 	}
 }
 
-
-
 XiiLowpass {	
-	var <>gui; // TESTING: TEMP can delete
+	var <>gui;
 	
 	*new { arg server, channels;
 		^super.new.initXiiLowpass(server, channels);
 		}
 		
 	initXiiLowpass {arg server, channels;
-
 		var freqSpec, params, s; 
 		s = server ? Server.local;
+		
+		// mono
 		SynthDef(\xiiLPF1x1, {arg inbus=0,
 							outbus=0, 
 							freq=200, // hardcoded here
@@ -80,6 +79,8 @@ XiiLowpass {
 		Ê Êfx = LPF.ar(sig, freq); 
 		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
 		}).load(s); 	
+
+		// stereo
 		SynthDef(\xiiLPF2x2, {arg inbus=0,
 							outbus=0, 
 							freq=200, // hardcoded here
@@ -108,18 +109,18 @@ XiiLowpass {
 	}
 }
 
-
 XiiHighpass {	
-	var <>gui; // TESTING: TEMP can delete
+	var <>gui;
 	
 	*new { arg server, channels;
 		^super.new.initXiiHighpass(server, channels);
 		}
 		
 	initXiiHighpass {arg server, channels;
-
 		var freqSpec, params, s; 
 		s = server ? Server.local;
+		
+		// mono
 		SynthDef(\xiiHPF1x1, {arg inbus=0,
 							outbus=0, 
 							freq=200, // hardcoded here
@@ -131,6 +132,8 @@ XiiHighpass {
 		Ê Êfx = HPF.ar(sig, freq); 
 		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
 		}).load(s); 	
+
+		// stereo
 		SynthDef(\xiiHPF2x2, {arg inbus=0,
 							outbus=0, 
 							freq=200, // hardcoded here
@@ -161,7 +164,7 @@ XiiHighpass {
 
 
 XiiRLowpass {	
-	var <>gui; // TESTING: TEMP can delete
+	var <>gui;
 	
 	*new { arg server, channels;
 		^super.new.initXiiRLowpass(server, channels);
@@ -170,7 +173,10 @@ XiiRLowpass {
 	initXiiRLowpass {arg server, channels;
 
 		var freqSpec, rqSpec, params, s; 
+		
 		s = server ? Server.local;
+		
+		// mono
 		SynthDef(\xiiRLPF1x1, {arg inbus=0,
 							outbus=0, 
 							freq=200, // hardcoded here
@@ -183,6 +189,8 @@ XiiRLowpass {
 		Ê Êfx = RLPF.ar(sig, freq, rq); 
 		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
 		}).load(s); 	
+
+		// stereo
 		SynthDef(\xiiRLPF2x2, {arg inbus=0,
 							outbus=0, 
 							freq=200, // hardcoded here
@@ -215,7 +223,7 @@ XiiRLowpass {
 
 
 XiiRHighpass {	
-	var <>gui; // TESTING: TEMP can delete
+	var <>gui;
 	
 	*new { arg server, channels;
 		^super.new.initXiiRHighpass(server, channels);
@@ -224,7 +232,10 @@ XiiRHighpass {
 	initXiiRHighpass {arg server, channels;
 
 		var freqSpec, rqSpec, params, s; 
+		
 		s = server ? Server.local;
+		
+		// mono
 		SynthDef(\xiiRHPF1x1, {arg inbus=0,
 							outbus=0, 
 							freq=200, // hardcoded here
@@ -237,6 +248,8 @@ XiiRHighpass {
 		Ê Êfx = RHPF.ar(sig, freq, rq); 
 		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
 		}).load(s); 	
+
+		// stereo
 		SynthDef(\xiiRHPF2x2, {arg inbus=0,
 							outbus=0, 
 							freq=200, // hardcoded here
@@ -267,8 +280,9 @@ XiiRHighpass {
 	}
 }
 
+
 XiiResonant {	
-	var <>gui; // TESTING: TEMP can delete
+	var <>gui;
 	
 	*new { arg server, channels;
 		^super.new.initXiiResonant(server, channels);
@@ -277,7 +291,10 @@ XiiResonant {
 	initXiiResonant {arg server, channels;
 
 		var freqSpec, rqSpec, params, s; 
+		
 		s = server ? Server.local;
+		
+		// mono
 		SynthDef(\xiiResonant1x1, {arg inbus=0,
 							outbus=0, 
 							freq=200, // hardcoded here
@@ -291,6 +308,7 @@ XiiResonant {
 		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
 		}).load(s); 	
 
+		// stereo
 		SynthDef(\xiiResonant2x2, {arg inbus=0,
 							outbus=0, 
 							freq=200, // hardcoded here
@@ -323,16 +341,19 @@ XiiResonant {
 
 
 XiiKlanks {	
-
-	var <>gui; // TESTING: TEMP can delete
+	var <>gui;
 	
 	*new { arg server, channels;
 		^super.new.initXiiKlanks(server, channels);
 		}
 		
 	initXiiKlanks {arg server, channels;
+
 		var freqSpec, gainSpec, ringSpec, params, s; 
+		
 		s = server ? Server.local;
+		
+		// mono
 		SynthDef(\xiiKlanks1x1, {arg inbus=0,
 							outbus=0, gain=0.01,
 							freq1, freq2, freq3, freq4,
@@ -349,6 +370,8 @@ XiiKlanks {
 		Ê Êfx4 = Ringz.ar(sig*gain, freq4, ring4, amp4); 
 		Ê ÊOut.ar(outbus, ((fx1+fx2+fx3+fx4) *fxlevel) + (sig * level)) 
 		}).load(s); 	
+
+		// stereo
 		SynthDef(\xiiKlanks2x2, {arg inbus=0,
 							outbus=0, gain=0.01,
 							freq1, freq2, freq3, freq4,
@@ -386,4 +409,7 @@ XiiKlanks {
 		})
 	}
 }
+
+
+
 

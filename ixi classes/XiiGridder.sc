@@ -12,6 +12,7 @@ XiiGridder {
 	}
 
 	initXiiGridder {arg server;
+		
 		var w, xgrid, ygrid;
 		var statesPop, storeButt, clearButt, clearSeqButt, loadArchive, saveArchive;
 		var fixedRadioButt, drawBoxGrids, trackVolumeSlider;
@@ -66,16 +67,17 @@ XiiGridder {
 		tuningArray = this.makeTuning(12, transposition, maxFreq).reverse;
 		pitchRatioArray = this.makeRatioTuning(12, transposition).reverse;
 		
-		scaleDict = if(Object.readArchive("preferences/gridderScales.ixi") == nil, {
+		scaleDict = if(Object.readArchive("gridderScales.ixi") == nil, {
 					().add(12 -> this.loadScales);
 					}, {
-					 Object.readArchive("preferences/gridderScales.ixi");
+					 Object.readArchive("gridderScales.ixi");
 					});
 
 		scalelib = this.loadScales;
 		scalenames = Array.fill(scalelib.size, {arg i; scalelib[i][0]});
 		this.setPlayFunc_(1);
 		
+		// for the scode (the live-coding window)		
 		synthDefInUse = nil;
 		synthDefPrototype = 
 {SynthDef(\xiiGridder, {arg outbus=0, freq=440, pan=0, amp=1;
@@ -152,7 +154,6 @@ XiiGridder {
 				 });
 				 bufferPop.items_(sndNameList);
 			}, {
-				"got no files".postln;
 				sndNameList = [];
 			});
 			if(sndNameList.size > 0, { 
@@ -179,7 +180,6 @@ XiiGridder {
 					if(soundFuncPop.items[popup.value] == "audiostream", {
 						createAudioStreamBusWin.value;
 					}); 
-					
 					this.setPlayFunc_(popup.value);
 				});
 		
@@ -222,7 +222,6 @@ XiiGridder {
 											gridNodeSampleIndexArray // bufnum on nodes
 										]);
 					scaleDict.add(resolution.asInteger -> scalelib);
-					
 					scalenames = Array.fill(scalelib.size, {arg i; scalelib[i][0]});
 					scalePop.items_(scalenames);
 					scalePop.value_(scalenames.size-1);
@@ -252,19 +251,26 @@ XiiGridder {
 							grid.remove; xgrid.remove; ygrid.remove;
 							createGrids.value(resolution);
 							gridNodeSampleIndexArray = 0!resolution!resolution;
+							// -------- tunings and scales (setting popup menu) -------
 							tuningArray = this.makeTuning(resolution, transposition, maxFreq).reverse;
 							pitchRatioArray = this.makeRatioTuning(resolution, transposition).reverse;
+
+							// get the resolution scales (if any)
 							scalelib = scaleDict.at(resolution.asInteger);
 							if(scalelib == nil, {scalelib = []});
+							// detract the names
 							scalenames = Array.fill(scalelib.size, {arg i; scalelib[i][0]});
+							// put them in popup menu
 							scalePop.items_(scalenames);
+							// load sounds into the gridnodes.
 							if(sndNameList.size > 0, { 
-								gridNodeSampleIndexArray = Array.fill(resolution, {arg i; 
+								gridNodeSampleIndexArray = Array.fill(resolution, {arg i;      // the octave
 								Array.fill(resolution, {arg j; // the notes
 								sndNameList.size.rand; // put a random sound into array 
 							});
-							});
-							});
+					});
+			});
+
 						});
 						
 		maxFreqSl = OSCIISlider.new(w, Rect(10, 180, 100, 8), "- max freq", 400, 8000, 4000, 1)
@@ -428,8 +434,8 @@ XiiGridder {
 					if(xl > (resolution-1), {xl = resolution-2});
 					if(yl > (resolution-1), {yl = resolution-2});
 					// ------------------------------
-
 					oldstate = if(breedFlag, {grid.getState(xl, yl)}, {grid.getRealState(xl, yl)});
+					
 					if(oldstate == 1, {
 						freq = tuningArray[yl][xl];
 						pitchratio = pitchRatioArray[yl][xl];
@@ -463,6 +469,7 @@ XiiGridder {
 					pitchratio = pitchRatioArray[nodeloc[1]][nodeloc[0]]; // for audiostream pitch manipulation
 					
 					sample = gridNodeSampleIndexArray[nodeloc[1]][nodeloc[0]];
+					// 3 interactive modes (play and draw (default), play all, play scales)
 					if(playMode == true, {
 						if(playScaleOnlyMode == true, {
 							if(grid.getState(nodeloc[0], nodeloc[1]) == 0, {
@@ -509,7 +516,6 @@ XiiGridder {
 				.nodeTrackAction_({arg nodeloc; var color, note, microtone;
 					freq = tuningArray[nodeloc[1]][nodeloc[0]];
 					pitchratio = pitchRatioArray[nodeloc[1]][nodeloc[0]];
-					// 3 interactive modes (play and draw (default), play all, play scales)
 					if(playMode == true, {
 						if(playScaleOnlyMode == true, {
 							if(grid.getState(nodeloc[0], nodeloc[1]) == 0, {
@@ -638,14 +644,13 @@ XiiGridder {
 						synthDefInUse = func.string;
 						funcwin.close;
 					});
-
 		};
 		
 		createAudioStreamBusWin = {
 			var win, envview, timesl, setButt;
 			win = SCWindow("audiostream inbus", Rect(200, 450, 250, 100), resizable:false).front;
 			win.alwaysOnTop = true;
-				
+
 			SCStaticText(win, Rect(20, 55, 20, 16))
 				.font_(Font("Helvetica", 9)).string_("in"); 
 
@@ -687,11 +692,11 @@ XiiGridder {
 			CmdPeriod.remove(cmdPeriodFunc);
 			~globalWidgetList.do({arg widget, i; if(widget === this, {t = i})});
 			~globalWidgetList.removeAt(t);
-			scaleDict.writeArchive("preferences/gridderScales.ixi"); 
+			scaleDict.writeArchive("gridderScales.ixi"); 
 		});
+		
 	}
 
-	// an array of pitches in frequency (Hz)
 	makeTuning {arg resolution=12, transposition=1, maxFreq=4000;
 				
 		var freq, fundamental, l, findiiBase, iiBase, iiCounter;
@@ -738,18 +743,25 @@ XiiGridder {
 	}
 
 	updatePoolMenu {
-		selbPool.items_(~globalBufferDict.keys.asArray);
-		ldSndsGBufferList.value(~globalBufferDict.at(selbPool.items[0].asSymbol));
+		var pool, poolindex;
+		pool = selbPool.items.at(selbPool.value);        // get the pool name (string)
+		selbPool.items_(~globalBufferDict.keys.asArray); // put new list of pools
+		poolindex = selbPool.items.indexOf(pool);        // find the index of old pool in new array
+		if(poolindex != nil, {
+			selbPool.value_(poolindex); // so nothing changed, but new poolarray
+		});
 	}
 
 	setPlayFunc_ {arg funcnr=0;
 		playFunc = switch (funcnr,
 			0, { {arg nodeloc; var myBuffer, selStart, selEnd, sample; // the sample player
+
 				sample = gridNodeSampleIndexArray[nodeloc[1]][nodeloc[0]];
 				if(try{~globalBufferDict.at(poolName)[0][sample]} != nil, {
 					myBuffer = ~globalBufferDict.at(poolName)[0][sample];
 					selStart = ~globalBufferDict.at(poolName)[1][sample][0];
 					selEnd = selStart + ~globalBufferDict.at(poolName)[1][sample][1]-1;
+
 					if(myBuffer.numChannels == 1, {
 						Synth(\xiiPrey1x2, [	\outbus, outbus,
 											\bufnum, myBuffer.bufnum, 
@@ -846,7 +858,7 @@ XiiGridder {
 			)
 	}
 
-	loadScales { // mccartney's scale
+	loadScales { // some jmc scales
 		^[
 		// 5 note scales
 			["minorPentatonic", [0,3,5,7,10]],
@@ -921,4 +933,3 @@ XiiGridder {
 		]
 	}
 }
-

@@ -1,8 +1,6 @@
 XixiPainter {
-
 	var drawer, keytracker;
 	var win, bounds;
-//	var downAction, upAction, trackAction, overAction ;
 	var keyDownAction, keyUpAction;
 	var backgrDrawFunc;
 	var background, fillcolor;
@@ -37,7 +35,6 @@ XixiPainter {
 		
 		background = Color.white;
 		
-		// for key tracking
 		keytracker = SCUserView(win, Rect(-10, -10, 2000, 2000))
 			.canFocus_(true)
 			.keyDownFunc_({ |me, key, modifiers, unicode |
@@ -144,7 +141,7 @@ XixiPainter {
 	setFrameRate_ { arg rate;
 		frameRate = rate;
 	}
-
+	
 	background_ {arg color;
 		background = color;
 	}
@@ -159,10 +156,8 @@ XixiPainter {
 	
 	addToDrawList { |object|
 		if(object.isArray, {
-			"adding array to drawlist".postln;
 			drawList = drawList++object;
 		},{
-			"adding object to drawlist".postln;
 			drawList.add(object);	
 		});
 	}
@@ -170,10 +165,8 @@ XixiPainter {
 	replaceDrawList { |object|
 		drawList = List.new;
 		if(object.isArray, {
-			"adding array to drawlist".postln;
 			drawList = drawList++object;
 		},{
-			"adding object to drawlist".postln;
 			drawList.add(object);	
 		});
 	}
@@ -182,6 +175,4 @@ XixiPainter {
 		keytracker.remove;
 		drawer.remove;
 	}
-
 }
-

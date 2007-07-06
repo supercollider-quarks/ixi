@@ -1,7 +1,5 @@
 XiiMixerNode {	
-
 	var <>gui;
-
 	*new { arg server, channels;
 		^super.new.initXiiMixerNode(server, channels);
 		}
@@ -20,7 +18,6 @@ XiiMixerNode {
 		
 		s = server ? Server.local;
 		if(ch==1, {name = "    MixerNode - 1x2"},{name = "    MixerNode - 2x1"});
-
 		channels = ch;
 		stereoChList = XiiACDropDownChannels.getStereoChnList;
 		monoChList =   XiiACDropDownChannels.getMonoChnList;
@@ -49,6 +46,7 @@ XiiMixerNode {
 				
 		spec = ControlSpec(0, 1.0, \amp); // for amplitude in rec slider
 
+		// channels dropdown - INPUT CHANNEL
 		SCStaticText(window, Rect(10, 9, 40, 16)).string_("in");
 		SCPopUpMenu(window,Rect(35, 10, 50, 16))
 			.items_(if(channels==1, {monoChList},{stereoChList}))
@@ -60,7 +58,8 @@ XiiMixerNode {
 				if(channels==1, {inbus = ch.value}, {inbus = ch.value * 2});
 				synth.set(\inbus, inbus );
 			});
-
+			
+		// channels dropdown - OUTPUT CHANNEL
 		SCStaticText(window, Rect(10, 34, 40, 16)).string_("out");
 		SCPopUpMenu(window,Rect(35, 35, 50, 16))
 			.items_(if(channels==1, {stereoChList}, {monoChList}))
@@ -108,7 +107,7 @@ XiiMixerNode {
 					synth.free;
 				});
 			});
-		
+			
 		cmdPeriodFunc = { onOffButt.valueAction_(0)};
 		CmdPeriod.add(cmdPeriodFunc);
 			
@@ -119,7 +118,6 @@ XiiMixerNode {
 			~globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
 			~globalWidgetList.removeAt(t);
 			synth.free;
-			// write window position to archive.sctxar
 			point = Point(window.bounds.left, window.bounds.top);
 			XiiWindowLocation.storeLoc(name, point);
 		});

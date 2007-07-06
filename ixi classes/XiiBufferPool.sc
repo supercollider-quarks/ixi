@@ -1,18 +1,15 @@
 
-
 XiiBufferPool {	
-
 		var <>gui;
-
 		var bufferList, bufferListNames, bufferListSelections;
-	
 		var s, window, <name, point;
 		var recordingName, recButton, r, filename, timeText, secTask, inbus, numChannels;
 		var stereoButt, monoButt, preRecButt;
 		var <bufferPoolNum;
 		var soundFileWindowsList, ram, ramview, fileramview, sendBufferPoolToWidgets;
 		var cmdPeriodFunc;
-		var txtv, ram;
+		var txtv, ram, loadBufTask;
+		var ampslider, ampAnalyserSynth, responder, vuview, amp;
 		
 	*new { arg server, poolname;
 		^super.new.initXiiBufferPool(server, poolname);
@@ -43,6 +40,7 @@ XiiBufferPool {
 		inbus = 0;
 		numChannels = 2;
 		ram = 0;
+		amp = 1.0;
 
 		point = XiiWindowLocation.new(name);
 
@@ -75,7 +73,7 @@ XiiBufferPool {
 		txtv = SCListView(window, Rect(10,15, 200, 145))
 			.items_(bufferListNames)
 			.background_(Color.new255(155, 205, 155, 60))
-			.hiliteColor_(Color.new255(103, 148, 103))
+			.hiliteColor_(Color.new255(103, 148, 103)) //Color.new255(155, 205, 155)
 			.selectedStringColor_(Color.black)
 			.enterKeyAction_({|sbs|
 				if(txtv.items.size > 0, {
@@ -184,27 +182,39 @@ XiiBufferPool {
 								});
 						});
 
-		recordingName = SCTextView(window, Rect(10, 225, 160, 16))
+		recordingName = SCTextView(window, Rect(10, 225, 140, 16))
 				.hasVerticalScroller_(false)
 				.autohidesScrollers_(true)
 				.string_(filename);
 
-		recButton = SCButton(window, Rect(114, 250, 56, 16))
+		recButton = SCButton(window, Rect(104, 250, 46, 16))
 			.states_([["Record",Color.black, Color.clear], ["Stop",Color.red,Color.red(alpha:0.2)]])
 			.font_(Font("Helvetica", 9))
 			.canFocus_(false)
-			.action_({ arg butt; var file, f, filesize, buffer, loadBufTask;
+			.action_({ arg butt; var file, f, filesize, buffer;
 				if(s.serverRunning == true, { // if the server is running
 					if(butt.value == 1, {
 						filename = recordingName.string;
 						if(filename == "", {filename = Date.getDate.stamp.asString});
 						recordingName.string_(filename);
-						r = Record(s, inbus, numChannels);
+						r = XiiRecord(s, inbus, numChannels);
 						r.start("sounds/ixiquarks/"++filename++".aif");
+						r.setAmp_(amp);
 						secTask.start;
+						responder = OSCresponderNode(s.addr,'/tr',{ arg time, responder, msg;
+							if (msg[1] == ampAnalyserSynth.nodeID, {
+								{ vuview.value = \amp.asSpec.unmap(msg[3]) }.defer;
+							});
+						}).add;
+						ampAnalyserSynth = Synth(\xiiVuMeter, 
+							[\bus, inbus, \amp, amp], addAction:\addToTail);
 					}, {
 						r.stop;
 						secTask.stop;
+						ampAnalyserSynth.free;
+						responder.remove;
+						vuview.value = 0;
+
 						file = "sounds/ixiquarks/"++filename++".aif";
 						buffer = Buffer.read(s, file);
 						bufferList.add(buffer);
@@ -212,7 +222,6 @@ XiiBufferPool {
 						txtv.items_(bufferListNames);
 
 						~globalBufferDict.add(name.asSymbol -> [bufferList, bufferListSelections]);
-						// when the buffer is loaded... send it to widgets
 						if(s.serverRunning, {
 						loadBufTask = Task({
 							inf.do({ arg i;
@@ -222,8 +231,8 @@ XiiBufferPool {
 								f.openRead(file);									filesize = f.numFrames * f.numChannels * 2 * 2;
 								ram = ram + (filesize/1000/1000).round(0.01);
 								{ramview.string_(ram.asString)}.defer;
-								bufferListSelections.add([0, f.numFrames-1]);								f.close;
-
+								bufferListSelections.add([0, f.numFrames-1]);
+								f.close;
 								{sendBufferPoolToWidgets.value}.defer;
 								loadBufTask.stop;
 							});
@@ -233,13 +242,27 @@ XiiBufferPool {
 						});
 					});
 				}, {
-					"ixi alert: you need to start the server in order to record".warn;
+					XiiAlert("ixi alert: you need to start the server in order to record");
 					recButton.value_(0);
 				});
 			});	
 		
-		timeText = SCStaticText(window, Rect(70, 250, 40, 16))
+		timeText = SCStaticText(window, Rect(64, 250, 40, 16))
 					.string_("00:00");
+
+		// the vuuuuu meter
+		vuview = XiiVuView(window, Rect(162, 205, 46, 37))
+				.canFocus_(false);
+
+		ampslider = OSCIISlider.new(window, Rect(162, 250, 46, 10), "vol", 0, 1, 1, 0.001, \amp)
+			.font_(Font("Helvetica", 9))
+			.action_({arg sl; 
+				if(recButton.value == 1, {
+					amp = sl.value;
+					r.setAmp_(amp);
+					ampAnalyserSynth.set(\amp, amp);
+				});
+			});
 
 		// record busses
 		SCPopUpMenu(window, Rect(10, 250, 44, 16))
@@ -264,11 +287,10 @@ XiiBufferPool {
 				{timeText.string_(minstring++":"++secstring)}.defer;
 				1.wait;
 			});
-
 		});
 		
 		sendBufferPoolToWidgets = {
-			" - > sending pool buffers to all active quarks < -".postln;
+			" - > sending pool buffers to all active quark instruments < -".postln;
 			~globalWidgetList.do({arg widget;
 				{ // the various widgets that receive and use bufferpools
 				if(widget.isKindOf(XiiBufferPlayer), {widget.updatePoolMenu;});
@@ -277,6 +299,7 @@ XiiBufferPool {
 				if(widget.isKindOf(XiiPolyMachine), {widget.updatePoolMenu;});
 				if(widget.isKindOf(XiiGridder), {widget.updatePoolMenu;});
 				if(widget.isKindOf(XiiSoundScratcher), {widget.updatePoolMenu;});
+				if(widget.isKindOf(XiiMushrooms), {widget.updatePoolMenu;});
 				}.defer;
 			});
 		};
@@ -290,6 +313,7 @@ XiiBufferPool {
 			CmdPeriod.remove(cmdPeriodFunc);
 			soundFileWindowsList.do(_.close);
 			bufferList.do(_.free);
+			loadBufTask.stop;
 			
 			~globalBufferDict.removeAt(name.asSymbol);
 			sendBufferPoolToWidgets.value;
@@ -302,14 +326,16 @@ XiiBufferPool {
 		});
 	}
 	
-	loadBuffers {arg paths, selections; var f, filesize, buffer, loadBufTask;
+	loadBuffers {arg paths, selections; var f, filesize, buffer;
 		paths.do({ arg file;
 			f = SoundFile.new;
 			f.openRead(file);
 			buffer = Buffer.read(s, file);
 			bufferList.add(buffer);
+			// if loading from Cocoa Dialog, then all file is selected:
 			if(selections.isNil, {bufferListSelections.add([0, f.numFrames-1])});
 			bufferListNames = bufferListNames.add(file.basename);
+			// size = frames * channels * bytes * 16 to 32 bit converson
 			filesize = f.numFrames * f.numChannels * 2 * 2;
 			ram = ram + (filesize/1000/1000).round(0.01);
 			f.close;
@@ -317,12 +343,13 @@ XiiBufferPool {
 		txtv.items_(bufferListNames);
 		txtv.focus(true);
 		
+		// if loading from PoolManager, then supply selection list:
 		if(selections.isNil.not, {bufferListSelections = selections});
-		
+
 		~globalBufferDict.add(name.asSymbol -> [bufferList, bufferListSelections]);
+
 		ramview.string_(ram.asString);
-		// update the pools list in active widgets
-		
+				
 		if(s.serverRunning, {
 			loadBufTask = Task({
 				inf.do({arg i;
@@ -335,7 +362,6 @@ XiiBufferPool {
 				});
 			}).start;
 		});
-
 	}
 	
 	getFilePaths {

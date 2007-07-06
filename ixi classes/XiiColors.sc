@@ -3,8 +3,8 @@ XiiColors {
 	
 	classvar <focus= 0.98, <unfocus= 0.93;
 	
-	*darkgreen {
-		^Color.new255(103, 148, 103);
+	*darkgreen { arg alpha=255;
+		^Color.new255(103, 148, 103, alpha:alpha);
 	}
 	
 	*lightgreen {

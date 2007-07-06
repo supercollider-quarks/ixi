@@ -17,6 +17,8 @@ XiiChannelSplitter {
 		addAct = \addToTail;
 		s = server ? Server.local;
 		if(ch==1, {name = "  ChannelSplitter - 1x1"}, {name = "  ChannelSplitter - 2x2"});
+
+		// mono or stereo?
 		channels = ch;
 
 		stereoChList = XiiACDropDownChannels.getStereoChnList;
@@ -54,7 +56,6 @@ XiiChannelSplitter {
 			.canFocus_(false)
 			.action_({ arg ch;
 				if(channels==1, {inbus = ch.value}, {inbus = ch.value * 2});
-				"setting inbus : ".post; inbus.postln;
 				synth.set(\inbus, inbus );
 			});
 			
@@ -68,10 +69,10 @@ XiiChannelSplitter {
 			.canFocus_(false)
 			.action_({ arg ch;
 				if(channels==1, {outbus = ch.value}, {outbus = ch.value * 2});
-				"setting outbus : ".post; outbus.postln;
 				synth.set(\outbus, outbus );
 			});
 			
+		// panning sliders
 		OSCIISlider.new(window, Rect(100, 10, 100, 10), "- amp", 0, 1, 1, 0.01)
 			.action_({arg sl; synth.set(\amp, sl.value)});
 
@@ -91,7 +92,7 @@ XiiChannelSplitter {
 				])
 			.action_({ arg butt;
 				if(butt.value == 1, {
-					if(channels == 1, { //// HERE !!!
+					if(channels == 1, {
 		        			synth = Synth.new(\xiiChannelSplitter1x1, 
 										[\inbus, inbus, \outbus, outbus], 
 										target: tgt.asTarget,
@@ -106,7 +107,7 @@ XiiChannelSplitter {
 					synth.free;
 				});
 			});
-			
+		
 		cmdPeriodFunc = { onOffButt.valueAction_(0)};
 		CmdPeriod.add(cmdPeriodFunc);
 			
