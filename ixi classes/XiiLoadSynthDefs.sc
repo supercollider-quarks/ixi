@@ -31,7 +31,7 @@ XiiLoadSynthDefs {
 		SynthDef(\xiiGrain, {arg outbus=0, bufnum, rate=1, pos=0, dur=0.05, vol=1, envType=0;
 			var signal, env, sineenv, percenv;
 			sineenv = EnvGen.kr(Env.sine(dur, vol), doneAction:2);
-			percenv = EnvGen.kr(Env.perc(0.001, dur, vol), doneAction:2);
+			percenv = EnvGen.kr(Env.perc(0.001, dur*2, vol), doneAction:2);
 			env = Select.kr(envType, [sineenv, percenv]);
 			signal = PlayBuf.ar(1, bufnum, rate, 1.0, pos) * env ;
 			Out.ar(outbus, Pan2.ar(signal, Rand(-0.75, 0.75)));
@@ -45,14 +45,14 @@ XiiLoadSynthDefs {
 			pos = TRand.kr(left, right, clk);
 			rate = TRand.kr(ratelow, ratehigh, clk);
 			pan = WhiteNoise.kr(0.6);
-			Out.ar(outbus, TGrains.ar(2, clk, bufnum, rate, pos, dur, pan, 0.8 * vol)*globalvol);
+			Out.ar(outbus, TGrains.ar(2, clk, bufnum, rate, pos, dur, pan, vol)*globalvol);
 		}).load(s);
 		
 		SynthDef(\xiiGrainsSQ, {arg outbus=0, bufnum, dur=0.3, trate=10, rate, left=0.3, vol=0.2, globalvol=1;
 			var clk, pos, pan;
 			clk = Impulse.kr(trate);
 			pan = WhiteNoise.kr(0.6);
-			Out.ar(outbus, TGrains.ar(2, clk, bufnum, rate, left, dur, pan, 0.8 * vol) * globalvol);
+			Out.ar(outbus, TGrains.ar(2, clk, bufnum, rate, left, dur, pan, vol) * globalvol);
 		}).load(s);
 		
 
@@ -358,13 +358,13 @@ XiiLoadSynthDefs {
 		
 				
 		// -------------- LiveBuffer Synths ----------------------
-		SynthDef(\xiiLiveBufRec,{ arg  inbus=0, bufnum=0, reclevel=1.0, prelevel=0.0;
+		SynthDef(\xiiStratoSamplerRec,{ arg  inbus=0, bufnum=0, reclevel=1.0, prelevel=0.0;
 		    var ain;
 		    ain = In.ar(inbus, 1);     // In
 		    RecordBuf.ar(ain, bufnum, recLevel: reclevel, preLevel: prelevel);
 		}, [0.2, 0.2 , 0.2, 0.2]).load(s);
 	   
-	   SynthDef(\xiiLiveBufPlay,{ arg outbus=0, bufnum,  endloop=1000, amp=1.0; 
+	   SynthDef(\xiiStratoSamplerPlay,{ arg outbus=0, bufnum,  endloop=1000, amp=1.0; 
 			var signal;
 			signal = LoopBuf.ar(1, bufnum, 1, 1, 0, 0, endLoop:endloop) * amp;
 			Out.ar(outbus, signal!2);

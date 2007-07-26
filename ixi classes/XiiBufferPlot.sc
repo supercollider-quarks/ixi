@@ -23,10 +23,15 @@ a.redraw
 
 
 x = SCWindow.new("aa", Rect(100,100, 600, 200)).front;
+b = Buffer.read(s,"sounds/a11wlk01.wav"); // 1 channel
 
 a = XiiBufferPlot.new(b, x, Rect( 100,10, 490, 170))
 
 t = Task({20.do({a.redraw; 1.wait})}).play
+t.stop
+a.remove;
+x.refresh;
+a = XiiBufferPlot.new(b, x, Rect( 100,10, 490, 170))
 
 x = SCWindow.new("aa", Rect(100,100, 815, 510)).front;
 
@@ -64,12 +69,8 @@ XiiBufferPlot {
 	}
 	
 	replot {arg array, numChannels;
-		//"REPL 1".postln;
 		unlaced = array.unlace(numChannels);
 		chanArray = Array.newClear(numChannels);
-		//[\unlaced, unlaced].postln;
-		//[\chanArray, chanArray].postln;
-		//"REPL 2".postln;
 		unlaced.do({ |chan, j|
 			val = Array.newClear(width);
 			width.do({ arg i;
@@ -79,11 +80,9 @@ XiiBufferPlot {
 			});
 			chanArray[j] = val;
 		});
-		//"REPL 3".postln;
 		numChannels.do({ |i|
 			chanPlotter[i].value_(chanArray[i]);
 		});
-		//"REPL 4".postln;
 	}
 	
 	setIndex_{arg index;
@@ -149,6 +148,6 @@ XiiBufferPlot {
 	}
 	
 	remove {
-		chanPlotter.do({arg view; view.remove;});
+		chanPlotter.do({arg view; view.remove });
 	}
 }

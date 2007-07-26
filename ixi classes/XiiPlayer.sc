@@ -1,13 +1,14 @@
 XiiPlayer {	
 
-	var <>gui;
-
-	*new { arg server;
-		^super.new.initXiiPlayer(server);
+	var <>xiigui;
+	var <>win, params;
+	
+	*new { arg server, channels, setting = nil;
+		^super.new.initXiiPlayer(server, channels, setting);
 		}
 		
-	initXiiPlayer {arg server;
-		var window, bgColor, foreColor, spec, outbus;
+	initXiiPlayer {arg server, channels, setting;
+		var bgColor, foreColor, spec, outbus;
 		var s, name, point;
 		var txtv, refreshButton, playButton, r, filename, timeText, secTask;
 		var soundfile, player, buffer, task, volSlider, openButton, volume;
@@ -31,29 +32,42 @@ XiiPlayer {
 		s = server ? Server.default;
 		
 		volume = 0;
-		
-		point = XiiWindowLocation.new(name);
+
+		xiigui = nil; // not using window server class here
+		point = if(setting.isNil, {XiiWindowLocation.new(name)}, {setting[1]});
+		params = if(setting.isNil, {[0,0]}, {setting[2]});
 
 		bgColor = Color.new255(155, 205, 155);
 		foreColor = Color.new255(103, 148, 103);
 		outbus = 0;
 		
-		window = SCWindow.new(name, Rect(point.x, point.y, 222, 195), false).front;
+		win = SCWindow.new(name, Rect(point.x, point.y, 222, 195), false).front;
 
-		timeText = SCStaticText(window, Rect(60, 130, 40, 18))
+		timeText = SCStaticText(win, Rect(60, 130, 40, 18))
 					.string_("00:00");
 					
-		txtv = SCListView(window, Rect(10,10, 200, 110))
+		txtv = SCListView(win, Rect(10,10, 200, 110))
 			.items_(soundNames)
 			.background_(Color.new255(155, 205, 155, 60))
 			.hiliteColor_(Color.new255(103, 148, 103)) //Color.new255(155, 205, 155)
 			.selectedStringColor_(Color.black)
 			.action_({ arg sbs;
 				soundfile = sounds[sbs.value];
-				[\soundfile , soundfile].postln;
 			});
 
-		refreshButton = SCButton(window, Rect(96, 130, 45, 18))
+		SCPopUpMenu(win, Rect(10, 130, 44, 16))
+			.items_(XiiACDropDownChannels.getStereoChnList)
+			.value_(params[0])
+			.background_(Color.white)
+			.font_(Font("Helvetica", 9))
+			.canFocus_(false)
+			.action_({ arg ch;
+				outbus = ch.value * 2;
+				player.set(\outbus, outbus);
+				params[0] = ch.value;
+			});
+
+		refreshButton = SCButton(win, Rect(96, 130, 45, 18))
 			.states_([["Refresh",Color.black, Color.clear]])
 			.font_(Font("Helvetica", 9))
 			.action_({ 
@@ -68,13 +82,13 @@ XiiPlayer {
 				txtv.items_(soundNames);
 			});	
 			
-		openFolderButton = SCButton(window, Rect(147, 130, 18, 18))
+		openFolderButton = SCButton(win, Rect(147, 130, 18, 18))
 			.states_([["f",Color.black, Color.clear]])
 			.font_(Font("Helvetica", 9))
 			.action_({ arg butt;
 				("open "++(String.scDir++"/sounds/ixiquarks")).unixCmd			});
 				
-		openButton = SCButton(window, Rect(170, 130, 40, 18))
+		openButton = SCButton(win, Rect(170, 130, 40, 18))
 			.states_([["Open",Color.black, Color.clear]])
 			.font_(Font("Helvetica", 9))
 			.action_({ arg butt;
@@ -83,7 +97,6 @@ XiiPlayer {
 							paths.do({ arg p;
 								addedSounds = addedSounds.add(p);
 								addedSoundNames = addedSoundNames.add(p.basename);
-								p.postln;
 							});
 							
 							folderSounds = Cocoa.getPathsInDirectory("sounds/ixiquarks");
@@ -101,11 +114,10 @@ XiiPlayer {
 						});
 					});
 				
-		playButton = SCButton(window, Rect(160, 158, 50, 18))
+		playButton = SCButton(win, Rect(160, 158, 50, 18))
 			.states_([["Play",Color.black, Color.clear], ["Stop",Color.black,Color.green(alpha:0.2)]])
 			.font_(Font("Helvetica", 9))
 			.action_({ arg butt; var a, chNum, dur, filepath, pFunc;
-				[\buttvalue, butt.value].postln;
 				if(txtv.items.size > 0, {
 					if(butt.value == 1, {
 						group = Group.new(server, \addToHead);
@@ -117,7 +129,6 @@ XiiPlayer {
 						// play it
 						task = Task({
 							inf.do({ 	
-								//"ooooooooooooooooo file player - looping".postln;
 								if(chNum == 1, {
 									player = Synth(\xiiPlayer1, 
 									[\outbus, outbus, \bufnum, buffer.bufnum, \vol, volume],
@@ -144,24 +155,13 @@ XiiPlayer {
 				});
 			});	
 
-		volSlider = OSCIISlider.new(window, Rect(10, 160, 140, 10), "- vol", 0, 1, 0, 0.001, \amp)
+		volSlider = OSCIISlider.new(win, Rect(10, 160, 140, 10), "- vol", 0, 1, params[1], 0.001, \amp)
 			.font_(Font("Helvetica", 9))
 			.action_({arg sl; 
 						volume = sl.value; 
 						if(player != nil, {player.set(\vol, sl.value)});
+						params[1] = sl.value;
 					});
-
-		// record busses
-		SCPopUpMenu(window, Rect(10, 130, 44, 16))
-			.items_(XiiACDropDownChannels.getStereoChnList)
-			.value_(0)
-			.background_(Color.white)
-			.font_(Font("Helvetica", 9))
-			.canFocus_(false)
-			.action_({ arg ch;
-				outbus = ch.value * 2;
-				player.set(\outbus, outbus);
-			});
 			
 		// updating the seconds text		
 		secTask = Task({var sec, min, secstring, minstring;
@@ -181,15 +181,21 @@ XiiPlayer {
 		cmdPeriodFunc = { playButton.valueAction_(0)};
 		CmdPeriod.add(cmdPeriodFunc);
 
-		window.onClose_({
+		win.onClose_({
 			var t;
 			playButton.valueAction_(0);
 			CmdPeriod.remove(cmdPeriodFunc);
 			~globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
-			~globalWidgetList.removeAt(t);
+			try{~globalWidgetList.removeAt(t)};
 			// write window position to archive.sctxar
-			point = Point(window.bounds.left, window.bounds.top);
+			point = Point(win.bounds.left, win.bounds.top);
 			XiiWindowLocation.storeLoc(name, point);
 		});
+	}
+	
+	getState { // for save settings
+		var point;		
+		point = Point(win.bounds.left, win.bounds.top);
+		^[2, point, params];
 	}
 }

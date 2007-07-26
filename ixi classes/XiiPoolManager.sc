@@ -1,5 +1,6 @@
 XiiPoolManager {
-	var <>gui;
+	var <>xiigui;
+	
 	*new { arg server, channels, rect, pool;
 		^super.new.initXiiPoolManager(server, channels, rect, pool);
 		}
@@ -8,6 +9,8 @@ XiiPoolManager {
 		var win, rect;
 		var selPool, txtv, saveButt, delPool, loadPool;
 		var bufferDict, name, point;
+		
+		xiigui = nil;
 		
 		rect = argrect ? Rect(200, 100, 160, 56);		
 		name = "PoolManager";
@@ -26,7 +29,6 @@ XiiPoolManager {
 			.value_(0)
 			.background_(Color.white)
 			.action_({ arg item;
-				//bufferDict.postln;
 			});
 
 		delPool = SCButton(win, Rect(10, 27, 67, 16))
@@ -88,7 +90,7 @@ XiiPoolManager {
 		win.onClose_({
 			var t;
 			~globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
-			~globalWidgetList.removeAt(t);
+			try{~globalWidgetList.removeAt(t)};
 			point = Point(win.bounds.left, win.bounds.top);
 			XiiWindowLocation.storeLoc(name, point);
 		});

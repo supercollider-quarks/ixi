@@ -1,16 +1,17 @@
 
 XiiBufferPlayer {
 	classvar classIDNum;
-	var <>gui;
+	var <>xiigui, <>win, params;
+	
 	var selbPool, poolName, ldSndsGBufferList;
 	
-	*new {arg server, ch, tracks=8;
-		^super.new.initXiiBufferPlayer(server, ch, tracks);
+	*new {arg server, ch, setting = nil, tracks=8;
+		^super.new.initXiiBufferPlayer(server, ch, setting, tracks);
 	}
 
-	initXiiBufferPlayer {arg server, chnls, tracks;
+	initXiiBufferPlayer {arg server, chnls, setting, tracks;
 
-var win, outmeterl, outmeterr, responder, bufsec, session, quitButt;
+var outmeterl, outmeterr, responder, bufsec, session, quitButt;
 var sndfiles;
 var channels; // = 8; // 8 or 16 is IDEAL !
 var trigID;
@@ -22,7 +23,7 @@ var soundDir;
 var glStartButt, glStopButt, volSlList, panSlList, pitchSlList, startButtList;
 var reLoadSndsGBufferList, gBufferPoolNum;
 var sfdropDownList, globalVolSlider, tracksButt;
-var s, p;
+var s, p, point;
 var idNum, drawRadioButt, createResponder;
 
 if(classIDNum.isNil, {classIDNum = 50});
@@ -44,11 +45,6 @@ sfdropDownList = List.new;
 bufsec = 1;
 gBufferPoolNum = 0;
 
-if(channels <= 8, {
-	windowSize = Rect(260, 600, 1015, 270);
-	}, {
-	windowSize = Rect(260, 600, 1015, 540);
-	});
 
 p = [
 Point(1,7), Point(8, 1), Point(15,1), Point(15,33),Point(24, 23), Point(15,14), Point(15,1), 
@@ -57,7 +53,18 @@ Point(53,43), Point(53,12), Point(44,22), Point(53,33), Point(53,43), Point(42,4
 Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 ];
 
-win = SCWindow.new("ixi multibuffer player", windowSize, resizable:false).front;
+
+xiigui = nil;
+point = if(setting.isNil, {Point(260, 600)}, {setting[1]});
+params = if(setting.isNil, {[1, 0, 0, 1]}, {setting[2]});
+
+if(channels <= 8, {
+	windowSize = Rect(point.x, point.y, 1015, 270);
+	}, {
+	windowSize = Rect(point.x, point.y, 1015, 540);
+	});
+
+win = SCWindow.new("multibuffer player", windowSize, resizable:false).front;
 win.drawHook = {
 	Color.new255(255, 100, 0).set;
 	Pen.width = 3;
@@ -229,6 +236,7 @@ startButtList.add(SCButton(win,Rect(177+(virIndex+i*rowspace), 110+lowRow, 41, 1
 					  ], // the default out bus
 					  s, \addToHead);
 			}, {
+
 				Synth.new(\xiiBufPlayerMONO, 
 					[ \bufnum, ~globalBufferDict.at(poolName)[0][sfdropDownList[i].value].bufnum, 
 					  \trigID, trigID, // the bus for the gui update
@@ -247,7 +255,6 @@ startButtList.add(SCButton(win,Rect(177+(virIndex+i*rowspace), 110+lowRow, 41, 1
 			synthList[i] = nil;			
 		});
 		argList[i][3] = butt.value;
-		butt.value.postln;	
 		});
 	);
 
@@ -359,7 +366,7 @@ pitchSlList.add(OSCIISlider.new(win,
 			synthList.size.do({arg i; synthList[i].free;});
 			bufferList = nil;
 			~globalWidgetList.do({arg widget, i; if(widget === this, {t = i})});
-			~globalWidgetList.removeAt(t);
+			try{~globalWidgetList.removeAt(t)};
 		
 		});
 		classIDNum = classIDNum + 50; // increase the classvar in case the user opens another bp
@@ -374,4 +381,11 @@ pitchSlList.add(OSCIISlider.new(win,
 			selbPool.value_(poolindex);
 		});
 	}
+
+	getState { // for save settings
+		var point;
+		point = Point(win.bounds.left, win.bounds.top);
+		^[2, point, params];
+	}
+	
 }

@@ -1,17 +1,19 @@
+
 XiiPolyMachine {	
-	var <>gui;
+
+	var <>xiigui, <>win, params;
 	
 	var bufferPopUpArray, ldSndsGBufferList, sndfiles, gBufferPoolNum, selbPool, bufNumArray;
 	var stateDict, stateNum, poolName;
 	var cmdPeriodFunc;
 	
-	*new { arg server;
-		^super.new.initXiiPolyMachine(server);
+	*new { arg server, channels, setting = nil;
+		^super.new.initXiiPolyMachine(server, channels, setting);
 		}
 		
-	initXiiPolyMachine {arg server;
+	initXiiPolyMachine {arg server, channel, setting;
 
-		var w, stepsArray, tClock, globalvol;
+		var stepsArray, tClock, globalvol;
 		var indexBoxArray, selectBoxArray, clockArray, volArray;
 		var startSequencer, startButt, volumeSlider, tempoSlider, outbusPoP;
 		var meter, fixedBoxSize, outbus, tempo, synthGroup, inbusArray;
@@ -21,6 +23,7 @@ XiiPolyMachine {
 		var createCodeWin, codeArray, codeFlagArray, audioStreamFlagArray;
 		var synthPrototypeArray;
 		var createEnvWin, envArray, envFlagArray, createAudioStreamBusWin;
+		var point;
 		
 		fixedBoxSize = true;
 		meter = [16, 16, 16, 16];
@@ -45,17 +48,23 @@ XiiPolyMachine {
 	sine ! 2
 }.play");
 
-		w = SCWindow("ixi polymachine", Rect(10, 590, 760, 260), resizable:false).front;
+
+xiigui = nil;
+point = if(setting.isNil, {Point(10, 500)}, {setting[1]});
+params = if(setting.isNil, {[1, 0]}, {setting[2]});
+
+
+		win = SCWindow("ixi polymachine", Rect(point.x, point.y, 760, 260), resizable:false).front;
 		
 		indexBoxArray = Array.fill(4, {arg i;
-			BoxGrid.new(w, bounds: Rect(260, 10+(i*60), 16*30, 12), columns: 16, rows: 1)
+			BoxGrid.new(win, bounds: Rect(260, 10+(i*60), 16*30, 12), columns: 16, rows: 1)
 				.setFillMode_(true)
 				.setNodeBorder_(4)
 				.setFillColor_(Color.white);
 		});
 		
 		selectBoxArray = Array.fill(4, {arg i;
-			BoxGrid.new(w, bounds: Rect(260, 30+(i*60), 16*30, 23), columns: 16, rows: 1)
+			BoxGrid.new(win, bounds: Rect(260, 30+(i*60), 16*30, 23), columns: 16, rows: 1)
 				.setBackgrColor_(XiiColors.lightgreen)
 				.setFillMode_(true)
 				.setNodeBorder_(5)
@@ -74,13 +83,13 @@ XiiPolyMachine {
 			if(fixedBoxSize == false, {
 				fixedRadioButt.value_(0);
 				indexBoxArray[i].remove; selectBoxArray[i].remove; // remove the views
-				w.bounds_(Rect(w.bounds.left, w.bounds.top, 760, 260));
-				indexBoxArray[i]=BoxGrid.new(w, Rect(260, 10+(i*60), 16*30, 12), numCol,1)
+				win.bounds_(Rect(win.bounds.left, win.bounds.top, 760, 260));
+				indexBoxArray[i]=BoxGrid.new(win, Rect(260, 10+(i*60), 16*30, 12), numCol,1)
 						.setFillMode_(true)
 						.setNodeBorder_(4)
 						.setFillColor_(Color.white);
 				selectBoxArray[i] = 
-				BoxGrid.new(w, Rect(260, 30+(i*60), 16*30, 23), numCol, 1)
+				BoxGrid.new(win, Rect(260, 30+(i*60), 16*30, 23), numCol, 1)
 						.setBackgrColor_(XiiColors.lightgreen)
 						.setFillMode_(true)
 						.setNodeBorder_(5)
@@ -94,14 +103,14 @@ XiiPolyMachine {
 				fixedRadioButt.value_(1);
 				indexBoxArray[i].remove; selectBoxArray[i].remove;
 				incr = meter.copy.sort.top - 16;
-				w.bounds_(Rect(w.bounds.left, w.bounds.top, 760+(incr*30), 260));
+				win.bounds_(Rect(win.bounds.left, win.bounds.top, 760+(incr*30), 260));
 				indexBoxArray[i] = 
-				BoxGrid.new(w, Rect(260, 10+(i*60), numCol*30, 12), numCol, 1)
+				BoxGrid.new(win, Rect(260, 10+(i*60), numCol*30, 12), numCol, 1)
 						.setFillMode_(true)
 						.setNodeBorder_(4)
 						.setFillColor_(Color.white);
 				selectBoxArray[i] = 
-				BoxGrid.new(w, Rect(260, 30+(i*60), numCol*30, 23), numCol, 1)
+				BoxGrid.new(win, Rect(260, 30+(i*60), numCol*30, 23), numCol, 1)
 						.setBackgrColor_(XiiColors.lightgreen)
 						.setFillMode_(true)
 						.setNodeBorder_(5)
@@ -112,11 +121,11 @@ XiiPolyMachine {
 							createCodeWin.value(i, nodeloc[0]);
 						});
 			});
-			w.refresh;
+			win.refresh;
 		};
 
 		stepsArray = Array.fill(4, {arg i;
-			OSCIISlider(w, Rect(130, 10+(i*60), 60, 8), "- steps", 2, 32, 16, 1)
+			OSCIISlider(win, Rect(130, 10+(i*60), 60, 8), "- steps", 2, 32, 16, 1)
 				.font_(Font("Helvetica", 9))
 				.action_({ arg sl;
 					drawBoxGrids.value(sl.value, i, true);
@@ -124,7 +133,7 @@ XiiPolyMachine {
 		});
 		
 		envButtArray = Array.fill(4, {arg i;
-			SCButton(w, Rect(196, 10+(i*60) , 15, 16))
+			SCButton(win, Rect(196, 10+(i*60) , 15, 16))
 				.states_([["e", Color.black, Color.clear]])
 				.font_(Font("Helvetica", 9))
 				.canFocus_(false)
@@ -133,7 +142,7 @@ XiiPolyMachine {
 		});
 
 		envButtOnOffArray = Array.fill(4, {arg i;
-			SCButton(w, Rect(214, 10+(i*60) , 15, 16))
+			SCButton(win, Rect(214, 10+(i*60) , 15, 16))
 				.states_([["x", Color.black, Color.clear], ["o", Color.black, XiiColors.darkgreen]])
 				.font_(Font("Helvetica", 9))
 				.canFocus_(false)
@@ -147,7 +156,7 @@ XiiPolyMachine {
 				});
 		});
 		
-		selbPool = SCPopUpMenu(w, Rect(10, 10, 100, 16))
+		selbPool = SCPopUpMenu(win, Rect(10, 10, 100, 16))
 			.font_(Font("Helvetica", 9))
 			.items_(if(~globalBufferDict.keys.asArray == [], {["no pool"]}, {~globalBufferDict.keys.asArray}))
 			.value_(0)
@@ -184,7 +193,7 @@ XiiPolyMachine {
 		ldSndsGBufferList.value(selbPool.items[0].asSymbol);
 		
 		bufferPopUpArray = Array.fill(4, {arg i;
-			SCPopUpMenu(w, Rect(130, 37+(i*60) , 100, 18))
+			SCPopUpMenu(win, Rect(130, 37+(i*60) , 100, 18))
 				.items_(sndfiles)
 				.value_(if(sndfiles.size==2, {0}, {i%sndfiles.size}))
 				.font_(Font("Helvetica", 9))
@@ -208,7 +217,7 @@ XiiPolyMachine {
 		});
 		
 		trackVolumeSlider = Array.fill(4, {arg i;
-			SCMultiSliderView(w, Rect(240, 10+(i*60), 12, 45))
+			SCMultiSliderView(win, Rect(240, 10+(i*60), 12, 45))
 				.value_([0.9])		
 				.isFilled_(true)
 				.canFocus_(false)
@@ -223,7 +232,7 @@ XiiPolyMachine {
 		});
 				
 		
-		statesPop = SCPopUpMenu(w, Rect(10, 32, 100, 16))
+		statesPop = SCPopUpMenu(win, Rect(10, 32, 100, 16))
 			.font_(Font("Helvetica", 9))
 			.items_(["states"])
 			.value_(0)
@@ -238,7 +247,9 @@ XiiPolyMachine {
 				envArray = chosenstate[8].copy;
 				envFlagArray = chosenstate[9].copy;
 				clockArray.do({arg clock; clock.tempo_(tempo)});
-				envButtOnOffArray.do({arg butt, i; if(chosenstate[9][i] == true, {"true".postln; butt.value_(1)}, {"false".postln; butt.value_(0)}) });
+				envButtOnOffArray.do({arg butt, i; 
+					if(chosenstate[9][i] == true, {butt.value_(1)}, 
+					{butt.value_(0)}) });
 				4.do({arg i; drawBoxGrids.value(chosenstate[i].size, i);});
 				selectBoxArray.do({arg boxgrid, i; boxgrid.setNodeStates_([chosenstate[i]])});
 				trackVolumeSlider.do({arg sl, i; sl.value_([volArray[i]]); });
@@ -246,7 +257,7 @@ XiiPolyMachine {
 				});
 			});
 			
-		clearButt = SCButton(w, Rect(10, 57, 47, 18))
+		clearButt = SCButton(win, Rect(10, 57, 47, 18))
 			.canFocus_(false)
 			.font_(Font("Helvetica", 9))
 			.states_([["clear", Color.black, Color.clear]])
@@ -256,7 +267,7 @@ XiiPolyMachine {
 				statesPop.items_(["states"]);
 			});
 
-		storeButt = SCButton(w, Rect(60, 57, 47, 18))
+		storeButt = SCButton(win, Rect(60, 57, 47, 18))
 			.canFocus_(false)
 			.font_(Font("Helvetica", 9))
 			.states_([["store", Color.black, Color.clear]])
@@ -274,7 +285,7 @@ XiiPolyMachine {
 				stateDict.add(("state "++stateNum.asString).asSymbol -> statesarray);
 			});
 
-		clearSeqButt = SCButton(w, Rect(10, 82, 97, 18))
+		clearSeqButt = SCButton(win, Rect(10, 82, 97, 18))
 			.canFocus_(false)
 			.font_(Font("Helvetica", 9))
 			.states_([["clear sequencer", Color.black, Color.clear]])
@@ -282,7 +293,7 @@ XiiPolyMachine {
 				selectBoxArray.do({arg boxgrid; boxgrid.clearGrid});
 			});
 
-		loadArchive = SCButton(w, Rect(10, 107, 47, 18))
+		loadArchive = SCButton(win, Rect(10, 107, 47, 18))
 			.canFocus_(false)
 			.font_(Font("Helvetica", 9))
 			.states_([["load", Color.black, Color.clear]])
@@ -312,7 +323,7 @@ XiiPolyMachine {
 				});
 			});
 
-		saveArchive = SCButton(w, Rect(60, 107, 47, 18))
+		saveArchive = SCButton(win, Rect(60, 107, 47, 18))
 			.canFocus_(false)
 			.font_(Font("Helvetica", 9))
 			.states_([["save", Color.black, Color.clear]])
@@ -324,7 +335,7 @@ XiiPolyMachine {
 				});
 			});
 			
-		fixedRadioButt = OSCIIRadioButton(w, Rect(10, 132, 14, 14), "fixed boxsize")
+		fixedRadioButt = OSCIIRadioButton(win, Rect(10, 132, 14, 14), "fixed boxsize")
 				.font_(Font("Helvetica", 9))
 				.value_(1)
 				.action_({arg butt; var boxarray;
@@ -338,27 +349,29 @@ XiiPolyMachine {
 					});
 				});
 
-		tempoSlider = OSCIISlider.new(w, Rect(10, 157, 100, 8), "- tempo", 60, 240, 120, 1)
+		tempoSlider = OSCIISlider.new(win, Rect(10, 157, 100, 8), "- tempo", 60, 480, 120, 1)
 						.font_(Font("Helvetica", 9))						.action_({arg sl; 
 							tempo = sl.value/60;
 							clockArray.do({arg clock; clock.tempo_(tempo)});
 						});
 		
-		volumeSlider = OSCIISlider.new(w, Rect(10, 187, 100, 8), "- vol", 0, 1.0, 1, 0.01, \amp)
+		volumeSlider = OSCIISlider.new(win, Rect(10, 187, 100, 8), "- vol", 0, 1.0, 1, 0.01, \amp)
 					.font_(Font("Helvetica", 9))
 					.action_({arg sl; 
 							globalvol = sl.value;
+							params[0] = sl.value;
 						});
 						
-		outbusPoP = SCPopUpMenu(w, Rect(10, 218, 50, 16))			.font_(Font("Helvetica", 9))
+		outbusPoP = SCPopUpMenu(win, Rect(10, 218, 50, 16))			.font_(Font("Helvetica", 9))
 			.items_(XiiACDropDownChannels.getStereoChnList)
 			.value_(0)
 			.background_(Color.white)
 			.action_({ arg ch;
 				outbus = ch.value * 2;
+				params[1] = ch.value;
 			});
 
-		startButt = SCButton(w, Rect(65, 217, 45, 18))
+		startButt = SCButton(win, Rect(65, 217, 45, 18))
 			.states_([["start", Color.black, Color.clear],
 					["stop", Color.black, XiiColors.onbutton]])
 			.font_(Font("Helvetica", 9))
@@ -376,13 +389,14 @@ XiiPolyMachine {
 			synthGroup = Group.new;
 			clockArray = Array.fill(4, {arg i;
 				tClock = TempoClock(tempo);
-				tClock.schedAbs(tClock.beats.ceil, { arg beat, sec; var buffer, start, end, code, times;
+				tClock.schedAbs(tClock.beats.ceil, { arg beat, sec; var buffer, start, end, code, times, tempsynthdef;
 					if(selectBoxArray[i].getState(beat%meter[i], 0) == 1, {
 						if(codeFlagArray[i] == true, { // sample or code?
 							if(codeArray[i].at((beat%meter[i]).abs.asInteger) != nil, {
 								code = codeArray[i].at((beat%meter[i]).abs.asInteger);
 								if(code[code.size-4..code.size] == "play", {
-									(code++"(outbus:"+outbus+")").interpret;
+									tempsynthdef = (code++"(outbus:"+outbus+")").interpret;
+									{server.sendMsg(\d_free, tempsynthdef.defName);}.defer(0.1); // free temp synthDef
 								}, {
 									code.interpret.value; // if it's not synth code
 								});
@@ -462,7 +476,6 @@ XiiPolyMachine {
 				func = SCTextView(view, Rect(20, 20, 360, 120))
 						.font_(Font("Monaco", 9))
 						.resize_(5)
-						.focus(true)
 						.string_(
 							if(codeArray[dictIndex][slot.asInteger]==nil, {
 								synthPrototypeArray[dictIndex];
@@ -481,6 +494,7 @@ XiiPolyMachine {
 				subm = SCButton(view, Rect(330,150,50,18))
 						.states_([["submit",Color.black,Color.clear]])
 						.resize_(9)
+						.focus(true)
 						.font_(Font("Helvetica", 9))
 						.action_({
 							codeArray[dictIndex].put(slot.asInteger, func.string);
@@ -502,7 +516,7 @@ XiiPolyMachine {
 				.drawRects_(true)
 				.background_(XiiColors.lightgreen)
 				.fillColor_(XiiColors.darkgreen)
-				.action_({arg b; [b.index,b.value].postln})
+				.action_({arg b;})
 				.thumbSize_(5)
 				.env2viewFormat_(Env.new(envArray[index][0], envArray[index][1]))
 				.setEditable(0, false);
@@ -518,7 +532,6 @@ XiiPolyMachine {
 					.font_(Font("Helvetica", 9))
 					.action_({
 						envArray[index] = envview.view2envFormat ++ timesl.value; // levels, times, duration
-						envArray.postln;
 						win.close;
 					});
 		};
@@ -560,13 +573,18 @@ XiiPolyMachine {
 		cmdPeriodFunc = { startButt.valueAction_(0);};
 		CmdPeriod.add(cmdPeriodFunc);
 		
-		w.onClose_({
+		win.onClose_({
 			var t;
 			clockArray.do(_.stop);
 			CmdPeriod.remove(cmdPeriodFunc);
 			~globalWidgetList.do({arg widget, i; if(widget === this, {t = i})});
-			~globalWidgetList.removeAt(t);
+			try{~globalWidgetList.removeAt(t)};
 		});
+
+		// setting		
+		volumeSlider.valueAction_(params[0]);
+		outbusPoP.valueAction_(params[1]);
+		
 	}
 	
 	updatePoolMenu {
@@ -578,4 +596,11 @@ XiiPolyMachine {
 			selbPool.value_(poolindex); // so nothing changed, but new poolarray
 		});
 	}	
+	
+	getState { // for save settings
+		var point;
+		point = Point(win.bounds.left, win.bounds.top);
+		^[2, point, params];
+	}
+
 }

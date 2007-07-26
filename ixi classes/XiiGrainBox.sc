@@ -1,25 +1,27 @@
 
-// WARNING: THIS CODE IS 4 YEARS OLD! IT IS A PATCH CONVERTED INTO A CLASS. BAD CODING AHEAD!
+// WARNING: THIS CODE IS 4-5 YEARS OLD! IT IS A PATCH CONVERTED INTO A CLASS. BAD CODING AHEAD!
 // Oh Dios!
 
 XiiGrainBox {
-	var <>gui;
+	var <>xiigui, <>win, params;
+
 	var selbPool, ldSndsGBufferList, sndNameList, fileListPopup, gBufferPoolNum;
-	var poolName;
+	var poolName, envViewList;
 	
-	*new {arg server;
-		^super.new.initXiiGrainBox(server);
+	*new {arg server, channels, setting = nil;
+		^super.new.initXiiGrainBox(server, channels, setting);
 	}
 
-	initXiiGrainBox {arg server;
+	initXiiGrainBox {arg server, channels, setting;
 	
-var w, envView, nPoints, xLoc, yLoc, boxLocList, synth, ly, lx, channels, synthsList, bufferList, 
+var w, envView, nPoints, xLoc, yLoc, boxLocList, synth, ly, lx, synthsList, bufferList, 
 popup, openFile, sndNameTextField, sndNmeFieldList, sndNList, sampleDurList, cpu, popupOutBus;
 var xfield, yfield, infoFunc, infoButt, record, recorder, s, r, b;
 var startStopButt, randCntrPos;
 var paraDict1, paraDict2, getCenterPos, selbox, p;
-var cmdPeriodFunc, outbusarray, channelbuffers;
+var cmdPeriodFunc, outbusarray, channelbuffers, point, glVolSlider;
 
+envViewList = List.new;
 gBufferPoolNum = 0;
 bufferList = List.new; // contains bufnums of buffers (not buffers)
 sndNameList = [];
@@ -40,7 +42,6 @@ channels = 2; // how many granular channels are there?
 
 synthsList = List.new;
 fileListPopup = List.new;
-outbusarray = [0,0];
 
 p = [
 Point(1,7), Point(8, 1), Point(15,1), Point(15,33),Point(24, 23), Point(15,14), Point(15,1), 
@@ -49,8 +50,13 @@ Point(53,43), Point(53,12), Point(44,22), Point(53,33), Point(53,43), Point(42,4
 Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 ];
 
-w = SCWindow.new("   grainBox", Rect(320, 730, 756, 300), resizable:false).front;
-w.drawHook = {
+xiigui = nil;
+point = if(setting.isNil, {Point(320, 730)}, {setting[1]});
+params = if(setting.isNil, {[1, [0,0]]}, {setting[2]});
+outbusarray = params[1];
+
+win = SCWindow.new("   grainBox", Rect(point.x, point.y, 756, 300), resizable:false).front;
+win.drawHook = {
 	Color.new255(255, 100, 0).set;
 	Pen.width = 3;
 	Pen.translate(45,210);
@@ -61,7 +67,7 @@ w.drawHook = {
 	});
 	Pen.stroke
 };
-w.refresh;
+win.refresh;
 
 
 getCenterPos = { arg envval, i; var spec, myvar;
@@ -83,15 +89,17 @@ channels.do({arg i; var sampleInSec, r, c; // LOOP
 	});
 
 // ===================== ENVELOPE VIEW CODE ==============================
-envView = SCEnvelopeView(w, Rect(125+(i*316), 5, 300, 250));
-envView.thumbSize_(8.0); // Sets size of all points, revised code
-envView.fillColor_(Color.clear);
-envView.background_(Color.new255(255, 255, 255, 155));
-envView.drawLines_(false);
-envView.selectionColor_(Color.white);
-envView.drawRects_(true);
-envView.canFocus_(false);
-envView.action_({arg envView; var box;	
+envViewList.add(
+envView = SCEnvelopeView(win, Rect(125+(i*316), 5, 300, 250))
+			.thumbSize_(8.0)
+			.fillColor_(Color.clear)
+			.background_(Color.new255(255, 255, 255, 155))
+			.drawLines_(false)
+			.selectionColor_(Color.white)
+			.drawRects_(true)
+			.canFocus_(false)
+			.action_({arg envView; var box;	
+	
 	box = envView.index;
 	selbox = box; // select the box for key updates
 	
@@ -245,7 +253,8 @@ envView.action_({arg envView; var box;
 					}
 	].case;
 	});
-	
+);
+
 xLoc = Array.newClear(0);
 yLoc = Array.newClear(0); 
 boxLocList = Array.newClear(0);
@@ -259,7 +268,9 @@ nPoints.do({arg i;
 	yLoc = yLoc.add(ly.at(i));
 	});
 boxLocList = Array.with(xLoc,yLoc);
-envView.value_(boxLocList);
+//envView.value_(boxLocList);
+
+if(setting.isNil, {envView.value_(boxLocList);}, {envView.value_(params[2+i]);});
 
 c = [
 Color.new255(255, 140, 0), // Orange
@@ -284,7 +295,7 @@ envView.select(-1);
 
 // ================================ END OF ENVELOPE VIEW CODE ======================
 
-fileListPopup.add(SCPopUpMenu(w,Rect(190+(i*316), 264, 140, 18))
+fileListPopup.add(SCPopUpMenu(win,Rect(190+(i*316), 264, 140, 18))
 			.font_(Font("Helvetica", 9))
 			.items_(sndNameList)
 			.background_(Color.new255(255, 255, 255))
@@ -318,21 +329,23 @@ fileListPopup.add(SCPopUpMenu(w,Rect(190+(i*316), 264, 140, 18))
 				});
 		);
 
-popupOutBus = SCPopUpMenu(w,Rect(127+(i*316), 264,50,18))
+popupOutBus = SCPopUpMenu(win,Rect(127+(i*316), 264,50,18))
 				.font_(Font("Helvetica", 9))
 				.items_(XiiACDropDownChannels.getStereoChnList)
 				.background_(Color.new255(255, 255, 255))
-				.value_(0)
+				.value_(outbusarray[i])
 				.action_({ arg popup; var outbus;
 						outbus = popup.value * 2;
 						outbusarray[i] = outbus;
 						synthsList.at(i).set(\out, outbus);
+						params[1] = outbusarray; // put both in here
 				});
 	
 });
 // ============================ END OF CHANNEL FUNC ==================================
 
-selbPool = SCPopUpMenu(w, Rect(10, 5, 102, 16))
+
+selbPool = SCPopUpMenu(win, Rect(10, 5, 102, 16))
 	.font_(Font("Helvetica", 9))
 	.items_(if(~globalBufferDict.keys.asArray == [], {["no pool"]}, {~globalBufferDict.keys.asArray}))
 	.value_(0)
@@ -352,7 +365,7 @@ selbPool = SCPopUpMenu(w, Rect(10, 5, 102, 16))
 
 // -----------------------------------------------
 
-startStopButt = SCButton(w,Rect(10, 30, 102, 18))
+startStopButt = SCButton(win,Rect(10, 30, 102, 18))
 			.states_([["start",Color.black,Color.clear],["stop",Color.black,Color.green(alpha:0.2)]])
 			.font_(Font("Helvetica", 9))			
 			.action_({arg butt; var dictArray;
@@ -387,23 +400,24 @@ startStopButt = SCButton(w,Rect(10, 30, 102, 18))
 				});
 			});
 
-		OSCIISlider.new(w, Rect(10, 60, 100, 8), "- vol", 0, 1, 1, 0.01, \amp)
+		glVolSlider = OSCIISlider.new(win, Rect(10, 60, 100, 8), "- vol", 0, 1, 1, 0.01, \amp)
 			.canFocus_(false)
 			.action_({arg sl;
 				synthsList.do({arg synth; synth.set(\vol, sl.value)});
+				params[0] = sl.value;
 			});
 		
-		SCStaticText(w, Rect(10, 104, 230, 15)).string_("x = ");
-		SCStaticText(w, Rect(10, 130, 230, 15)).string_("y = ");
-		xfield = 	SCTextField(w,Rect(32,104,78,18));
+		SCStaticText(win, Rect(10, 104, 230, 15)).string_("x = ");
+		SCStaticText(win, Rect(10, 130, 230, 15)).string_("y = ");
+		xfield = 	SCTextField(win,Rect(32,104,78,18));
 					xfield.font_(Font("Helvetica", 10));
 					xfield.setProperty(\align,\center);
-		yfield = 	SCTextField(w,Rect(32,130,78,18));
+		yfield = 	SCTextField(win,Rect(32,130,78,18));
 					yfield.font_(Font("Helvetica", 10));
 					yfield.setProperty(\align,\center);
 		
 		
-		infoButt = SCButton(w,Rect(10, 156, 102, 18))
+		infoButt = SCButton(win,Rect(10, 156, 102, 18))
 					.states_([["colour info"]])
 					.font_(Font("Helvetica", 9))
 					.background_(Color.new255(160, 170, 255, 100))
@@ -412,12 +426,12 @@ startStopButt = SCButton(w,Rect(10, 30, 102, 18))
 		cmdPeriodFunc = { startStopButt.valueAction_(0);};
 		CmdPeriod.add(cmdPeriodFunc);
 		
-		w.onClose_({
+		win.onClose_({
 			var t;
 			CmdPeriod.remove(cmdPeriodFunc);
 			synthsList.do(_.free);
-			~globalWidgetList.do({arg widget, i; if(widget === this, {t = i})});
-			~globalWidgetList.removeAt(t);
+			~globalWidgetList.do({arg widget, i; if(widget == this, {t = i})});
+			try{~globalWidgetList.removeAt(t)};
 		});
 
 		// loads stereo files, but converts to mono elsewhere
@@ -439,6 +453,9 @@ startStopButt = SCButton(w,Rect(10, 30, 102, 18))
 		};
 		ldSndsGBufferList.value(selbPool.items[0].asSymbol);
 		this.updatePoolMenu;
+		
+		glVolSlider.valueAction_(params[0]);
+		
 	}
 	
 	updatePoolMenu {
@@ -490,10 +507,21 @@ startStopButt = SCButton(w,Rect(10, 30, 102, 18))
 		});
 		AppClock.play(r);
 		10.do({arg i;		
-			b = 	SCTextField(w,Rect(20,20+(i*40),30,30));
+			b = 	SCTextField(win,Rect(20,20+(i*40),30,30));
 			b.setProperty(\boxColor,colList.at(i));
-			SCStaticText(w, Rect(60, 18+(i*40), 230, 15)).string_(stringList[i][0]);
-			SCStaticText(w, Rect(60, 34+(i*40), 230, 15)).string_(stringList[i][1]);
+			SCStaticText(win, Rect(60, 18+(i*40), 230, 15)).string_(stringList[i][0]);
+			SCStaticText(win, Rect(60, 34+(i*40), 230, 15)).string_(stringList[i][1]);
 			});
 	}
+	
+	getState { // for save settings
+		var point;
+		point = Point(win.bounds.left, win.bounds.top);
+		
+		params = [params[0], params[1]]
+						.add(envViewList[0].value.round(0.01)) // had to round due to problems
+						.add(envViewList[1].value.round(0.01)); // with float res in archive
+		^[2, point, params];
+	}
+
 }

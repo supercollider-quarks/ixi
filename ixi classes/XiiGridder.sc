@@ -1,5 +1,5 @@
 XiiGridder {
-	var <>gui;
+	var <>xiigui, <>win, params;
 
 	var selbPool, ldSndsGBufferList, bufferList, sndNameList, bufferPop, gBufferPoolNum;
 	var grid, timerArray, tempoClockList, actorOnOffStateArray, actorColors;
@@ -7,13 +7,13 @@ XiiGridder {
 	var outbus, inbus, playFunc, globalvol, freq, pitchratio, sample, gridNodeSampleIndexArray;
 	var playModeButt, playScaleOnlyModeButt, playMode, playScaleOnlyMode;
 	
-	*new {arg server;
-		^super.new.initXiiGridder(server);
+	*new {arg server, channels, setting = nil;
+		^super.new.initXiiGridder(server, channels, setting);
 	}
 
-	initXiiGridder {arg server;
+	initXiiGridder {arg server, channels, setting;
 		
-		var w, xgrid, ygrid;
+		var xgrid, ygrid, point;
 		var statesPop, storeButt, clearButt, clearSeqButt, loadArchive, saveArchive;
 		var fixedRadioButt, drawBoxGrids, trackVolumeSlider;
 		var startSequencer, startButt, volumeSlider, tempoSlider, outbusPoP, scalePop;
@@ -52,7 +52,11 @@ XiiGridder {
 		inbus = 20;
 		globalvol = 1;
 		sample = 0;
-		
+
+xiigui = nil;
+point = if(setting.isNil, {Point(300, 500)}, {setting[1]});
+params = if(setting.isNil, {[1, 0, 12, 4000, 120, 1, 0, 0, 0, 1, 0]}, {setting[2]});
+
 		gBufferPoolNum = 0;
 		sndNameList = List.new;
 		bufferList = List.new; // contains bufnums of buffers (not buffers)
@@ -87,23 +91,23 @@ XiiGridder {
 	Out.ar(outbus, Pan2.ar(sine, pan));
 }).play(Server.default)}.asCompileString;
 
-		w = SCWindow("Gridder", Rect(300, 500, 615, 500), resizable:false);
+		win = SCWindow("Gridder", Rect(point.x, point.y, 615, 500), resizable:false);
 
-		viewKeybButt = SCButton(w, Rect(590, 476, 16, 16))
+		viewKeybButt = SCButton(win, Rect(590, 476, 16, 16))
 				.canFocus_(false)
 				.font_(Font("Helvetica", 9))
 				.states_([["k", Color.black, Color.clear], 
 						["k", Color.black, Color.new255(103, 148, 103, 190)]])
 				.action_({arg butt;
 					if(butt.value == 1, {
-						w.bounds_(Rect(w.bounds.left, w.bounds.top-65, 615, 565));
-						w.refresh;
+						win.bounds_(Rect(win.bounds.left, win.bounds.top-65, 615, 565));
+						win.refresh;
 						keyboardVisible = true;
-						freqField = SCStaticText(w, Rect(20, 510, 100, 14)).string_("")
+						freqField = SCStaticText(win, Rect(20, 510, 100, 14)).string_("")
 									.font_(Font("Helvetica", 9));
-						noteField= SCStaticText(w, Rect(20, 530, 100, 14)).string_("")
+						noteField= SCStaticText(win, Rect(20, 530, 100, 14)).string_("")
 									.font_(Font("Helvetica", 9));
-						midiKeyboard = MIDIKeyboard.new(w, Rect(120, 500, 460, 50), 7, 36)
+						midiKeyboard = MIDIKeyboard.new(win, Rect(120, 500, 460, 50), 7, 36)
 						.keyDownAction_({arg note; 
 							freqField.string_("freq : "+note.midicps.round(0.0001).asString);
 							noteField.string_("note : "+note.midinote);
@@ -113,8 +117,8 @@ XiiGridder {
 							noteField.string_("note : "+note.midinote);
 						});
 					}, {
-						w.bounds_(Rect(w.bounds.left, w.bounds.top+65, 615, 500));
-						w.refresh;
+						win.bounds_(Rect(win.bounds.left, win.bounds.top+65, 615, 500));
+						win.refresh;
 						keyboardVisible = false;
 						midiKeyboard.remove;
 						freqField.remove;
@@ -123,7 +127,7 @@ XiiGridder {
 
 				});
 		
-		selbPool = SCPopUpMenu(w, Rect(10, 10, 100, 16))
+		selbPool = SCPopUpMenu(win, Rect(10, 10, 100, 16))
 			.font_(Font("Helvetica", 9))
 			.items_(if(~globalBufferDict.keys.asArray == [], {["no pool"]}, {~globalBufferDict.keys.asArray}))
 			.value_(0)
@@ -133,7 +137,7 @@ XiiGridder {
 				ldSndsGBufferList.value(selbPool.items[item.value]);
 			});
 
-		bufferPop = SCPopUpMenu(w, Rect(10, 32, 100, 16)) // 550
+		bufferPop = SCPopUpMenu(win, Rect(10, 32, 100, 16)) // 550
 				.font_(Font("Helvetica", 9))
 				.items_(["no buffer 1", "no buffer 2"])
 				.background_(Color.new255(255, 255, 255))
@@ -167,7 +171,7 @@ XiiGridder {
 		
 		ldSndsGBufferList.value(selbPool.items[0].asSymbol);
 
-		soundFuncPop = SCPopUpMenu(w, Rect(10, 54, 100, 16))
+		soundFuncPop = SCPopUpMenu(win, Rect(10, 54, 100, 16))
 				.font_(Font("Helvetica", 9))
 				.items_(["sample", "sine", "bells", "sines", "synth1", "ks_string", 
 				"ixi_string", "impulse", "ringz", "klanks", "scode", "audiostream"])
@@ -181,9 +185,10 @@ XiiGridder {
 						createAudioStreamBusWin.value;
 					}); 
 					this.setPlayFunc_(popup.value);
+					params[0] = popup.value;
 				});
 		
-		scalePop = SCPopUpMenu(w, Rect(10, 76, 100, 16))
+		scalePop = SCPopUpMenu(win, Rect(10, 76, 100, 16))
 				.font_(Font("Helvetica", 9))
 				.items_(scalenames)
 				.background_(Color.new255(255, 255, 255))
@@ -206,13 +211,14 @@ XiiGridder {
 					}, { // else, it's an array saved from getGridNodeStates
 						grid.setNodeStates_(sclArray);
 					});
+					params[1] = popup.value;
 				});
 		
-		scaleNameField = SCTextView(w, Rect(10, 98, 66, 12))
+		scaleNameField = SCTextView(win, Rect(10, 98, 66, 12))
 				.font_(Font("Helvetica", 9))
 				.string_("");
 
-		saveScaleButt = SCButton(w, Rect(80, 98, 28, 14))
+		saveScaleButt = SCButton(win, Rect(80, 98, 28, 14))
 				.canFocus_(false)
 				.font_(Font("Helvetica", 9))
 				.states_([["save", Color.black, Color.clear]])
@@ -228,7 +234,7 @@ XiiGridder {
 					
 				});
 
-		clearGridButt = SCButton(w, Rect(10, 125, 47, 16))
+		clearGridButt = SCButton(win, Rect(10, 125, 47, 16))
 			.canFocus_(false)
 			.font_(Font("Helvetica", 9))
 			.states_([["clear", Color.black, Color.clear]])
@@ -236,7 +242,7 @@ XiiGridder {
 				grid.clearGrid; xgrid.clearGrid; ygrid.clearGrid;
 			});
 
-		fillGridButt = SCButton(w, Rect(60, 125, 47, 16))
+		fillGridButt = SCButton(win, Rect(60, 125, 47, 16))
 			.canFocus_(false)
 			.font_(Font("Helvetica", 9))
 			.states_([["fill", Color.black, Color.clear]])
@@ -244,7 +250,7 @@ XiiGridder {
 				grid.fillGrid; xgrid.fillGrid; ygrid.fillGrid;
 			});
 
-		resolutionSlider = OSCIISlider.new(w, Rect(10, 150, 100, 8), "- resolution", 5, 48, resolution, 1)
+		resolutionSlider = OSCIISlider.new(win, Rect(10, 150, 100, 8), "- resolution", 5, 48, resolution, 1)
 						.font_(Font("Helvetica", 9))						.action_({arg sl;
 							resolution = sl.value;
 							startButt.valueAction_(0); // stop the actors and turn button off
@@ -265,25 +271,27 @@ XiiGridder {
 							// load sounds into the gridnodes.
 							if(sndNameList.size > 0, { 
 								gridNodeSampleIndexArray = Array.fill(resolution, {arg i;      // the octave
-								Array.fill(resolution, {arg j; // the notes
-								sndNameList.size.rand; // put a random sound into array 
+									Array.fill(resolution, {arg j; // the notes
+										sndNameList.size.rand; // put a random sound into array 
+									});
+								});
 							});
-					});
-			});
-
+							params[2] = sl.value;
 						});
 						
-		maxFreqSl = OSCIISlider.new(w, Rect(10, 180, 100, 8), "- max freq", 400, 8000, 4000, 1)
+		maxFreqSl = OSCIISlider.new(win, Rect(10, 180, 100, 8), "- max freq", 400, 8000, 4000, 1)
 						.font_(Font("Helvetica", 9))						.action_({arg sl; 
 							maxFreq = sl.value;
+							params[3] = sl.value;
 						});
 
-		transposeSl = OSCIISlider.new(w, Rect(10, 210, 70, 8), "- transp", 0.25, 4, 1, 0.1)
+		transposeSl = OSCIISlider.new(win, Rect(10, 210, 70, 8), "- transp", 0.25, 4, 1, 0.1)
 						.font_(Font("Helvetica", 9))						.action_({arg sl; 
 							transposition = sl.value;
+							params[4] = sl.value;
 						});
 
-		setTuningButt = SCButton(w, Rect(83, 210, 28, 14))
+		setTuningButt = SCButton(win, Rect(83, 210, 28, 14))
 				.canFocus_(false)
 				.font_(Font("Helvetica", 9))
 				.states_([["set", Color.black, Color.clear]])
@@ -293,7 +301,7 @@ XiiGridder {
 				});
 				
 		actorRButtArray = Array.fill(4, {arg i;
-			OSCIIRadioButton(w, Rect(10+(i*25), 245, 12, 12), (i+1).asString)
+			OSCIIRadioButton(win, Rect(10+(i*25), 245, 12, 12), (i+1).asString)
 				.font_(Font("Helvetica", 9))
 				.value_(0)
 				.color_(actorColors[i])
@@ -313,7 +321,7 @@ XiiGridder {
 			});
 			
 		selActorRButtArray = Array.fill(4, {arg i;
-			SCButton(w, Rect(10+(i*25), 260, 12, 12))
+			SCButton(win, Rect(10+(i*25), 260, 12, 12))
 				.font_(Font("Helvetica", 9))
 				.value_(0)
 				.states_([["",Color.clear,  Color.clear],["", Color.clear,  actorColors[i]]])
@@ -327,17 +335,19 @@ XiiGridder {
 				});
 			});
 
-		actorTempoSl = OSCIISlider.new(w, Rect(10, 280, 100, 8), "- tempo", 60, 480, 120, 1)
+		actorTempoSl = OSCIISlider.new(win, Rect(10, 280, 100, 8), "- tempo", 60, 480, 120, 1)
 						.font_(Font("Helvetica", 9))						.action_({arg sl; 
 							timerArray[selectedActor] = 60/sl.value;
+							params[5] = sl.value;
 						});
 						
-		actorStepSizeSl = OSCIISlider.new(w, Rect(10, 310, 100, 8), "- step size", 1, 4, 1, 1)
+		actorStepSizeSl = OSCIISlider.new(win, Rect(10, 310, 100, 8), "- step size", 1, 4, 1, 1)
 						.font_(Font("Helvetica", 9))						.action_({arg sl; 
 							stepSizeArray[selectedActor] = sl.value;
+							params[6] = sl.value;
 						});
 
-		breedFlagButt = OSCIIRadioButton(w, Rect(10, 340, 14, 14), "actor breed")
+		breedFlagButt = OSCIIRadioButton(win, Rect(10, 340, 14, 14), "actor breed")
 				.font_(Font("Helvetica", 9))
 				.value_(0)
 				.action_({arg butt;
@@ -348,15 +358,15 @@ XiiGridder {
 					});
 				});
 
-		SCStaticText(w, Rect(10, 358, 65, 18))
+		SCStaticText(win, Rect(10, 358, 65, 18))
 			.string_("selected node :")
 			.font_(Font("Helvetica", 9));
 
-		selectedNodeField = SCStaticText(w, Rect(80, 358, 60, 18))
+		selectedNodeField = SCStaticText(win, Rect(80, 358, 60, 18))
 			.string_(selectedNode.asString)
 			.font_(Font("Helvetica", 9));
 
-		playModeButt = OSCIIRadioButton(w, Rect(10, 380, 14, 14), "play mode")
+		playModeButt = OSCIIRadioButton(win, Rect(10, 380, 14, 14), "play mode")
 				.font_(Font("Helvetica", 9))
 				.value_(0)
 				.action_({arg butt;
@@ -365,9 +375,10 @@ XiiGridder {
 					},{
 						playMode = false;
 					});
+					params[7] = butt.value;
 				});
 				
-		playScaleOnlyModeButt = OSCIIRadioButton(w, Rect(10, 400, 14, 14), "scale only")
+		playScaleOnlyModeButt = OSCIIRadioButton(win, Rect(10, 400, 14, 14), "scale only")
 				.font_(Font("Helvetica", 9))
 				.value_(0)
 				.action_({arg butt;
@@ -376,23 +387,26 @@ XiiGridder {
 					},{
 						playScaleOnlyMode = false;
 					});
+					params[8] = butt.value;
 				});
 
-		volumeSlider = OSCIISlider.new(w, Rect(10, 420, 100, 8), "- vol", 0, 1.0, 1, 0.01, \amp)
+		volumeSlider = OSCIISlider.new(win, Rect(10, 420, 100, 8), "- vol", 0, 1.0, 1, 0.01, \amp)
 					.font_(Font("Helvetica", 9))
 					.action_({arg sl; 
 						globalvol = sl.value;
+						params[9] = sl.value;
 					});
 						
-		outbusPoP = SCPopUpMenu(w, Rect(10, 448, 50, 16))			.font_(Font("Helvetica", 9))
+		outbusPoP = SCPopUpMenu(win, Rect(10, 448, 50, 16))			.font_(Font("Helvetica", 9))
 			.items_(XiiACDropDownChannels.getStereoChnList)
 			.value_(0)
 			.background_(Color.white)
 			.action_({ arg ch;
 				outbus = ch.value * 2;
+				params[10] = ch.value;
 			});
 
-		startButt = SCButton(w, Rect(65, 447, 45, 18))
+		startButt = SCButton(win, Rect(65, 447, 45, 18))
 			.states_([["start", Color.black, Color.clear],
 					["stop", Color.black, Color.green(alpha:0.2)]])
 			.font_(Font("Helvetica", 9))			
@@ -453,7 +467,7 @@ XiiGridder {
 		});
 		
 		createGrids = {arg resolution;
-			grid = Grid.new(w,
+			grid = Grid.new(win,
 				Rect(120, 10, 460, 460), resolution, resolution, border:true)
 				.setBackgrColor_(Color.white)
 				.setBorder_(true)
@@ -566,7 +580,7 @@ XiiGridder {
 					});
 				}); 
 									
-			xgrid = Grid.new(w, Rect(120, 476, 460, 14), resolution, 1, false)
+			xgrid = Grid.new(win, Rect(120, 476, 460, 14), resolution, 1, false)
 				.setNodeShape_("square")
 				.setNodeSize_(8)
 				.setFillMode_(true)
@@ -587,7 +601,7 @@ XiiGridder {
 					});
 				});
 	
-			ygrid = Grid.new(w, Rect(590, 10, 14, 460), 1, resolution, false)
+			ygrid = Grid.new(win, Rect(590, 10, 14, 460), 1, resolution, false)
 				.setNodeShape_("square")
 				.setNodeSize_(8)
 				.setFillMode_(true)
@@ -673,7 +687,7 @@ XiiGridder {
 					});
 		};
 
-		w.view.keyDownAction_({arg this, char, modifiers, unicode; 
+		win.view.keyDownAction_({arg this, char, modifiers, unicode; 
 			if(char.asString == "s", {
 				playScaleOnlyMode = playScaleOnlyMode.not;
 				playScaleOnlyModeButt.switchState;
@@ -687,14 +701,27 @@ XiiGridder {
 		cmdPeriodFunc = { startButt.valueAction_(0)};
 		CmdPeriod.add(cmdPeriodFunc);
 
-		w.onClose_({
+		win.onClose_({
 			var t;
 			CmdPeriod.remove(cmdPeriodFunc);
 			~globalWidgetList.do({arg widget, i; if(widget === this, {t = i})});
-			~globalWidgetList.removeAt(t);
+			try{~globalWidgetList.removeAt(t)};
 			scaleDict.writeArchive("gridderScales.ixi"); 
 		});
 		
+		//setting
+		actorTempoSl.valueAction_(params[0]);
+		scalePop.valueAction_(params[1]);
+		resolutionSlider.valueAction_(params[2]);
+		maxFreqSl.valueAction_(params[3]);
+		transposeSl.valueAction_(params[4]);
+		actorTempoSl.valueAction_(params[5]);
+		actorStepSizeSl.valueAction_(params[6]);
+		playModeButt.valueAction_(params[7]);
+		playScaleOnlyModeButt.valueAction_(params[8]);
+		volumeSlider.valueAction_(params[9]);
+		outbusPoP.valueAction_(params[10]);	
+
 	}
 
 	makeTuning {arg resolution=12, transposition=1, maxFreq=4000;
@@ -932,4 +959,11 @@ XiiGridder {
 			["chromatic", (0..11)]
 		]
 	}
+	
+	getState { // for save settings
+		var point;
+		point = Point(win.bounds.left, win.bounds.top);
+		^[2, point, params];
+	}
+
 }

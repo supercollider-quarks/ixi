@@ -1,6 +1,9 @@
+
 XiiSoundScratcher {
-	var <>gui;
-	var win, bounds;
+
+	var <>xiigui, <>win, params;
+
+	var bounds;
 	var bgcolor, fillmode, pointcolor, linecolor, strokecolor, pointsize, pointsizelist;
 	var state;
 	var pointlist, lastpoint;
@@ -18,11 +21,11 @@ XiiSoundScratcher {
 	var circleList, grainCircleSynthList, circleGroup;
 	var wacomFlag, poolName;
 	
-	*new { arg w, bounds; 
-		^super.new.initXiiSoundScratcher(w, bounds);
+	*new { arg server, channels, setting = nil; 
+		^super.new.initXiiSoundScratcher(server, channels, setting);
 	}
 	
-	initXiiSoundScratcher { arg w, argbounds;
+	initXiiSoundScratcher { arg server, channels, setting;
 
 		var foreColor, bgColor, synthesisStylePop, drawFlag;
 		var sineEnvRButt, percEnvRButt;
@@ -30,12 +33,17 @@ XiiSoundScratcher {
 		var clearScreenButt, drawRButt, globalvol, globalVolSl, outbus, outBusPop;
 		var recordPathButt, playPathTask, recordPathTask, recPathFlag, addSilencePointTask;
 		var pointp, gPressure, rateMultiplier;
+		var point;
 		
-		s = Server.default;
+		s = server; //Server.default;
 		bounds = Rect(120, 5, 800, 340);
 
+xiigui = nil;
+point = if(setting.isNil, {Point(310, 250)}, {setting[1]});
+params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]});
+
 		win = SCWindow("SoundScratcher", 
-				Rect(310, 250, bounds.width+20, bounds.height+10), resizable:false).front;
+				Rect(point.x, point.y, bounds.width+20, bounds.height+10), resizable:false).front;
 		pointcolor = Color.new255(200,50,40);
 		strokecolor = Color.black;
 		pointsize = 6;
@@ -218,7 +226,6 @@ XiiSoundScratcher {
 			});
 						
 		win.view.keyDownAction_({arg this, char, modifiers, unicode; 
-			[\char, char, \modifiers, modifiers, \unicode, unicode].postln;
 			if(char.asString == "c", {
 				if(synthesisStylePop.value == 4, {this.clear(true)}, {this.clear(false)});
 				if(grainCircles, {	
@@ -431,6 +438,7 @@ XiiSoundScratcher {
 				.items_(["warp", "scratch", "random grains", "linear grains", "worm", "grainCircles", "grainSquares"])
 				.background_(Color.white)
 				.action_({ arg popup;
+					params[0] = popup.value;
 					randomGrainTask.stop;
 					linearGrainTask.stop;
 					wormGrainTask.stop;
@@ -477,7 +485,7 @@ XiiSoundScratcher {
 					);
 					this.refresh;
 				});
-
+		
 		grainStatesPop = SCPopUpMenu(win, Rect(10, 76, 100, 16)) // 550
 				.font_(Font("Helvetica", 9))
 				.items_(["grain states"])
@@ -537,8 +545,9 @@ XiiSoundScratcher {
 		drawRButt = OSCIIRadioButton(win, Rect(15, 120, 12, 12), "draw")
 						.font_(Font("Helvetica", 9))
 						.value_(1)
-						.action_({
+						.action_({arg butt;
 							drawLineFlag = drawLineFlag.not;
+							params[1] = butt.value;
 						});
 
 		clearScreenButt = SCButton(win, Rect(70, 118, 37, 16))
@@ -569,6 +578,7 @@ XiiSoundScratcher {
 						.action_({arg sl; 
 							graindur = sl.value;
 							if(grainCircles, { circleGroup.set(\dur, graindur) });
+							params[2] = graindur;
 						});
 
 		grainDensitySl = OSCIISlider.new(win, Rect(10, 180, 100, 8), "- grain density", 0.5, 50, 10, 0.01)
@@ -586,6 +596,7 @@ XiiSoundScratcher {
 									synth.set(\trate, sl.value * circleList[i][2])
 								});
 							});
+							params[3] = sl.value;
 						});
 
 		SCStaticText(win, Rect(11, 210, 35, 18))
@@ -595,16 +606,18 @@ XiiSoundScratcher {
 		sineEnvRButt = OSCIIRadioButton(win, Rect(35, 211, 12, 12), "sine")
 						.font_(Font("Helvetica", 9))
 						.value_(1)
-						.action_({
+						.action_({arg butt;
 							grainEnvType = 0;
 							percEnvRButt.switchState;
+							params[4] = butt.value;
 						});
 
 		percEnvRButt = OSCIIRadioButton(win, Rect(75, 211, 12, 12), "perc")
 						.font_(Font("Helvetica", 9))
-						.action_({
+						.action_({arg butt;
 							grainEnvType = 1;
 							sineEnvRButt.switchState;
+							params[5] = butt.value;
 						});
 
 		recordPathButt = SCButton(win, Rect(10, 235, 100, 16))
@@ -616,7 +629,6 @@ XiiSoundScratcher {
 					["playing", Color.black, Color.green(alpha:0.3)]
 					])
 			.action_({arg butt;
-				[\BUTTVALUE, butt.value].postln;
 				if(synthesisStylePop.value != 4, {
 				if(butt.value==2, {this.clear; recPathFlag = true; recordPathTask.start;});
 				if(butt.value==3, {recordPathTask.stop; playPathFlag = true; recPathFlag = false; playPathTask.start});
@@ -626,24 +638,27 @@ XiiSoundScratcher {
 
 		wacomRButt = OSCIIRadioButton(win, Rect(10, 263, 12, 12), "wacom")
 						.font_(Font("Helvetica", 9))
-						.action_({
+						.action_({ arg butt;
 							mouseRButt.switchState;
 							wacomFlag = true;
 							pointsize = 6;
+							params[6] = butt.value;
 						});
 		mouseRButt = OSCIIRadioButton(win, Rect(66, 263, 12, 12), "mouse")
 						.font_(Font("Helvetica", 9))
 						.value_(1)
-						.action_({
+						.action_({arg butt;
 							wacomRButt.switchState;
 							wacomFlag = false;
 							pointsize = 6;
+							params[7] = butt.value;
 						});
 
 		globalVolSl = OSCIISlider.new(win, Rect(10, 287, 100, 8), "- global vol", 0, 1, 1, 0.01, \amp)
 						.font_(Font("Helvetica", 9))						.action_({arg sl; 
 							globalvol = sl.value;
 							circleGroup.set(\globalvol, globalvol);
+							params[8] = sl.value;
 						});
 
 		SCStaticText(win, Rect(13, 315, 80, 20))
@@ -657,6 +672,7 @@ XiiSoundScratcher {
 				.action_({ arg popup;
 					outbus = popup.value * 2;
 					circleGroup.set(\outbus, outbus);
+					params[9] = popup.value;
 				});
 		
 
@@ -670,7 +686,7 @@ XiiSoundScratcher {
 			playPathTask.stop;
 			grainCircleSynthList.do({arg synth; synth.free;});
 			~globalWidgetList.do({arg widget, i; if(widget == this, {t = i})});
-			~globalWidgetList.removeAt(t);
+			try{~globalWidgetList.removeAt(t)};
 		});
 		
 		randomGrainTask = Task({
@@ -841,7 +857,18 @@ XiiSoundScratcher {
 					});
 				});
 		});
-
+		
+		// loading settins
+		synthesisStylePop.valueAction_(params[0]);
+		drawRButt.valueAction_(params[1]);
+		grainDurSl.valueAction_(params[2]);
+		grainDensitySl.valueAction_(params[3]);
+		sineEnvRButt.valueAction_(params[4]);
+		percEnvRButt.valueAction_(params[5]);
+		wacomRButt.valueAction_(params[6]);
+		mouseRButt.valueAction_(params[7]);
+		globalVolSl.valueAction_(params[8]);
+		outBusPop.valueAction_(params[9]);
 	}
 	
 	refresh {
@@ -870,4 +897,11 @@ XiiSoundScratcher {
 			selbPool.value_(poolindex); // so nothing changed, but new poolarray
 		});
 	}
+	
+	getState { // for save settings
+		var point;
+		point = Point(win.bounds.left, win.bounds.top);
+		^[2, point, params];
+	}
+
 }

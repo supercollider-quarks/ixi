@@ -1,15 +1,21 @@
+
 XiiMixerNode {	
-	var <>gui;
-	*new { arg server, channels;
-		^super.new.initXiiMixerNode(server, channels);
+
+	var <>xiigui;
+	var <>win, params;
+
+	var channels;
+	
+	*new { arg server, channels, setting = nil;
+		^super.new.initXiiMixerNode(server, channels, setting);
 		}
 		
-	initXiiMixerNode {arg server, ch;
+	initXiiMixerNode {arg server, ch, setting;
 		var panLslider;
-		var window, bgColor, foreColor, spec;
+		var bgColor, foreColor, spec;
 		var s, name, point;
-		var stereoChList, monoChList, channels;
-		var inbus, outbus, synth;
+		var stereoChList, monoChList;
+		var inbus, outbus, pan, synth;
 		var tgt, addAct;
 		var onOffButt, cmdPeriodFunc;
 		
@@ -17,18 +23,26 @@ XiiMixerNode {
 		addAct = \addToTail;
 		
 		s = server ? Server.local;
+		
+		channels = if(setting.isNil, {ch}, {setting[0]});
+
 		if(ch==1, {name = "    MixerNode - 1x2"},{name = "    MixerNode - 2x1"});
-		channels = ch;
+
 		stereoChList = XiiACDropDownChannels.getStereoChnList;
 		monoChList =   XiiACDropDownChannels.getMonoChnList;
 
-		point = XiiWindowLocation.new(name);
+
+		point = if(setting.isNil, {XiiWindowLocation.new(name)}, {setting[1]});
+		xiigui = nil; // not using window server class here
+		params = if(setting.isNil, {[0,0,0]}, {setting[2]});
 		
 		bgColor = Color.new255(155, 205, 155);
 		foreColor = Color.new255(103, 148, 103);
-		outbus = 0;
+		inbus = params[0];
+		outbus = params[1];
+		pan = params[2];
 		
-		window = SCWindow.new(name, Rect(point.x, point.y, 222, 70), resizable:false).front;
+		win = SCWindow.new(name, Rect(point.x, point.y, 222, 70), resizable:false).front;
 		
 		SynthDef(\mixerNode1x2, { arg inbus, outbus, pan;
 			var in;
@@ -47,36 +61,38 @@ XiiMixerNode {
 		spec = ControlSpec(0, 1.0, \amp); // for amplitude in rec slider
 
 		// channels dropdown - INPUT CHANNEL
-		SCStaticText(window, Rect(10, 9, 40, 16)).string_("in");
-		SCPopUpMenu(window,Rect(35, 10, 50, 16))
+		SCStaticText(win, Rect(10, 9, 40, 16)).string_("in");
+		SCPopUpMenu(win,Rect(35, 10, 50, 16))
 			.items_(if(channels==1, {monoChList},{stereoChList}))
-			.value_(0)
+			.value_(params[0])
 			.background_(Color.white)
 			.font_(Font("Helvetica", 9))
 			.canFocus_(false)
 			.action_({ arg ch;
 				if(channels==1, {inbus = ch.value}, {inbus = ch.value * 2});
 				synth.set(\inbus, inbus );
+				params[0] = ch.value;
 			});
 			
 		// channels dropdown - OUTPUT CHANNEL
-		SCStaticText(window, Rect(10, 34, 40, 16)).string_("out");
-		SCPopUpMenu(window,Rect(35, 35, 50, 16))
+		SCStaticText(win, Rect(10, 34, 40, 16)).string_("out");
+		SCPopUpMenu(win,Rect(35, 35, 50, 16))
 			.items_(if(channels==1, {stereoChList}, {monoChList}))
-			.value_(0)
+			.value_(params[1])
 			.background_(Color.white)
 			.font_(Font("Helvetica", 9))
 			.canFocus_(false)
 			.action_({ arg ch;
 				if(channels==2, {outbus = ch.value}, {outbus = ch.value * 2});
 				synth.set(\outbus, outbus );
+				params[1] = ch.value;
 			});
 			
 		// panning sliders
-		panLslider = OSCIISlider.new(window, Rect(100, 10, 100, 10), "- pan", -1, 1, 0, 0.01)
-			.action_({arg sl; synth.set(\pan, sl.value)});
+		panLslider = OSCIISlider.new(win, Rect(100, 10, 100, 10), "- pan", -1, 1, params[2], 0.01)
+			.action_({arg sl; synth.set(\pan, sl.value); params[2] = sl.value;});
 		
-		SCPopUpMenu(window, Rect(100, 40, 66, 16)) 
+		SCPopUpMenu(win, Rect(100, 40, 66, 16)) 
 		   .font_(Font("Helvetica", 9)) 
 		   .items_(["addToHead", "addToTail", "addAfter", "addBefore"]) 
 		   .value_(1) 
@@ -84,8 +100,8 @@ XiiMixerNode {
 		      addAct = v.items.at(v.value).asSymbol; 
 		   }); 
 
-		onOffButt = SCButton(window,Rect(172, 40, 27, 16))
-		   .font_(Font("Helvetica", 9)) 
+		onOffButt = SCButton(win,Rect(172, 40, 27, 16))
+		     .font_(Font("Helvetica", 9)) 
 			.states_([
 					["On",Color.black, Color.clear],
 					["Off",Color.black,bgColor]
@@ -94,12 +110,12 @@ XiiMixerNode {
 				if(butt.value == 1, {
 					if(channels == 1, { //// HERE !!!
 		        			synth = Synth.new(\mixerNode1x2, 
-										[\inbus, inbus, \outbus, outbus], 
+										[\inbus, inbus, \outbus, outbus, \pan, pan], 
 										target: tgt.asTarget,
 										addAction: addAct); 
 					},{
 		        			synth = Synth.new(\mixerNode2x1, 
-										[\inbus, inbus, \outbus, outbus], 
+										[\inbus, inbus, \outbus, outbus, \pan, pan], 
 										target: tgt.asTarget,
 										addAction: addAct); 
 					});
@@ -111,15 +127,22 @@ XiiMixerNode {
 		cmdPeriodFunc = { onOffButt.valueAction_(0)};
 		CmdPeriod.add(cmdPeriodFunc);
 			
-		window.onClose_({
+		win.onClose_({
 			var t;
 			onOffButt.valueAction_(0);
 			CmdPeriod.remove(cmdPeriodFunc);
 			~globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
-			~globalWidgetList.removeAt(t);
+			try{~globalWidgetList.removeAt(t)};
 			synth.free;
-			point = Point(window.bounds.left, window.bounds.top);
+			point = Point(win.bounds.left, win.bounds.top);
 			XiiWindowLocation.storeLoc(name, point);
 		});
 	}
+	
+	getState { // for save settings
+		var point;		
+		point = Point(win.bounds.left, win.bounds.top);
+		^[channels, point, params];
+	}
+	
 }

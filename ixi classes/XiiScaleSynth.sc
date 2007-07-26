@@ -1,5 +1,5 @@
 XiiScaleSynth {
-	var <>gui;
+	var <>xiigui;
 
 	*new {arg server;
 		^super.new.initXiiScaleSynth(server);
@@ -83,8 +83,14 @@ XiiScaleSynth {
 			synth.set(\vol, 0);
 		};
 		
-		SCButton(win, Rect(6, screenY-34, 40, 20)).states_([["stop"]]).action = {win.close; 
-		scaleBuf.free; transBuf.free};
+		SCButton(win, Rect(6, screenY-34, 40, 20)).states_([["stop"]]).action_({
+			var t;
+			win.close; 
+			scaleBuf.free; 
+			transBuf.free;
+			~globalWidgetList.do({arg widget, i; if(widget == this, {t = i})});
+			try{~globalWidgetList.removeAt(t)};
+		});
 		OSCIISlider.new(win, Rect(60, screenY-34, 100, 10), "- decay", 0.1, 10, 4, 0.01)
 			.action_({arg sl; synth.set(\decayTime, sl.value);});
 		OSCIISlider.new(win, Rect(170, screenY-34, 100, 10), "- modul", 0.1, 6, 1, 0.01)
@@ -197,4 +203,6 @@ SynthDef(\droneSynth,{ arg out=0, vol=0.2, volLag=0.1, freq = 261;
 		drone = Synth(\droneSynth, [\vol, 0]);
 		
 }
+
+
 }

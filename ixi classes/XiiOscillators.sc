@@ -1,13 +1,13 @@
 
 XiiNoise {	
 
-	var <>gui; // TESTING: TEMP can delete
+	var <>xiigui; // TESTING: TEMP can delete
 	
-	*new { arg server, channels;
-		^super.new.initXiiNoise(server, channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initXiiNoise(server, channels, setting);
 		}
 		
-	initXiiNoise {arg server, channels;
+	initXiiNoise {arg server, channels, setting;
 
 		var freqSpec, crackleSpec, params, s; 
 		
@@ -50,12 +50,13 @@ XiiNoise {
 		Ê Ê["White", "Pink", "Brown", "Gray", "Crackle", "Level"], 
 		Ê Ê[\amp1, \amp2, \amp3, \amp4, \amp5, \level], 
 		Ê Ê[\amp, \amp, \amp, \amp, \amp, \amp], 
-		Ê Ê[0, 0, 0, 0, 0, 1]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[0, 0, 0, 0, 0, 1]})
+		]; 
 		
-		gui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Noise 2x2", \xiiNoise2x2, params, channels, this); /// 
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("Noise 2x2", \xiiNoise2x2, params, channels, this, setting);
 			}, {				// mono
-			XiiEffectGUI.new("Noise 1x1", \xiiNoise1x1, params, channels, this); /// 
+			XiiEffectGUI.new("Noise 1x1", \xiiNoise1x1, params, channels, this, setting);
 		})
 	}
 }
@@ -63,13 +64,13 @@ XiiNoise {
 
 XiiOscillators {	
 
-	var <>gui; // TESTING: TEMP can delete
+	var <>xiigui;
 	
-	*new { arg server, channels;
-		^super.new.initXiiOscillators(server, channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initXiiOscillators(server, channels, setting);
 		}
 		
-	initXiiOscillators {arg server, channels;
+	initXiiOscillators {arg server, channels, setting;
 
 		var freqSpec, freqSpec2, linearSpec, params, s; 
 		
@@ -120,13 +121,14 @@ XiiOscillators {
 			\freq5, \formfreq5, \widthfreq5, \amp5, \level], // synth arg parameter
 		Ê Ê[freqSpec, \amp, freqSpec, \amp, freqSpec, \amp, freqSpec, linearSpec, \amp, 
 			freqSpec, freqSpec2, freqSpec2, \amp, \amp], 
-		Ê Ê[200, 0, 200, 0, 200, 0, 200, 0.5, 0, 
-			200, 100, 20, 0, 1]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[200, 0, 200, 0, 200, 0, 200, 0.5, 0, 
+			200, 100, 20, 0, 1]})
+		]; 
 		
-		gui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Oscillators 2x2", \xiiOscillators2x2, params, channels, this); /// 
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("Oscillators 2x2", \xiiOscillators2x2, params, channels, this, setting);
 			}, {				// mono
-			XiiEffectGUI.new("Oscillators 1x1", \xiiOscillators1x1, params, channels, this); /// 
+			XiiEffectGUI.new("Oscillators 1x1", \xiiOscillators1x1, params, channels, this, setting);
 		})
 	}
 }

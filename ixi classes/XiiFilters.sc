@@ -1,11 +1,11 @@
 XiiBandpass {	
-	var <>gui;
+	var <>xiigui;
 	
-	*new { arg server, channels;
-		^super.new.initXiiBandpass(server, channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initXiiBandpass(server, channels, setting);
 		}
 		
-	initXiiBandpass {arg server, channels;
+	initXiiBandpass {arg server, channels, setting;
 
 		var freqSpec, rqSpec, params, s; 
 		
@@ -42,28 +42,30 @@ XiiBandpass {
 		freqSpec = ControlSpec.new(20, 20000, \exponential, 1, 2000); 
 		rqSpec = ControlSpec.new(0.0001, 1, \exponential, 0.0001, 0.5); 
 		
+		
 		params = [ 
 		Ê Ê["Freq", "RQ", "Fx level", "Dry Level"], 
 		Ê Ê[ \freq, \rq, \fxlevel, \level], 
 		Ê Ê[freqSpec, rqSpec, \amp, \amp], 
-		Ê Ê[2000, 0.5, 1, 0]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[2000, 0.5, 1, 0]})
+		]; 
 		
-		gui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Bandpass Filter 2x2", \xiiBPF2x2, params, channels, this); /// 
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("Bandpass Filter 2x2", \xiiBPF2x2, params, channels, this, setting); /// 
 			}, {				// mono
-			XiiEffectGUI.new("Bandpass Filter 1x1", \xiiBPF1x1, params, channels, this); /// 
-		})
+			XiiEffectGUI.new("Bandpass Filter 1x1", \xiiBPF1x1, params, channels, this, setting); /// 
+		});
 	}
 }
 
 XiiLowpass {	
-	var <>gui;
+	var <>xiigui;
 	
-	*new { arg server, channels;
-		^super.new.initXiiLowpass(server, channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initXiiLowpass(server, channels, setting);
 		}
 		
-	initXiiLowpass {arg server, channels;
+	initXiiLowpass {arg server, channels, setting;
 		var freqSpec, params, s; 
 		s = server ? Server.local;
 		
@@ -99,24 +101,25 @@ XiiLowpass {
 		Ê Ê["Freq", "Fx level", "Dry Level"], 
 		Ê Ê[ \freq, \fxlevel, \level], 
 		Ê Ê[freqSpec, \amp, \amp], 
-		Ê Ê[2000, 1, 0]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[2000, 1, 0]})
+		]; 
 		
-		gui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Lowpass Filter 2x2", \xiiLPF2x2, params, channels, this); /// 
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("Lowpass Filter 2x2", \xiiLPF2x2, params, channels, this, setting); /// 
 			}, {				// mono
-			XiiEffectGUI.new("Lowpass Filter 1x1", \xiiLPF1x1, params, channels, this); /// 
+			XiiEffectGUI.new("Lowpass Filter 1x1", \xiiLPF1x1, params, channels, this, setting); /// 
 		})
 	}
 }
 
 XiiHighpass {	
-	var <>gui;
+	var <>xiigui;
 	
-	*new { arg server, channels;
-		^super.new.initXiiHighpass(server, channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initXiiHighpass(server, channels, setting);
 		}
 		
-	initXiiHighpass {arg server, channels;
+	initXiiHighpass {arg server, channels, setting;
 		var freqSpec, params, s; 
 		s = server ? Server.local;
 		
@@ -152,25 +155,26 @@ XiiHighpass {
 		Ê Ê["Freq", "Fx level", "Dry Level"], 
 		Ê Ê[ \freq, \fxlevel, \level], 
 		Ê Ê[freqSpec, \amp, \amp], 
-		Ê Ê[2000, 1, 0]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[2000, 1, 0]})
+		]; 
 		
-		gui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Highpass Filter 2x2", \xiiHPF2x2, params, channels, this); /// 
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("Highpass Filter 2x2", \xiiHPF2x2, params, channels, this, setting); /// 
 			}, {				// mono
-			XiiEffectGUI.new("Highpass Filter 1x1", \xiiHPF1x1, params, channels, this); /// 
+			XiiEffectGUI.new("Highpass Filter 1x1", \xiiHPF1x1, params, channels, this, setting); /// 
 		})
 	}
 }
 
 
 XiiRLowpass {	
-	var <>gui;
+	var <>xiigui;
 	
-	*new { arg server, channels;
-		^super.new.initXiiRLowpass(server, channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initXiiRLowpass(server, channels, setting);
 		}
 		
-	initXiiRLowpass {arg server, channels;
+	initXiiRLowpass {arg server, channels, setting;
 
 		var freqSpec, rqSpec, params, s; 
 		
@@ -211,25 +215,26 @@ XiiRLowpass {
 		Ê Ê["Freq", "RQ", "Fx level", "Dry Level"], 
 		Ê Ê[ \freq, \rq, \fxlevel, \level], 
 		Ê Ê[freqSpec, rqSpec, \amp, \amp], 
-		Ê Ê[2000, 0.5, 1, 0]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[2000, 0.5, 1, 0]})
+		]; 
 		
-		gui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Resonant Lowpass Filter 2x2", \xiiRLPF2x2, params, channels, this); /// 
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("Resonant Lowpass Filter 2x2", \xiiRLPF2x2, params, channels, this, setting);
 			}, {				// mono
-			XiiEffectGUI.new("Resonant Lowpass Filter 1x1", \xiiRLPF1x1, params, channels, this); /// 
+			XiiEffectGUI.new("Resonant Lowpass Filter 1x1", \xiiRLPF1x1, params, channels, this, setting); 
 		})
 	}
 }
 
 
 XiiRHighpass {	
-	var <>gui;
+	var <>xiigui;
 	
-	*new { arg server, channels;
-		^super.new.initXiiRHighpass(server, channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initXiiRHighpass(server, channels, setting);
 		}
 		
-	initXiiRHighpass {arg server, channels;
+	initXiiRHighpass {arg server, channels, setting;
 
 		var freqSpec, rqSpec, params, s; 
 		
@@ -270,25 +275,26 @@ XiiRHighpass {
 		Ê Ê["Freq", "RQ", "Fx level", "Dry Level"], 
 		Ê Ê[ \freq, \rq, \fxlevel, \level], 
 		Ê Ê[freqSpec, rqSpec, \amp, \amp], 
-		Ê Ê[2000, 0.5, 1, 0]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[2000, 0.5, 1, 0]})
+		]; 
 		
-		gui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Resonant Highpass Filter 2x2", \xiiRHPF2x2, params, channels, this); /// 
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("Resonant Highpass Filter 2x2", \xiiRHPF2x2, params, channels, this, setting);
 			}, {				// mono
-			XiiEffectGUI.new("Resonant Highpass Filter 1x1", \xiiRHPF1x1, params, channels, this); /// 
+			XiiEffectGUI.new("Resonant Highpass Filter 1x1", \xiiRHPF1x1, params, channels, this, setting);
 		})
 	}
 }
 
 
 XiiResonant {	
-	var <>gui;
+	var <>xiigui;
 	
-	*new { arg server, channels;
-		^super.new.initXiiResonant(server, channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initXiiResonant(server, channels, setting);
 		}
 		
-	initXiiResonant {arg server, channels;
+	initXiiResonant {arg server, channels, setting;
 
 		var freqSpec, rqSpec, params, s; 
 		
@@ -329,25 +335,26 @@ XiiResonant {
 		Ê Ê["Freq", "RQ", "Fx level", "Dry Level"], 
 		Ê Ê[ \freq, \rq, \fxlevel, \level], 
 		Ê Ê[freqSpec, rqSpec, \amp, \amp], 
-		Ê Ê[2000, 0.5, 1, 0]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[2000, 0.5, 1, 0]})
+		]; 
 		
-		gui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Resonant Filter 2x2", \xiiResonant2x2, params, channels, this); /// 
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("Resonant Filter 2x2", \xiiResonant2x2, params, channels, this, setting);
 			}, {				// mono
-			XiiEffectGUI.new("Resonant Filter 1x1", \xiiResonant1x1, params, channels, this); /// 
+			XiiEffectGUI.new("Resonant Filter 1x1", \xiiResonant1x1, params, channels, this, setting);
 		})
 	}
 }
 
 
 XiiKlanks {	
-	var <>gui;
+	var <>xiigui;
 	
-	*new { arg server, channels;
-		^super.new.initXiiKlanks(server, channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initXiiKlanks(server, channels, setting);
 		}
 		
-	initXiiKlanks {arg server, channels;
+	initXiiKlanks {arg server, channels, setting;
 
 		var freqSpec, gainSpec, ringSpec, params, s; 
 		
@@ -400,16 +407,15 @@ XiiKlanks {
 			\freq4, \amp4, \ring4, \fxlevel, \level], 
 		Ê Ê[gainSpec, freqSpec, \amp, ringSpec, freqSpec, \amp, ringSpec, 
 			freqSpec, \amp, ringSpec, freqSpec, \amp, ringSpec, \amp, \amp], 
-		Ê Ê[0.004, 400, 1.0, 1.0, 600, 0.8, 0.9, 800, 0.7, 1.0, 1000, 0.8, 0.6, 0.4, 0]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, 
+				{[0.004, 400, 1.0, 1.0, 600, 0.8, 0.9, 800, 0.7, 1.0, 1000, 0.8, 0.6, 0.4, 0]})
+		]; 
 		
-		gui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Klank Filters 2x2", \xiiKlanks2x2, params, channels, this); /// 
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("Klank Filters 2x2", \xiiKlanks2x2, params, channels, this, setting);
 			}, {				// mono
-			XiiEffectGUI.new("Klank Filters 1x1", \xiiKlanks1x1, params, channels, this); /// 
+			XiiEffectGUI.new("Klank Filters 1x1", \xiiKlanks1x1, params, channels, this, setting);
 		})
 	}
 }
-
-
-
 

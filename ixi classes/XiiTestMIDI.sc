@@ -21,6 +21,6 @@ XiiTestMIDI {
 		MIDIIn.connect(i, MIDIClient.sources.at(i));
 	});
 
-document = Document.new("MIDI info", "// the following is your midi info", true);
+	document = Document.new("MIDI info", "// the following is your midi info", true);
 	}
 }

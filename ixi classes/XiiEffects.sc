@@ -1,11 +1,11 @@
 XiiDelay {	
-	var <>gui;
+	var <>xiigui; // to get and set settings
 	
-	*new { arg server, channels;
-		^super.new.initXiiDelay(server, channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initXiiDelay(server, channels, setting);
 		}
 		
-	initXiiDelay {arg server, channels;
+	initXiiDelay {arg server, channels, setting;
 
 		var delayTimeSpec, delayTailSpec, params, s; 
 		
@@ -51,25 +51,26 @@ XiiDelay {
 		Ê Ê["Delay", "Feedback", "Fx level", "Dry Level"], 
 		Ê Ê[ \delay, \feedback, \fxlevel, \level], 
 		Ê Ê[delayTailSpec, \amp, \amp, \amp], 
-		Ê Ê[0.4, 0.4, 0.8, 1]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[0.4, 0.4, 0.8, 1]})
+		]; 
 		
-		gui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Delay 2x2", \xiiDelay2x2, params, channels, this); /// 
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("Delay 2x2", \xiiDelay2x2, params, channels, this, setting);
 			}, {				// mono
-			XiiEffectGUI.new("Delay 1x1", \xiiDelay1x1, params, channels, this); /// 
+			XiiEffectGUI.new("Delay 1x1", \xiiDelay1x1, params, channels, this, setting);
 		})
 	}
 }
 
 
 XiiFreeverb {	
-	var <>gui; // TESTING: TEMP can delete
+	var <>xiigui;
 
-	*new { arg server, channels;
-		^super.new.initFreeverb(server, channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initFreeverb(server, channels, setting);
 		}
 		
-	initFreeverb {arg server, channels;
+	initFreeverb {arg server, channels, setting;
 	
 		var mixSpec, params, s; 
 		s = server ? Server.local;
@@ -96,12 +97,13 @@ XiiFreeverb {
 		Ê Ê["Room", "Damp", "Dry/Wet", "Fx Level", "Dry Level"], 
 		Ê Ê[\room, \damp, \mix, \fxlevel, \level], 
 		Ê Ê[\amp, \amp, mixSpec, \amp, \amp], 
-		Ê Ê[0.8, 0.8, 0.75, 0.8, 0.2 ]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[0.8, 0.8, 0.75, 0.8, 0.2 ]})
+		]; 
 		
-		gui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Freeverb 2x2", \xiiFreeverb2x2, params, channels, this); 
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("Freeverb 2x2", \xiiFreeverb2x2, params, channels, this, setting); 
 			},{				// mono
-			XiiEffectGUI.new("Freeverb 1x1", \xiiFreeverb1x1, params, channels, this); 
+			XiiEffectGUI.new("Freeverb 1x1", \xiiFreeverb1x1, params, channels, this, setting); 
 			});
 
 	}
@@ -110,13 +112,13 @@ XiiFreeverb {
 
 XiiAdCVerb {	
 
-	var <>gui; // TESTING: TEMP can delete
+	var <>xiigui;
 
-	*new { arg server, channels;
-		^super.new.initAdCVerb(server, channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initAdCVerb(server, channels, setting);
 		}
 		
-	initAdCVerb {arg server, channels;
+	initAdCVerb {arg server, channels, setting;
 	
 		var roomSpec, mixSpec, params, s; 
 		s = server ? Server.local;
@@ -147,25 +149,26 @@ XiiAdCVerb {
 		Ê Ê["RevTime", "Damp", "Fx level", "Dry Level"], 
 		Ê Ê[\revtime, \hfdamping, \mix, \level], 
 		Ê Ê[roomSpec, \amp, mixSpec, \amp], 
-		Ê Ê[8, 0.7, 0.1, 1 ]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[8, 0.7, 0.1, 1 ]})
+		]; 
 		
-		gui = if(channels == 2, {	// stereo
-			XiiEffectGUI.new("AdCVerb 2x2", \xiiAdcverb2x2, params, channels, this); 
+		xiigui = if(channels == 2, {	// stereo
+			XiiEffectGUI.new("AdCVerb 2x2", \xiiAdcverb2x2, params, channels, this, setting); 
 			},{				// mono
-			XiiEffectGUI.new("AdCVerb 1x1", \xiiAdcverb1x1, params, channels, this); 
+			XiiEffectGUI.new("AdCVerb 1x1", \xiiAdcverb1x1, params, channels, this, setting); 
 		});
 
 	}
 }
 
 XiiDistortion {	
-	var <>gui; // TESTING: TEMP can delete
+	var <>xiigui;
 
-	*new { arg server, channels;
-		^super.new.initDistortion(server,channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initDistortion(server,channels, setting);
 		}
 		
-	initDistortion {arg server, channels;
+	initDistortion {arg server, channels, setting;
 		var s, params, preGainSpec, postGainSpec; 
 		s = server ? Server.local;
 
@@ -194,24 +197,25 @@ XiiDistortion {
 		Ê Ê["PreGain", "PostGain", "Fx Level", "Dry Level"], 
 		Ê Ê[\pregain, \postgain, \mix, \level], 
 		Ê Ê[preGainSpec, postGainSpec, \amp, \amp], 
-		Ê Ê[10, 10, 0.5, 0]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[10, 10, 0.5, 0]})
+		]; 
 		
-		gui = if(channels == 2, {	// stereo
-			XiiEffectGUI.new("Distortion 2x2", \xiiDistortion2x2, params, channels, this); 
+		xiigui = if(channels == 2, {	// stereo
+			XiiEffectGUI.new("Distortion 2x2", \xiiDistortion2x2, params, channels, this, setting); 
 			},{				// mono
-			XiiEffectGUI.new("Distortion 1x1", \xiiDistortion1x1, params, channels, this); 
-			});
+			XiiEffectGUI.new("Distortion 1x1", \xiiDistortion1x1, params, channels, this, setting); 
+		});
 	}
 }
 
 XiiixiReverb {	
-	var <>gui; // TESTING: TEMP can delete
+	var <>xiigui;
 
-	*new { arg server, channels;
-		^super.new.initixiReverb(server, channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initixiReverb(server, channels, setting);
 		}
 		
-	initixiReverb {arg server, channels;
+	initixiReverb {arg server, channels, setting;
 		
 		var s, predelSpec, combDecSpec, allpassDecSpec, params; 
 		s = server ? Server.local;
@@ -251,24 +255,25 @@ XiiixiReverb {
 		Ê Ê["Predelay", "Combdecay", "Allpass", "Fx level", "Dry Level"], 
 		Ê Ê[\predelay, \combdecay, \allpassdecay, \fxlevel, \level], 
 		Ê Ê[predelSpec, combDecSpec, allpassDecSpec, \amp, \amp], 
-		Ê Ê[0.045, 15, 1, 0.31, 0.5]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[0.045, 15, 1, 0.31, 0.5]})
+		]; 
 		
-		gui = if(channels == 2, {	// stereo
-			XiiEffectGUI.new("ixiReverb2x2", \xiiReverb2x2, params, channels, this);
+		xiigui = if(channels == 2, {	// stereo
+			XiiEffectGUI.new("ixiReverb2x2", \xiiReverb2x2, params, channels, this, setting);
 			},{				// mono
-			XiiEffectGUI.new("ixiReverb1x1", \xiiReverb1x1, params, channels, this);
+			XiiEffectGUI.new("ixiReverb1x1", \xiiReverb1x1, params, channels, this, setting);
 		}); 
 	}
 }
 
 XiiChorus {	
-	var <>gui; // TESTING: TEMP can delete
+	var <>xiigui;
 
-	*new { arg server, channels;
-		^super.new.initChorus(server, channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initChorus(server, channels, setting);
 		}
 		
-	initChorus {arg server, channels;
+	initChorus {arg server, channels, setting;
 	
 		var s, params, preDelaySpec, depthSpec, speedSpec; 
 		s = server ? Server.local;
@@ -305,25 +310,26 @@ XiiChorus {
 		Ê Ê["PreDelay", "Depth", "Speed", "Fx Level", "Dry Level"], 
 		Ê Ê[\predelay, \depth, \speed, \fxlevel, \level], 
 		Ê Ê[preDelaySpec, depthSpec, speedSpec, \amp, \amp], 
-		Ê Ê[0.08, 0.05, 0.1, 0.5, 0]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[0.08, 0.05, 0.1, 0.5, 0]})
+		]; 
 		
-		gui = if(channels == 2, {	// stereo
-			XiiEffectGUI.new("Chorus 2x2", \xiiChorus2x2, params, channels, this); 
+		xiigui = if(channels == 2, {	// stereo
+			XiiEffectGUI.new("Chorus 2x2", \xiiChorus2x2, params, channels, this, setting); 
 			},{				// mono
-			XiiEffectGUI.new("Chorus 1x1", \xiiChorus1x1, params, channels, this); 
+			XiiEffectGUI.new("Chorus 1x1", \xiiChorus1x1, params, channels, this, setting); 
 		});
 	}
 }
 
 
 XiiOctave {	
-	var <>gui; // TESTING: TEMP can delete
+	var <>xiigui;
 
-	*new { arg server, channels;
-		^super.new.initOctave(server, channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initOctave(server, channels, setting);
 		}
 		
-	initOctave {arg server, channels;
+	initOctave {arg server, channels, setting;
 	
 		var pitchSpec, params, s; 
 		s = server ? Server.local;
@@ -352,25 +358,26 @@ XiiOctave {
 		Ê Ê["Pitch1", "Vol1", "Pitch2", "Vol2", "Dispersion", "Fx level", "Dry Level"], 
 		Ê Ê[\pitch1, \vol1, \pitch2, \vol2, \dispersion, \fxlevel, \level], 
 		Ê Ê[pitchSpec, \amp, pitchSpec, \amp, \amp, \amp, \amp], 
-		Ê Ê[1.25, 0.25, 0.5, 1.0, 0, 1.0, 0.2 ]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[1.25, 0.25, 0.5, 1.0, 0, 1.0, 0.2 ]})
+		]; 
 		
-		gui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Octave 2x2", \xiiOctave2x2, params, channels, this); 
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("Octave 2x2", \xiiOctave2x2, params, channels, this, setting); 
 			},{				// mono
-			XiiEffectGUI.new("Octave 1x1", \xiiOctave1x1, params, channels, this); 
+			XiiEffectGUI.new("Octave 1x1", \xiiOctave1x1, params, channels, this, setting); 
 		});
 
 	}
 }
 
 XiiTremolo {	
-	var <>gui; // TESTING: TEMP can delete
+	var <>xiigui;
 
-	*new { arg server, channels;
-		^super.new.initTremolo(server, channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initTremolo(server, channels, setting);
 		}
 		
-	initTremolo {arg server, channels;
+	initTremolo {arg server, channels, setting;
 	
 		var freqSpec, params, s; 
 		s = server ? Server.local;
@@ -397,28 +404,31 @@ XiiTremolo {
 		Ê Ê["Freq", "Strength", "Fx level", "Dry Level"], 
 		Ê Ê[\freq, \strength, \fxlevel, \level], 
 		Ê Ê[freqSpec, \amp, \amp, \amp], 
-		Ê Ê[0.5, 0.4, 0.65, 0 ]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[0.5, 0.4, 0.65, 0 ]})
+		]; 
 		
-		gui = if(channels == 2, {	// stereo
-			XiiEffectGUI.new("Tremolo 2x2", \xiiTremolo2x2, params, channels, this);
+		xiigui = if(channels == 2, {	// stereo
+			XiiEffectGUI.new("Tremolo 2x2", \xiiTremolo2x2, params, channels, this, setting);
 			}, {				// mono
-			XiiEffectGUI.new("Tremolo 1x1", \xiiTremolo1x1, params, channels, this);
+			XiiEffectGUI.new("Tremolo 1x1", \xiiTremolo1x1, params, channels, this, setting);
 		});
 	}
 }
 	
 XiiEqualizer {
-	var <>gui; // TESTING: TEMP can delete
-
-	*new { arg server, channels;
-		^super.new.initEqualizer(server, channels);
+	var <>xiigui;
+	var <>win, params;
+	var msl;
+	
+	*new { arg server, channels, setting= nil;
+		^super.new.initEqualizer(server, channels, setting);
 		}
 		
-	initEqualizer {arg server, channels;
+	initEqualizer {arg server, channels, setting;
 	
-		var s, win, size, bandSynthList, freqList;
+		var s, size, bandSynthList, freqList;
 		var mslwLeft, mslwTop;
-		var signalGroup, eqGroup, msl;
+		var signalGroup, eqGroup;
 		var lay, inbus, outbus, tgt, addAct, fxOn, cFreqWin, theQ; 
 		var name = "Equalizer";
 		var point;
@@ -458,11 +468,8 @@ XiiEqualizer {
 		}).load(s);
 				
 		tgt = 1; 
-		inbus = 20; 
-		outbus = 0;
 		addAct = \addToTail; 
 		fxOn = false; 
-		theQ = 0.5;
 		signalGroup = Group.new(s, \addToTail);
 		size = 31;
 		mslwLeft = 10;
@@ -471,19 +478,22 @@ XiiEqualizer {
 		freqList = [20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 
 		315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 
 		5000, 6300, 8000, 10000, 12500, 16000, 20000]; // 1/3 octave bands
-		
-		stereoChList = ["0,1", "2,3", "4,5", "6,7", "8,9", "10,11", "12,13", "14,15", 
-					"16,17", "18,19", "20,21", "22,23", "24,25", "26,27", "28,29", 
-					"30,31", "32,33","34,35", "36,37", "38,39", "40,41" ];
-		monoChList = ["0", "1", "2" ,"3", "4", "5", "6", "7", "8", "9", "10", "11", 
-		"12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", 
-		"25", "26", "27", "28", "29", "30", "31", "32", "33","34", "35", "36", "37", 
-		"38", "39", "40", "41" ];
+
+		point = if(setting.isNil, {XiiWindowLocation.new(name)}, {setting[1]});
+		xiigui = nil; // not using window server class here
+		params = if(setting.isNil, {[Array.fill(size, 0.5), 0, 0, 0.5]}, {setting[2]});
+
+		inbus = params[1]; 
+		outbus = params[2];
+		theQ = params[3];
+
+		stereoChList = XiiACDropDownChannels.getStereoChnList;
+		monoChList = XiiACDropDownChannels.getMonoChnList;
 
 		win = SCWindow(name, Rect(point.x, point.y, 520, 243), resizable:false).front;
 		
 		msl = SCMultiSliderView(win, Rect(mslwLeft, mslwTop, 496, 200))
-			.value_(Array.fill(size, 0.5))
+			.value_(params[0])
 			.isFilled_(false)
 			.strokeColor_(Color.new255(10, 55, 10))
 			.fillColor_(Color.green(alpha: 0.2))
@@ -493,7 +503,6 @@ XiiEqualizer {
 			.canFocus_(false)
 			.background_(Color.white)
 			.action_({arg xb; 
-				//("index: " ++ xb.index ++ " value: " ++ xb.value.at(xb.index) ).postln;
 				cFreqWin.string_(freqList.at(xb.index).asString);
 				bandSynthList[xb.index].set(\amp, xb.value.at(xb.index));
 			});
@@ -506,12 +515,13 @@ XiiEqualizer {
 			.font_(Font("Helvetica", 9))
 			.string_("0"); 
 		
-		OSCIISlider.new(win, Rect(445, 214, 60, 8), "- Q", 0.001, 1, 0.5, 0.001)
+		OSCIISlider.new(win, Rect(445, 214, 60, 8), "- Q", 0.001, 1, params[3], 0.001)
 			.font_(Font("Helvetica", 9))
 			.canFocus_(false)
 			.action_({arg sl; 
 					eqGroup.set(\rq, sl.value); 
 					theQ = sl.value;
+					params[3] = sl.value;
 				});
 						
 		win.view.decorator = lay = FlowLayout(win.view.bounds, 5@215, 5@215); 
@@ -521,13 +531,14 @@ XiiEqualizer {
 
 		SCPopUpMenu(win, 40 @ 15)
 			.items_(if(channels==1, {monoChList},{stereoChList}))
-			.value_(0)
+			.value_(inbus/channels)
 			.font_(Font("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.action_({ arg ch;
 				if(channels==1, {inbus = ch.value}, {inbus = ch.value * 2});
 				if (fxOn, { eqGroup.set(\inbus, inbus) });
+				params[1] = inbus;
 			});
 
 		// outBus
@@ -535,13 +546,14 @@ XiiEqualizer {
 		
 		SCPopUpMenu(win, 40 @ 15)
 			.items_(if(channels==1, {monoChList},{stereoChList}))
-			.value_(0)
+			.value_(outbus/channels)
 			.font_(Font("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.action_({ arg ch;
 				if(channels==1, {outbus = ch.value}, {outbus = ch.value * 2});
 				if (fxOn, { eqGroup.set(\outbus, outbus) });
+				params[2] = outbus;
 			});
 					
 		// Target
@@ -622,22 +634,29 @@ XiiEqualizer {
 			size.do({arg i; bandSynthList[i].free}); 
 			CmdPeriod.remove(cmdPeriodFunc);
 			~globalWidgetList.do({arg widget, i; if(widget == this, {t = i})});
-			~globalWidgetList.removeAt(t);
+			try{~globalWidgetList.removeAt(t)};
 			point = Point(win.bounds.left, win.bounds.top);
 			Archive.global.at(\win_position).put(name.asSymbol, point);
 			}); 
 		win.refresh;
 	}
+	
+	getState { // for save settings
+		var point;
+		params[0] = msl.value.round(0.01);
+		point = Point(win.bounds.left, win.bounds.top);
+		^[2, point, params]; // channels, point, params
+	}
 }
 	
 XiiRandomPanner {	
-	var <>gui; // TESTING: TEMP can delete
+	var <>xiigui;
 
-	*new { arg server, channels;
-		^super.new.initRandomPanner(server, channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initRandomPanner(server, channels, setting);
 		}
 		
-	initRandomPanner {arg server, channels;
+	initRandomPanner {arg server, channels, setting;
 
 		var volSpec, trigfreqSpec, strengthSpec, params, s; 
 		
@@ -674,24 +693,25 @@ XiiRandomPanner {
 		Ê Ê["Freq", "Strength"], 
 		Ê Ê[ \trigfreq, \strength], 
 		Ê Ê[trigfreqSpec, strengthSpec], 
-		Ê Ê[0.2, 0.5]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[0.2, 0.5]})
+		]; 
 		
-		gui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("RandomPanner 2x2", \xiiRandompanner2x2, params, channels, this); 
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("RandomPanner 2x2", \xiiRandompanner2x2, params, channels, this, setting); 
 			}, {				// mono
-			XiiEffectGUI.new("RandomPanner 1x2", \xiiRandompanner1x2, params, channels, this);
+			XiiEffectGUI.new("RandomPanner 1x2", \xiiRandompanner1x2, params, channels, this, setting);
 		})
 	}
 }
 
 XiiCombVocoder {	
-	var <>gui; // TESTING: TEMP can delete
+	var <>xiigui;
 
-	*new { arg server, channels;
-		^super.new.initCombVocoder(server, channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initCombVocoder(server, channels, setting);
 		}
 		
-	initCombVocoder {arg server, channels;
+	initCombVocoder {arg server, channels, setting;
 		var volSpec, delayTailSpec, params, s; 
 		s = server ? Server.local;
 		// mono
@@ -733,24 +753,25 @@ XiiCombVocoder {
 		Ê Ê["Delay", "Feedback", "Fx level", "Dry Level"], 
 		Ê Ê[ \delay, \feedback, \fxlevel, \level], 
 		Ê Ê[delayTailSpec, volSpec, \amp, \amp], 
-		Ê Ê[0.025, 0.87, 1.0, 0]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[0.025, 0.87, 1.0, 0]})
+		]; 
 		
-		gui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("CombVocoder 2x2", \xiiCombvocoder2x2, params, channels, this); 
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("CombVocoder 2x2", \xiiCombvocoder2x2, params, channels, this, setting); 
 			}, {				// mono
-			XiiEffectGUI.new("CombVocoder 1x1", \xiiCombvocoder1x1, params, channels, this);
+			XiiEffectGUI.new("CombVocoder 1x1", \xiiCombvocoder1x1, params, channels, this, setting);
 		})
 	}
 }
 
 XiiMRRoque {	
-	var <>gui;
+	var <>xiigui;
 
-	*new { arg server, channels;
-		^super.new.initMRRoque(server, channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initMRRoque(server, channels, setting);
 		}
 		
-	initMRRoque {arg server, channels;
+	initMRRoque {arg server, channels, setting;
 
 		var rateSpec, timeSpec, params, s, buffer; 
 		
@@ -799,24 +820,25 @@ XiiMRRoque {
 		Ê Ê["Time", "Rate", "PreMix", "PreRoom", "PreDamp", "Mix", "Room", "Damp", "Volume"], 
 		Ê Ê[ \end, \rate, \mix, \room, \damp, \outmix, \outroom, \outdamp, \vol, \bufnum], 
 		Ê Ê[timeSpec, rateSpec, \amp, \amp, \amp, \amp, \amp, \amp, \amp], 
-		Ê Ê[4, -1.0, 0.4, 0.4, 0.2, 0.4, 0.4, 0.2, 1.0, buffer.bufnum]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[4, -1.0, 0.4, 0.4, 0.2, 0.4, 0.4, 0.2, 1.0, buffer.bufnum]})
+		]; 
 		
-		gui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("MR Roque 2x2", \xiiMrRoque2x2, params, channels, this); 
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("MR Roque 2x2", \xiiMrRoque2x2, params, channels, this, setting); 
 			}, {				// mono
-			XiiEffectGUI.new("MR Roque 1x1", \xiiMrRoque1x1, params, channels, this);
+			XiiEffectGUI.new("MR Roque 1x1", \xiiMrRoque1x1, params, channels, this, setting);
 		})
 	}
 }
 
 XiiMultiDelay {	
-	var <>gui;
+	var <>xiigui;
 
-	*new { arg server, channels;
-		^super.new.initXiiMultiDelay(server, channels);
+	*new { arg server, channels, setting = nil;
+		^super.new.initXiiMultiDelay(server, channels, setting);
 		}
 		
-	initXiiMultiDelay {arg server, channels;
+	initXiiMultiDelay {arg server, channels, setting;
 
 		var delay1Spec, delay2Spec, delay3Spec, delay4Spec, params, s; 
 		var buffer;
@@ -869,12 +891,13 @@ XiiMultiDelay {
 		Ê Ê["Dry vol", "Delay 1", "vol", "Delay 2", "vol", "Delay 3", "vol", "Delay 4", "vol"], 
 		Ê Ê[ \amp, \dtime1, \d1amp, \dtime2, \d2amp, \dtime3, \d3amp, \dtime4, \d4amp, \bufnum], 
 		Ê Ê[\amp, delay1Spec, \amp, delay2Spec, \amp, delay3Spec, \amp, delay4Spec, \amp], 
-		Ê Ê[1, 1, 1, 2, 1, 3.5, 1, 4, 1, buffer.bufnum]]; 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[1, 1, 1, 2, 1, 3.5, 1, 4, 1, buffer.bufnum]})
+		]; 
 		
-		gui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("MultiDelay 2x2", \xiiMultidelay2x2, params, channels, this);
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("MultiDelay 2x2", \xiiMultidelay2x2, params, channels, this, setting);
 			}, {				// mono
-			XiiEffectGUI.new("MultiDelay 1x1", \xiiMultidelay1x1, params, channels, this);		})
+			XiiEffectGUI.new("MultiDelay 1x1", \xiiMultidelay1x1, params, channels, this, setting);		})
 	}
 }
 

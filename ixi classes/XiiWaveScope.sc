@@ -1,31 +1,37 @@
-XiiWaveScope {
-	var <>gui;
 
+XiiWaveScope {
+
+	var <>xiigui;
+	var <>win, params;
+	
 	classvar ugenScopes;
 	var <server, <numChannels,  <index;
-	var <bufsize, buffer, <window, synth;
+	var <bufsize, buffer, synth;
 	var n, c, d, sl, style=0, sizeToggle=0, zx, zy, ai=0;
 	var onOffButt;
 	
 	
-	*new { arg server, numChannels = 2, index, bufsize = 4096, zoom, view, bufnum;
-		var w;
+	*new { arg server, numChannels = 2, setting = nil;
+		var win, name, point;
 		if(Server.default == Server.local, {
 			XiiAlert("The WaveScope works only on the internal server!");
 		},{
-			w = SCWindow.new("ixi wavescope", Rect(264, 0, 400, 328));
-			w.view.decorator = FlowLayout(Rect(6, 0, 400, 328));
-			w.front;
-			^super.new.initWaveScope(server, window:w);
+			name = "wavescope";
+			
+			point = if(setting.isNil, {XiiWindowLocation.new(name)}, {setting[1]});
+			win = SCWindow.new(name, Rect(point.x, point.y, 400, 328));
+			win.view.decorator = FlowLayout(Rect(6, 0, 400, 328));
+			win.front;
+			^super.new.initWaveScope(server, numChannels, setting, win:win);
 		});
 	}
 
-	initWaveScope { arg server, numChannels = 2, index, bufsize = 4096, zoom, window, bufnum;
+	initWaveScope { arg server, numChannels = 2, setting, win;
 		if(server.inProcess.not, { " ixi wavescope works only with internal server".warn; ^nil });
-		this.makeWindow(window);
-		this.index_(index ? 0);
-		this.zoom_(zoom);
-		this.allocBuffer(bufsize, bufnum ? server.bufferAllocator.alloc(1));
+		this.makeWindow(win, setting);
+		this.index_(0);
+		this.zoom_(10);
+		this.allocBuffer(4096, server.bufferAllocator.alloc(1));
 		this.numChannels = 2;
 	}
 	
@@ -38,19 +44,25 @@ XiiWaveScope {
 		^Rect(x, y, 212, 212)
 	}
 	
-	makeBounds { arg size=212; ^Rect(322, 10, size, size) }
+	makeBounds { arg point, size=212; ^Rect(point.x, point.y, size, size) }
 	
-	makeWindow { arg window;
-		var view, cmdPeriodFunc;
-		view = window.view;
+	makeWindow { arg wind, setting;
+		var view, cmdPeriodFunc, name, point;
 		
-		if(view.isNil) {
-			window = SCWindow("ixi wavescope", this.makeBounds);
-			view = window.view;
-			view.decorator = FlowLayout(window.view.bounds);
-			window.front;
-			window.onClose = { this.free };
-		};
+		view = wind.view;
+		win = wind;
+		
+		xiigui = nil; // not using window server class here
+		params = if(setting.isNil, {[0,1]}, {setting[2]});
+
+//		if(view.isNil) {
+//			"view is NIL".postln;
+//			win = SCWindow(name, this.makeBounds(point));
+//			view = win.view;
+//			view.decorator = FlowLayout(win.view.bounds);
+//			win.front;
+//			//win.onClose = { this.free };
+//		};
 		
 		n = SCScope(view, Rect(view.bounds.left+20, 5, view.bounds.width - 20, view.bounds.height - 40));
 		n.background = Color.green(0.1);
@@ -69,7 +81,7 @@ XiiWaveScope {
 			
 		SCPopUpMenu(view, Rect(50, 15, 40, 18))
 			.items_(XiiACDropDownChannels.getMonoChnList)
-			.value_(0)
+			.value_(params[0])
 			.font_(Font("Helvetica", 9))
 			.background_(Color.white)
 			.resize_(9)		
@@ -87,7 +99,7 @@ XiiWaveScope {
 		SCPopUpMenu(view, Rect(145, 15, 40, 18))
 			.items_([ "1", "2" ,"3", "4", "5", "6", "7", "8", "9", "10", "11", 
 					"12", "13", "14", "15", "16"])
-			.value_(1)
+			.value_(params[1])
 			.font_(Font("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
@@ -126,11 +138,11 @@ XiiWaveScope {
 		cmdPeriodFunc = { onOffButt.valueAction_(0)};
 		CmdPeriod.add(cmdPeriodFunc);
 
-		window.onClose_({ 
+		win.onClose_({ 
 			var t;
 			CmdPeriod.remove(cmdPeriodFunc);
 			~globalWidgetList.do({arg widget, i; if(widget === this, {t = i})});
-			~globalWidgetList.removeAt(t);
+			try{~globalWidgetList.removeAt(t)};
 			this.free;		
  		});
 	}
@@ -201,7 +213,7 @@ XiiWaveScope {
 	}
 	
 	quit {
-		window.close;
+		win.close;
 		this.free;
 	}
 	
@@ -222,7 +234,7 @@ XiiWaveScope {
 		if(synth.isPlaying) { synth.set(\in, val) };
 	}
 	
-	size_ { arg val; if(window.notNil) { window.bounds = this.makeBounds(val) } }
+	size_ { arg val; if(win.notNil) { win.bounds = this.makeBounds(val) } }
 	toggleSize {  if(sizeToggle == 0) 
 					{ sizeToggle = 1; this.size_(500) }
 					{ sizeToggle = 0; this.size_(212) } 
@@ -258,5 +270,10 @@ XiiWaveScope {
 		if(ugenScopes.isNil, { ugenScopes = Set.new; });
 		^ugenScopes
 	}
-
+	
+	getState { // for save settings
+		var point;		
+		point = Point(win.bounds.left, win.bounds.top);
+		^[2, point, params]; // channel, point, params
+	}
 }

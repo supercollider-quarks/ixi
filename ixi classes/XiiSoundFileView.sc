@@ -27,7 +27,6 @@ XiiSoundFileView {
 		}
 		
 	initXiiSoundFileView {arg path, bufnum, numInPool, name;
-		[\NAME, name].postln;
 		logo = [
 Point(1,7), Point(8, 1), Point(15,1), Point(15,33),Point(24, 23), Point(15,14), Point(15,1), 
 Point(23,1),Point(34,13), Point(45,1), Point(61,1), Point(66,6), Point(66,37), Point(59,43),
@@ -97,9 +96,6 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 				if(synthRunFlag == true, { // IT'S LOOPING
 					start = sndfileview.selections[0][0]; // the start
 					end = start + sndfileview.selections[0][1]; // end of the selection
-					[\selections, sndfileview.selections[0]].postln;
-					[\start, start].postln; 
-					[\end, end].postln;
 					
 					if(sndfileview.selectionSize(0) < 10, {
 					 	end = soundfile.numFrames-1; // used to be -1 but that's a bug in LoopBuf
@@ -165,12 +161,9 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 			.action_({arg butt; var start, end, seltime;
 				start = sndfileview.selections[0][0]; // the start
 				end = start + sndfileview.selections[0][1]; // end of the selection
-				//~globalBufferList[bufferPoolNum][1][fileNumInPool] = [start, sndfileview.selections[0][1]];
 				if( end == 0, { end = soundfile.numFrames; });
 				if( start < 0, { start = 0 });
 				if( end > soundfile.numFrames, { end = soundfile.numFrames - 10 });
-//				[\start, start].postln;
-//				[\end, end].postln;
 
 				~globalBufferDict.at(name.asSymbol)[1][fileNumInPool] = [start, sndfileview.selections[0][1]];
 			});
@@ -240,7 +233,6 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 						sndfileview.timeCursorPosition_(start+pos)
 					})
 					}.defer;
-					//{sndfileview.timeCursorPosition_(start+pos)}.defer;
 					pos = pos + 4410;
 					0.1.wait;
 				});

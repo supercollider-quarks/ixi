@@ -178,7 +178,7 @@ XixiPrey {
 					])
 			} },
 			4, { {
-					Synth(\XiiSynth1, [	\outbus, outbus,
+					Synth(\xiiSynth1, [	\outbus, outbus,
 										\freq, pitch,
 										\amp, myVol
 					])
@@ -200,7 +200,7 @@ XixiPrey {
 										]);
 			} },
 			7, { {
-					Synth(\xiiimpulse, [	\outbus, outbus,
+					Synth(\xiiImpulse, [	\outbus, outbus,
 										\pan, 0.7.rand2,
 										\amp, myVol
 										]);

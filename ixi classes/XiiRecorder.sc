@@ -1,58 +1,81 @@
 
 XiiRecorder {	
-	var <>gui;
-	*new { arg server;
-		^super.new.initXiiRecorder(server);
+	var <>xiigui;
+	var <>win, params;
+	
+	var numChannels;
+	*new { arg server, channels, setting = nil;
+		^super.new.initXiiRecorder(server, channels, setting);
 		}
 		
-	initXiiRecorder {arg server;
-		var window, bgColor, foreColor, spec, outbus;
+	initXiiRecorder {arg server, channels, setting;
+		var bgColor, foreColor, spec, outbus;
 		var s, name, point;
-		var txtv, recButton, r, filename, timeText, secTask, inbus, numChannels;
+		var txtv, recButton, r, filename, timeText, secTask, inbus;
 		var stereoButt, monoButt, cmdPeriodFunc;
 		var vuview, ampslider, ampAnalyserSynth, responder;
-		var amp;
+		var amp, recBussesPop;
 		
-		inbus = 0;
-		numChannels = 2;
+		numChannels = channels;
 		filename = "";
 		name = "      Sound Recorder";
 		s = server ? Server.default;
-		
-		point = XiiWindowLocation.new(name);
+
+		xiigui = nil; // not using window server class here
+		point = if(setting.isNil, {XiiWindowLocation.new(name)}, {setting[1]});
+		params = if(setting.isNil, {[1,0,0,1]}, {setting[2]});
 		
 		bgColor = Color.new255(155, 205, 155);
 		foreColor = Color.new255(103, 148, 103);
+		inbus = params[2];
 		outbus = 0;
 		amp = 1.0;
-		
-		window = SCWindow.new(name, Rect(point.x, point.y, 222, 80), resizable:false).front;
+		responder = OSCresponderNode(s.addr,'/tr',{ arg time, responder, msg;
+			if (msg[1] == ampAnalyserSynth.nodeID, {
+				{ 
+					win.isClosed.not.if({ 
+						vuview.value = \amp.asSpec.unmap(msg[3]);
+					});
+				}.defer;
+			});
+		}).add;
+		ampAnalyserSynth = Synth(\xiiVuMeter, 
+			[\bus, inbus, \amp, amp], addAction:\addToTail);
+
+		win = SCWindow.new(name, Rect(point.x, point.y, 222, 80), resizable:false).front;
 					
-		stereoButt = OSCIIRadioButton(window, Rect(10,5,14,14), "stereo")
-						.value_(1)
+		stereoButt = OSCIIRadioButton(win, Rect(10,5,14,14), "stereo")
+						.value_(params[0])
 						.font_(Font("Helvetica", 9))
 						.action_({ arg butt;
 								if(butt.value == 1, {
-								numChannels = 2;
-								monoButt.value_(0);
+									numChannels = 2;
+									monoButt.value_(0);
+									params[1] = 0;
+								recBussesPop.items_(XiiACDropDownChannels.getStereoChnList);
 								});
+								params[0] = butt.value;
 						});
 
-		monoButt = OSCIIRadioButton(window, Rect(100,5,14,14), "mono")
-						.value_(0)
+		monoButt = OSCIIRadioButton(win, Rect(100,5,14,14), "mono")
+						.value_(params[1])
 						.font_(Font("Helvetica", 9))
 						.action_({ arg butt;
 								if(butt.value == 1, {
-								numChannels = 1;
-								stereoButt.value_(0);
-								});										});
+									numChannels = 1;
+									stereoButt.value_(0);
+									params[0] = 0;
+								recBussesPop.items_(XiiACDropDownChannels.getMonoChnList);
+								});
+								params[1] = butt.value;
+						});
 
-		txtv = SCTextView(window, Rect(10, 25, 140, 16))
+		txtv = SCTextView(win, Rect(10, 25, 140, 16))
 				.hasVerticalScroller_(false)
 				.autohidesScrollers_(true)
 				.string_(filename);
 
-		recButton = SCButton(window, Rect(104, 50, 46, 16))
+		recButton = SCButton(win, Rect(104, 50, 46, 16))
 			.states_([["Record",Color.black, Color.clear], 
 					["Stop",Color.red,Color.red(alpha:0.2)]])
 			.font_(Font("Helvetica", 9))
@@ -66,44 +89,43 @@ XiiRecorder {
 						r.start("sounds/ixiquarks/"++filename++".aif");
 						r.setAmp_(amp);
 						secTask.start;
-						responder = OSCresponderNode(s.addr,'/tr',{ arg time, responder, msg;
-							if (msg[1] == ampAnalyserSynth.nodeID, {
-								{ vuview.value = \amp.asSpec.unmap(msg[3]) }.defer;
-							});
-						}).add;
-						ampAnalyserSynth = Synth(\xiiVuMeter, 
-							[\bus, inbus, \amp, amp], addAction:\addToTail);
 					}, {
 						r.stop;
 						secTask.stop;
-						ampAnalyserSynth.free;
-						responder.remove;
 						vuview.value = 0;
 					});
 				}, {
-					XiiAlert("you need to start a server in order to record");					recButton.value_(0);
+					XiiAlert("you need to start a server in order to record");
+					recButton.value_(0);
 				});
 			});
 		
-		timeText = SCStaticText(window, Rect(64, 50, 40, 16))
+		timeText = SCStaticText(win, Rect(64, 50, 40, 16))
 					.string_("00:00");
 
 		// record busses
-		SCPopUpMenu(window, Rect(10, 50, 44, 16))
-			.items_(XiiACDropDownChannels.getStereoChnList)
-			.value_(0)
+		recBussesPop = SCPopUpMenu(win, Rect(10, 50, 44, 16))
+			.items_(	if(numChannels == 2, {
+						XiiACDropDownChannels.getStereoChnList;
+					},{
+						XiiACDropDownChannels.getMonoChnList;
+					});
+			)
+			.value_(params[2])
 			.font_(Font("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.action_({ arg ch;
-				inbus = ch.value * 2;
+				inbus = if(numChannels == 2, {ch.value * 2}, {ch.value});
+				ampAnalyserSynth.set(\bus, inbus);
+				params[2] = ch.value;
 			});
 			
 		// the vuuuuu meter
-		vuview = XiiVuView(window, Rect(162, 5, 46, 37))
+		vuview = XiiVuView(win, Rect(162, 5, 46, 37))
 				.canFocus_(false);
 
-		ampslider = OSCIISlider.new(window, Rect(162, 50, 46, 10), "vol", 0, 1, 1, 0.001, \amp)
+		ampslider = OSCIISlider.new(win, Rect(162, 50, 46, 10), "vol", 0, 1, params[3], 0.001, \amp)
 			.font_(Font("Helvetica", 9))
 			.action_({arg sl;
 				if(recButton.value == 1, {
@@ -111,6 +133,7 @@ XiiRecorder {
 					r.setAmp_(amp);
 					ampAnalyserSynth.set(\amp, amp);
 				});
+				params[3] = sl.value;
 			});
 			
 		// updating the seconds text		
@@ -122,7 +145,6 @@ XiiRecorder {
 				if(sec > 59, {min = min+1; sec = 0;});
 				if(min < 10, {minstring = "0"++min.asString}, {minstring = min.asString});
 				if(sec < 10, {secstring = "0"++sec.asString}, {secstring = sec.asString});
-				//secstring.postln;
 				{timeText.string_(minstring++":"++secstring)}.defer;
 				1.wait;
 			});
@@ -132,16 +154,24 @@ XiiRecorder {
 		cmdPeriodFunc = { recButton.valueAction_(0);};
 		CmdPeriod.add(cmdPeriodFunc);
 
-		window.onClose_({
+		win.onClose_({
 			var t;
 			recButton.valueAction_(0); // stop recording
 			CmdPeriod.remove(cmdPeriodFunc);
+			ampAnalyserSynth.free;
+			responder.remove;
 			~globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
-			~globalWidgetList.removeAt(t);
+			try{~globalWidgetList.removeAt(t)};
 			// write window position to archive.sctxar
-			point = Point(window.bounds.left, window.bounds.top);
+			point = Point(win.bounds.left, win.bounds.top);
 			XiiWindowLocation.storeLoc(name, point);
 		});
+	}
+	
+	getState { // for save settings
+		var point;		
+		point = Point(win.bounds.left, win.bounds.top);
+		^[numChannels, point, params];
 	}
 }
 

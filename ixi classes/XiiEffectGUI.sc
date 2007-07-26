@@ -4,22 +4,28 @@
 // is necessary to have here on closing the window in order to 
 // free the reference to the object in the ~globalWidgetList
 
+// the setting argument is passed from the settings of XiiQuarks.sc
+// if the gui is run from a setting
+
 XiiEffectGUI {
 	var <>win; 
-	var slider, specs;
+	var slider, specs, param, channels, inbus, outbus, tgt, addAct;
+	var bufnum, synth, fxOn;
 	
-	*new { arg name, synthdef, param, ch, creator;
-		^super.new.initGUI(name, synthdef, param, ch, creator);
+	*new { arg name, synthdef, param, ch, creator, setting=nil;
+		^super.new.initGUI(name, synthdef, param, ch, creator, setting);
 		}
 		
-	initGUI { arg name, synthdef, param, ch, creator; 
-		var lay, synth, inbus, outbus, tgt, addAct, fxOn, moveSynth;
-		var nodeLabel, help, synthParams, point, channels, stereoChList, monoChList;
-		var onOffButt, cmdPeriodFunc, bufnum;
+	initGUI { arg name, synthdef, par, ch, creator, setting; 
+		var lay, moveSynth;
+		var nodeLabel, help, synthParams, point, stereoChList, monoChList;
+		var onOffButt, cmdPeriodFunc;
 		
-		tgt = 1;
-		inbus = 0; 
-		outbus = 0; 
+		param = par; // I need to return this from a func so put into a var
+		tgt = if(setting.isNil.not, {setting[3]}, {1});
+		inbus = if(setting.isNil.not, {setting[1]}, {0}); 
+		outbus = if(setting.isNil.not, {setting[2]}, {0}); 
+//		addAct = if(setting.isNil.not, {setting[4]}, {\addToTail}); 
 		addAct = \addToTail; 
 		fxOn = false; 
 		slider = Array.newClear(param[0].size); 
@@ -28,11 +34,10 @@ XiiEffectGUI {
 		
 		// mono or stereo?
 		channels = ch;
-		[\channels, channels].postln;
 		stereoChList = XiiACDropDownChannels.getStereoChnList;
 		monoChList = 	 XiiACDropDownChannels.getMonoChnList;
 					
-		point = XiiWindowLocation.new(name);
+		point = if(setting.isNil.not, {setting[4]}, {XiiWindowLocation.new(name)});
 		
 		win = SCWindow(name, 
 				Rect(point.x, point.y, 310, (param[0].size * 20) + 50), 
@@ -42,7 +47,7 @@ XiiEffectGUI {
 		SCStaticText(win, 12 @ 15).font_(Font("Helvetica", 9)).string_("in").align_(\right); 
 		SCPopUpMenu(win, 40 @ 15)
 			.items_(if(channels==1, {monoChList},{stereoChList}))
-			.value_(0)
+			.value_(inbus/ch) 
 			.font_(Font("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
@@ -54,7 +59,7 @@ XiiEffectGUI {
 		SCStaticText(win, 14 @ 15).font_(Font("Helvetica", 9)).string_("out").align_(\right); 
 		SCPopUpMenu(win, 40 @ 15)
 			.items_(if(channels==1, {monoChList},{stereoChList}))
-			.value_(0)
+			.value_(outbus/ch)
 			.font_(Font("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
@@ -156,20 +161,23 @@ XiiEffectGUI {
 		cmdPeriodFunc = { onOffButt.valueAction_(0)};
 		CmdPeriod.add(cmdPeriodFunc);
 
-		win.onClose_({ 
+		win.onClose_({
 			var t;
-			if (fxOn, { "d1".postln; synth.free; "d2".postln; });
+			if (fxOn, { synth.free; });
 			CmdPeriod.remove(cmdPeriodFunc);
 			if(bufnum != nil, { // if the effect is using a buffer
 				Server.default.sendMsg(\b_free, bufnum);
 				Server.default.bufferAllocator.free(bufnum);
 			});
+			
 			~globalWidgetList.do({arg widget, i; if(widget === creator, { t = i})});
-			~globalWidgetList.removeAt(t);
+			try{~globalWidgetList.removeAt(t)};
+
 			// write window position to archive.sctxar
 			point = Point(win.bounds.left, win.bounds.top);
 			XiiWindowLocation.storeLoc(name, point);
-			}); 
+		}); 
+		
 		win.front; 
 	} // end of initGui
 	
@@ -178,6 +186,13 @@ XiiEffectGUI {
 			slider[slnum].valueAction_(val);
 		});
 	}
+	
+	getState {
+		var point;
+		point = Point(win.bounds.left, win.bounds.top);
+		^[channels, inbus, outbus, tgt, point, param[3]];
+	}
+	
 }
 
 

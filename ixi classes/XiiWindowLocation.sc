@@ -1,8 +1,5 @@
 
-
-
 XiiWindowLocation {
-
 
 	*new { arg name;
 		^super.new.initXiiWindowLocation(name);
@@ -29,8 +26,6 @@ XiiWindowLocation {
 	}
 	
 	*storeLoc {arg name, point;
-		//"storing ".postln;
 		Archive.global.at(\win_position).put(name.asSymbol, point);
 	}
-
 }

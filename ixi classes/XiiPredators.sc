@@ -1,19 +1,23 @@
 XiiPredators {
-	var <>gui;
+
+	var <>xiigui, <>win, params;
+
 	var selbPool, ldSndsGBufferList, sndNameList, bufferPop, gBufferPoolNum;
 	var preyArray, a, poolname;
 	
-	*new {arg server;
-		^super.new.initXiiPredators(server);
+	*new {arg server, channels, setting = nil;
+		^super.new.initXiiPredators(server, channels, setting);
 	}
 
-	initXiiPredators {arg server;
-		var w, ww, wview, outBus, soundFuncPop, bufferList;
+	initXiiPredators {arg server, channels, setting;
+	
+		var ww, wview, outBus, soundFuncPop, bufferList;
 		var predatorArray;
 		var sampleNameField, pitchSampleField, keybButt;
 		var playButt, cmdPeriodFunc;
 		var createCodeWin, createAudioStreamBusWin, createEnvWin, synthDefPrototype, synthDefInUse;
 		var inbus, createEnvButt, envButt;
+		var aggrSl, frictionSl, restlSl, volSl, point;
 		
 		gBufferPoolNum = 0;
 		preyArray = [];
@@ -30,10 +34,14 @@ XiiPredators {
 			Out.ar(outbus, Pan2.ar(sine, pan));
 		}).play(Server.default)}.asCompileString;
 
-		w = SCWindow("ixi predators", Rect(408, 364, 640, 580), resizable:false);
-		wview = w.view;
+xiigui = nil;
+point = if(setting.isNil, {Point(408, 364)}, {setting[1]});
+params = if(setting.isNil, {[4, 18, 20, 1, 0, 0.4]}, {setting[2]});
+
+		win = SCWindow("ixi predators", Rect(point.x, point.y, 640, 580), resizable:false);
+		wview = win.view;
 		
-		a = XixiPainter.new(w, Rect(10, 5, 620, 470)); // 640 * 480 resolution
+		a = XixiPainter.new(win, Rect(10, 5, 620, 470)); // 640 * 480 resolution
 		
 		3.do({
 			preyArray = preyArray.add(
@@ -72,7 +80,7 @@ XiiPredators {
 
 		// -- the GUI
 		// add predator
-		SCButton(w, Rect(10, 485, 65, 18))
+		SCButton(win, Rect(10, 485, 65, 18))
 			.font_(Font("Helvetica", 9))
 			.states_([["add predator",Color.black,Color.clear]])
 			.action_({ var p;
@@ -85,7 +93,7 @@ XiiPredators {
 			});
 			
 		// delete predator
-		SCButton(w, Rect(10, 506, 65, 18))
+		SCButton(win, Rect(10, 506, 65, 18))
 			.font_(Font("Helvetica", 9))
 			.states_([["del predator",Color.black,Color.clear]])
 			.action_({
@@ -97,7 +105,7 @@ XiiPredators {
 			});
 		
 		// add prey
-		SCButton(w, Rect(78, 485, 50, 18))
+		SCButton(win, Rect(78, 485, 50, 18))
 			.font_(Font("Helvetica", 9))
 			.states_([["add prey",Color.black,Color.clear]])
 			.action_({ var p;
@@ -115,7 +123,7 @@ XiiPredators {
 			});
 		
 		// delete prey
-		SCButton(w, Rect(78, 506, 50, 18))
+		SCButton(win, Rect(78, 506, 50, 18))
 			.font_(Font("Helvetica", 9))
 			.states_([["del prey",Color.black,Color.clear]])
 			.action_({
@@ -127,21 +135,21 @@ XiiPredators {
 				predatorArray.do({|predator| predator.supplyPreyArray(preyArray)});
 			});
 		
-		pitchSampleField = SCStaticText(w, Rect(275, 535, 60, 20))
+		pitchSampleField = SCStaticText(win, Rect(275, 535, 60, 20))
 				.font_(Font("Helvetica", 9))
 				.string_("prey sample :");
 				
-		sampleNameField =	SCStaticText(w, Rect(340, 535, 100, 20))
+		sampleNameField =	SCStaticText(win, Rect(340, 535, 100, 20))
 				.font_(Font("Helvetica", 9))
 				.string_("none");
 		
-		SCStaticText(w, Rect(265, 530, 205, 30))
+		SCStaticText(win, Rect(265, 530, 205, 30))
 				.background_(Color.new255(255, 100, 0, 30))
 				.string_("");
 		
 		preyArray.do({|prey| prey.supplyTextFields([sampleNameField, pitchSampleField])});
 		
-		selbPool = SCPopUpMenu(w, Rect(265, 485, 102, 16)) // 530
+		selbPool = SCPopUpMenu(win, Rect(265, 485, 102, 16)) // 530
 				.font_(Font("Helvetica", 9))
 				.items_( if(~globalBufferDict.keys.asArray == [], {["no pool"]}, {~globalBufferDict.keys.asArray.sort}) )
 				.value_(0)
@@ -155,7 +163,7 @@ XiiPredators {
 					}
 				});		
 		
-		bufferPop = SCPopUpMenu(w,Rect(265, 505, 102, 16))
+		bufferPop = SCPopUpMenu(win,Rect(265, 505, 102, 16))
 				.font_(Font("Helvetica", 9))
 				.items_(["no buffer 1", "no buffer 2"])
 				.background_(Color.new255(255, 255, 255))
@@ -164,11 +172,11 @@ XiiPredators {
 				})
 				.addAction({bufferPop.action.value( bufferPop.value )}, \mouseDownAction);
 		
-		SCStaticText(w, Rect(375, 483, 80, 20))
+		SCStaticText(win, Rect(375, 483, 80, 20))
 			.font_(Font("Helvetica", 9))
 			.string_("sound :");
 		
-		soundFuncPop = SCPopUpMenu(w, Rect(410, 485, 60, 16))
+		soundFuncPop = SCPopUpMenu(win, Rect(410, 485, 60, 16))
 				.font_(Font("Helvetica", 9))
 				.items_(["sample", "sine", "bells", "sines", "synth1", "ks_string", 
 				"ixi_string", "impulse", "ringz", "klanks", "scode", "audiostream"])
@@ -187,28 +195,30 @@ XiiPredators {
 						preyArray.do({|prey, i| prey.setRandomBuffer(selbPool.items[selbPool.value])});
 					}); 
 					preyArray.do({|prey| prey.setAteFunc_(popup.value)});
+					params[3] = popup.value;
 				})
 				.value_(1);
 		
-		SCStaticText(w, Rect(375, 505, 80, 20))
+		SCStaticText(win, Rect(375, 505, 80, 20))
 			.font_(Font("Helvetica", 9))
 			.string_("outbus :");
 		
-		outBus = SCPopUpMenu(w, Rect(410, 507, 60,16))
+		outBus = SCPopUpMenu(win, Rect(410, 507, 60,16))
 				.font_(Font("Helvetica", 9))
 				.items_(XiiACDropDownChannels.getStereoChnList)
 				.background_(Color.new255(255, 255, 255))
 				.action_({ arg popup; var outbus;
 					preyArray.do({|prey| prey.setOutBus_(popup.value * 2)});
+					params[4] = popup.value;
 				});
 		
-		SCButton(w, Rect(510, 485, 70, 18))
+		SCButton(win, Rect(510, 485, 70, 18))
 			.font_(Font("Helvetica", 9))
 			.states_([["fixed pitch",Color.black,Color.clear], ["locative pitch",Color.black,Color.clear]])
 			.action_({arg butt; 
 				preyArray.do({|prey| prey.setPitchMode_(butt.value)});
 				if(butt.value == 1, {
-					keybButt = SCButton(w, Rect(477, 485, 26, 18))
+					keybButt = SCButton(win, Rect(477, 485, 26, 18))
 						.font_(Font("Helvetica", 9))
 						.canFocus_(false)
 						.states_([["key",Color.black,Color.clear]])
@@ -217,22 +227,22 @@ XiiPredators {
 								preyArray.do({|prey| prey.setPitch_(note)})
 							};
 							ww = SCWindow("set pitch", 
-							Rect(w.bounds.left+400, w.bounds.top+230, 400, 80), resizable:false).front;
+							Rect(win.bounds.left+400, win.bounds.top+230, 400, 80), resizable:false).front;
 							ww.alwaysOnTop = true;
 							k = MIDIKeyboard.new(ww, Rect(10, 5, 374, 60), 5, 24);
 							k.keyDownAction_({arg note; func.value(note)});
 							k.keyTrackAction_({arg note; func.value(note)});
 						});
-					w.refresh;
+					win.refresh;
 				}, {
 					if(ww.isKindOf(SCWindow), {ww.close;});
 					keybButt.remove;
-					w.refresh;
+					win.refresh;
 				});
 			});
 			
 		// start stop
-		playButt = SCButton(w, Rect(585, 485, 45, 18))
+		playButt = SCButton(win, Rect(585, 485, 45, 18))
 			.font_(Font("Helvetica", 9))
 			.states_([["start",Color.black,Color.clear], ["stop",Color.black, Color.green(alpha:0.2)]])
 			.action_({arg butt;
@@ -244,25 +254,33 @@ XiiPredators {
 			});
 		
 		
-		OSCIISlider.new(w, Rect(510, 513, 117, 10), "- vol", 0, 1, 0.4, 0.0001, \amp)
+		volSl = OSCIISlider.new(win, Rect(510, 513, 117, 10), "- vol", 0, 1, 0.4, 0.0001, \amp)
 			.font_(Font("Helvetica", 9))
 			.action_({arg sl; 
-				preyArray.do({|prey, i| prey.setVolume_(sl.value)});	});
+				preyArray.do({|prey, i| prey.setVolume_(sl.value)});
+				params[5] = sl.value;
+			});
 		
-		OSCIISlider.new(w, Rect(137, 485, 117, 10), "- aggression", 0.1, 6, 4, 0.01)
+		aggrSl = OSCIISlider.new(win, Rect(137, 485, 117, 10), "- aggression", 0.1, 6, 4, 0.01)
 			.font_(Font("Helvetica", 9))
 			.action_({arg sl; 
-				predatorArray.do({|predator, i| predator.setAggression_(sl.value)});	});
+				predatorArray.do({|predator, i| predator.setAggression_(sl.value)});
+				params[0] = sl.value;
+			});
 		
-		OSCIISlider.new(w, Rect(137, 515, 117, 10), "- friction", 5, 25, 18, 0.01)
+		frictionSl = OSCIISlider.new(win, Rect(137, 515, 117, 10), "- friction", 5, 25, 18, 0.01)
 			.font_(Font("Helvetica", 9))
 			.action_({arg sl; 
-				predatorArray.do({|predator, i| predator.friction = sl.value});	});
+				predatorArray.do({|predator, i| predator.friction = sl.value});
+				params[1] = sl.value;
+			});
 		
-		OSCIISlider.new(w, Rect(137, 545, 117, 10), "- restless", 1, 50, 20, 1)
+		restlSl = OSCIISlider.new(win, Rect(137, 545, 117, 10), "- restless", 1, 50, 20, 1)
 			.font_(Font("Helvetica", 9))
 			.action_({arg sl; 
-				predatorArray.do({|predator, i| predator.restlessSeed = sl.value});	});
+				predatorArray.do({|predator, i| predator.restlessSeed = sl.value});
+				params[3] = sl.value;
+			});
 		
 		// -- stuff to do when GUIs are created
 		ldSndsGBufferList.value(selbPool.items[0].asSymbol);
@@ -270,7 +288,7 @@ XiiPredators {
 		
 		createEnvButt = {arg state;
 			if(state == true, {
-				envButt = SCButton(w, Rect(477, 506, 26, 18))
+				envButt = SCButton(win, Rect(477, 506, 26, 18))
 					.font_(Font("Helvetica", 9))
 					.canFocus_(false)
 					.states_([["env",Color.black,Color.clear]])
@@ -279,7 +297,7 @@ XiiPredators {
 					});
 			}, {
 				envButt.remove;
-				w.refresh;
+				win.refresh;
 			})
 		};
 		
@@ -394,14 +412,22 @@ XiiPredators {
 		cmdPeriodFunc = { playButt.valueAction_(0);};
 		CmdPeriod.add(cmdPeriodFunc);
 
-		w.onClose_({ 
+		win.onClose_({ 
 			var t;
 			a.stop;
 			a.remove;
 			CmdPeriod.remove(cmdPeriodFunc);
 			~globalWidgetList.do({arg widget, i; if(widget == this, {t = i})});
-			~globalWidgetList.removeAt(t);
+			try{~globalWidgetList.removeAt(t)};
 		});
+		
+		// setting
+		aggrSl.valueAction_(params[0]);
+		frictionSl.valueAction_(params[1]);
+		restlSl.valueAction_(params[2]);
+		soundFuncPop.valueAction_(params[3]);
+		outBus.valueAction_(params[4]);
+		volSl.valueAction_(params[5]);
  	}
 	
 	updatePoolMenu {
@@ -413,4 +439,11 @@ XiiPredators {
 			selbPool.value_(poolindex); // so nothing changed, but new poolarray
 		});	
 	}
+	
+	getState { // for save settings
+		var point;
+		point = Point(win.bounds.left, win.bounds.top);
+		^[2, point, params];
+	}
+
 }
