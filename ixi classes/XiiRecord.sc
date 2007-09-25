@@ -43,11 +43,13 @@ XiiRecord {
 		server.sendMsg("/b_alloc", bufnum, 32768, numChannels,
 			["/b_write", bufnum, path, headerFormat, sampleFormat, 0, 0, 1]
 		);
+		
 //		synth = Synth.new("xii-diskout-" ++ numChannels, 
 //					[\i_in, inbus, \i_bufNum, bufnum], 
 //					target: server,
 //					addAction: \addToTail // added by thor
 //					);
+
 		synth = Synth.tail(RootNode(Server.default), "xii-diskout-" ++ numChannels, // RootNode by thor
 					[\i_in, inbus, \i_bufNum, bufnum], 
 					target: server,
