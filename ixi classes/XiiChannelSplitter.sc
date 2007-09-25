@@ -45,13 +45,13 @@ XiiChannelSplitter {
 		
 		SynthDef(\xiiChannelSplitter1x1, { arg inbus, outbus, amp=1;
 			var in;
-			in = In.ar(inbus, 1);
+			in = InFeedback.ar(inbus, 1);
 			Out.ar(outbus, in*amp);
 		}).load(s);
 		
 		SynthDef(\xiiChannelSplitter2x2, { arg inbus, outbus, amp=1;
 			var in;
-			in = In.ar(inbus, 2);					
+			in = InFeedback.ar(inbus, 2);
 			Out.ar(outbus, in*amp);
 		}).load(s);
 				

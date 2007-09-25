@@ -57,7 +57,7 @@ XiiRecorder {
 								params[0] = butt.value;
 						});
 
-		monoButt = OSCIIRadioButton(win, Rect(100,5,14,14), "mono")
+		monoButt = OSCIIRadioButton(win, Rect(100,5,14,14), "mono ")
 						.value_(params[1])
 						.font_(Font("Helvetica", 9))
 						.action_({ arg butt;

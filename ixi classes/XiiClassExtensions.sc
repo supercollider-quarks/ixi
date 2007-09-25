@@ -18,7 +18,6 @@
 	}
 }
 
-
 + SCEnvelopeView {
 	// an Env has times in sec for each point, an EnvView has points (x,y) in the view (0 to 1)
 	// this method formats that

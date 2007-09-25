@@ -88,6 +88,8 @@ XiiScaleSynth {
 			win.close; 
 			scaleBuf.free; 
 			transBuf.free;
+			drone.free;
+			synth.free;
 			~globalWidgetList.do({arg widget, i; if(widget == this, {t = i})});
 			try{~globalWidgetList.removeAt(t)};
 		});

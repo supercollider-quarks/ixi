@@ -3,6 +3,11 @@
 // ~globalBufferDict - a.keys (.asArray)
 // the presets are handled in a class called XiiSettings
 
+// NOTE: BufferPlayer uses TriggerIDs from 50 to (number of instances * 50)
+// AudioIn uses TriggerID number 800
+// Recorder uses TriggerID nr 820
+// Mushrooms uses TriggerID nr 840
+
 // NEW IN VERSION 2:
 // Amp slider in Recorder and in BufferPool
 // Open sounds folder in Player
@@ -13,6 +18,16 @@
 // store settings
 // bug fixes
 
+// NEW IN VERSION 4:
+// Relative tempi in PolyMachine
+// Fixing sc-code such that one does not have to submit code for each box
+// BufferPool soundfile view now displays selections in the soundfile
+// Fixing Gridder (the params argument so the transpose is set to 1 again)
+// Fixing loadup of synthdefs in PolyMachine (removing from server)
+// Optimising the distribution code
+// Record fixes
+// Fixing the route ordering of channels - now no need to restart effects
+// Fixing amplifier
 
 XiiQuarks {	
 
@@ -30,13 +45,16 @@ XiiQuarks {
 		var chosenWidget, effectnum, types, typesview, ixilogo;
 		var settingRegister, settingNameView, storeSettingButt, comingFromFieldFlag, settingName;
 		var storedSettingsPop, loadSettingButt, deleteSettingButt, clearScreenButt;
+		var prefFile, preferences;
 		
 		settingRegister = XiiSettings.new; // activate the settings registry
 
-		////////////// preferences ///////////////////
+		GUI.cocoa;
 		Server.default = Server.local; // EXPERIMENTAL !!!!
 		//Server.default.boot;
 		
+		/* old preferences
+		////////////// preferences ///////////////////
 		XiiACDropDownChannels.numChannels = 52; // NUMBER OF AUDIO BUSSES USED
 		guistyle = "new";
 		
@@ -48,7 +66,30 @@ XiiQuarks {
 		midiInPorts = 2;
 		midiOutPorts = 2;
 		//////////////////////////////////////////////
+		*/
 		
+		////////////// preferences ///////////////////
+		prefFile = File("preferences/preferences.ixi", "r");
+		preferences = prefFile.readAllString;
+		preferences.interpret;
+		
+		guistyle = ~pref.guistyle;
+		
+		midi = ~pref.midi; // if you want to use midi or not (true or false)
+		midiControllerNumbers = ~pref.midiControllerNumbers; // evolution mk-449c
+		//midiControllerNumbers = [97,98,99,100,101,102,103,104]; // behringer bcr2000
+		midiRotateWindowChannel = ~pref.midiRotateWindowChannel;
+		//midiRotateWindowChannel = 89; // behringer
+		midiInPorts = ~pref.midiInPorts;
+		midiOutPorts = ~pref.midiOutPorts;
+		if(~pref.emailSent == false, {
+			"open preferences/email.html".unixCmd;
+		});
+
+		XiiACDropDownChannels.numChannels_( ~pref.numberOfChannels ); // NUMBER OF AUDIO BUSSES
+
+		//////////////////////////////////////////////
+
 		XiiLoadSynthDefs.new(Server.default);
 		
 	
@@ -125,6 +166,16 @@ XiiQuarks {
 			.action_({arg butt; 
 				settingRegister.loadSetting(storedSettingsPop.items[storedSettingsPop.value]);
 			});
+//			.keyDownAction_({arg view, key, mod, unicode; // if RETURN on bufNameView
+//				if(unicode == 13, {
+//					if(comingFromFieldFlag, {
+//						"not storing setting".postln;
+//						comingFromFieldFlag = false;
+//					},{
+//						settingRegister.storeSetting(settingNameView.string);
+//					})
+//				});
+//			});
 
 		settingNameView = SCTextView.new(win, Rect(10, 139, 78, 14))
 			.font_(Font("Helvetica", 9))
@@ -135,6 +186,11 @@ XiiQuarks {
 					storeSettingButt.focus(true);
 				});
 			});
+				
+//			.enterKeyAction_({|view|
+//				comingFromFieldFlag = true;
+//				storeSettingButt.focus(true);
+//			});
 
 		
 		storeSettingButt = SCButton(win, Rect(95, 138, 35, 17))
@@ -214,7 +270,7 @@ XiiQuarks {
 							});
 					});
 
-		monoButt = OSCIIRadioButton(win, Rect(140, 190, 12, 12), "mono")
+		monoButt = OSCIIRadioButton(win, Rect(140, 190, 12, 12), "mono ")
 					.value_(0)
 					.font_(Font("Helvetica", 9))
 					.action_({ arg butt;
@@ -294,6 +350,166 @@ XiiQuarks {
 			Pen.stroke
 		};
 		win.refresh;
+		
 	
 	}
 }
+
+
+
+/*
+
+// old version
+
+XiiQuarks {	
+
+	*new { 
+		^super.new.initXiiQuarks;
+		}
+		
+	initXiiQuarks {
+		
+		var win, txtv, quarks, serv, channels;
+		var openButt, effectCodeString, monoButt, stereoButt, effect;
+		var name, point;
+		var midi, midiControllerNumbers, midiRotateWindowChannel, midiInPorts, midiOutPorts;
+		var chosenWidget, effectnum;
+		
+
+		////////////// preferences ///////////////////
+		Server.default = Server.local; // EXPERIMENTAL !!!!
+		//Server.default.boot;
+		
+		XiiACDropDownChannels.numChannels = 52; // NUMBER OF AUDIO BUSSES USED
+		
+		midi = false; // if you want to use midi or not (true or false)
+		midiControllerNumbers = [73, 72, 91, 93, 74, 71, 5, 84, 7]; // evolution mk-449c
+		//midiControllerNumbers = [97,98,99,100,101,102,103,104]; // behringer bcr2000
+		midiRotateWindowChannel = 10;
+		//midiRotateWindowChannel = 89; // behringer
+		midiInPorts = 2;
+		midiOutPorts = 2;
+		//////////////////////////////////////////////
+		
+		XiiLoadSynthDefs.new(Server.default);
+
+		name = "quarks";
+		point = XiiWindowLocation.new(name);
+		
+		win = SCWindow(name, Rect(point.x, point.y, 140, 212), resizable:false).front;
+		
+		~globalWidgetList = List.new; // keep track of active widgets
+		// (contains [List [buffers], [selstart, sellength]])
+		~globalBufferDict = ();  // ICMC
+		//~globalBufferList.add(0); // ICMC
+		~bufferPoolNum = -1;
+		
+		quarks = [ 
+		"AudioIn", "Recorder", "Player", "BufferPool", "PoolManager", 
+		"FreqScope", "WaveScope", "EQMeter", "MixerNode", 
+		"ChannelSplitter", "Amplifier", "TrigRecorder",
+		"           --------     ",  
+		"SoundScratcher", "Predators", "Gridder", "BufferPlayer", "GrainBox", 
+		"PolyMachine", "ScaleSynth", 
+		"           --------     ",
+		"Delay", "Freeverb", "AdCVerb", "Distortion", "ixiReverb", "Chorus",
+		"Octave", "Tremolo", "Equalizer", "CombVocoder", "RandomPanner", "MRRoque",
+		"MultiDelay",
+		"           --------     ",
+		"Bandpass", "Lowpass", "Highpass", "RLowpass", "RHighpass", "Resonant", "Klanks",		"           --------     ",
+		"Noise", "Oscillators"
+		
+		];
+		
+		channels = 2;
+		effect = "AudioIn";
+		
+		txtv = SCListView(win,Rect(10,10, 120, 152))
+			.items_(quarks)
+			.hiliteColor_(XiiColors.darkgreen) //Color.new255(155, 205, 155)
+			.background_(XiiColors.listbackground)
+			.selectedStringColor_(Color.black)
+			.action_({ arg sbs;
+				("Xii"++quarks.at(sbs.value)).postln;
+				if(quarks.at(sbs.value).contains("-").not, {
+					effect = quarks.at(sbs.value);
+				});
+			})
+			.enterKeyAction_{|view|
+				if(quarks.at(txtv.value).contains("-").not, {
+					effectCodeString = "Xii"++effect++".new(Server.default,"++channels++")";
+					~globalWidgetList.add(effectCodeString.interpret);
+				});
+			};
+
+		stereoButt = OSCIIRadioButton(win, Rect(10, 168, 14,14), "stereo")
+					.value_(1)
+					.action_({ arg butt;
+							if(butt.value == 1, {
+							channels = 2;
+							monoButt.value_(0);
+							});
+					});
+
+		monoButt = OSCIIRadioButton(win, Rect(10, 190, 14,14), "mono")
+					.value_(0)
+					.action_({ arg butt;
+							if(butt.value == 1, {
+								channels = 1;
+								stereoButt.value_(0);
+							});	
+					});
+								
+		openButt = SCButton(win, Rect(80, 170, 50, 18))
+				.states_([["Open",Color.black,Color.clear]])
+				.action_({ arg butt;
+					if(quarks.at(txtv.value).contains("-").not, {
+						effectCodeString = "Xii"++effect++".new(Server.default,"++channels++")";
+						~globalWidgetList.add(effectCodeString.interpret);
+					});
+				});
+				
+		// MIDI control of sliders		
+		if(midi == true, {
+			MIDIIn.control = { arg src, chan, num, val; 
+				var wcnt;					
+				if(num == midiRotateWindowChannel, {
+					{
+					wcnt = SCWindow.allWindows.size;
+					if(~globalWidgetList.size > 0, {
+						chosenWidget = val % wcnt;
+						SCWindow.allWindows.at(chosenWidget).front;
+						~globalWidgetList.do({arg widget, i;
+							if(widget.gui.isKindOf(XiiEffectGUI), {
+								if(SCWindow.allWindows.at(chosenWidget) === widget.gui.win, {
+									effectnum = i;
+								});
+							});
+						});
+					});
+					}.defer;
+				},{
+				{
+				~globalWidgetList[effectnum].gui.setSlider_(
+					midiControllerNumbers.detectIndex({arg i; i == num}), val/127);
+				}.defer;
+				});
+			};
+			
+			MIDIClient.init(midiInPorts,midiOutPorts);
+			midiInPorts.do({ arg i; 
+				MIDIIn.connect(i, MIDIClient.sources.at(i));
+			});
+		});
+		
+		win.onClose_({ 
+			point = Point(win.bounds.left, win.bounds.top);
+			XiiWindowLocation.storeLoc(name, point);
+		}); 
+	
+		txtv.focus(true);
+	}
+}
+
+
+*/

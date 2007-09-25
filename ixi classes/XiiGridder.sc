@@ -33,6 +33,7 @@ XiiGridder {
 		var createCodeWin, synthDefPrototype, synthDefInUse;
 		var pitchRatioArray, createAudioStreamBusWin;
 		
+		"loading XiiGridder".postln;
 		playScaleOnlyMode = false;
 		playMode = false;
 
@@ -55,7 +56,7 @@ XiiGridder {
 
 xiigui = nil;
 point = if(setting.isNil, {Point(300, 500)}, {setting[1]});
-params = if(setting.isNil, {[1, 0, 12, 4000, 120, 1, 0, 0, 0, 1, 0]}, {setting[2]});
+params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2]});
 
 		gBufferPoolNum = 0;
 		sndNameList = List.new;
@@ -91,8 +92,8 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 120, 1, 0, 0, 0, 1, 0]}, {setting[2
 	Out.ar(outbus, Pan2.ar(sine, pan));
 }).play(Server.default)}.asCompileString;
 
-		win = SCWindow("Gridder", Rect(point.x, point.y, 615, 500), resizable:false);
-
+		win = SCWindow("Gridder", Rect(point.x, point.y, 615, 500), resizable:false).front;
+		
 		viewKeybButt = SCButton(win, Rect(590, 476, 16, 16))
 				.canFocus_(false)
 				.font_(Font("Helvetica", 9))
@@ -710,7 +711,7 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 120, 1, 0, 0, 0, 1, 0]}, {setting[2
 		});
 		
 		//setting
-		actorTempoSl.valueAction_(params[0]);
+		soundFuncPop.valueAction_(params[0]);
 		scalePop.valueAction_(params[1]);
 		resolutionSlider.valueAction_(params[2]);
 		maxFreqSl.valueAction_(params[3]);

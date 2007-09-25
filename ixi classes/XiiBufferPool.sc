@@ -81,7 +81,8 @@ XiiBufferPool {
 						XiiSoundFileView.new(
 							bufferList[sbs.value].path, 
 							bufferList[sbs.value].bufnum,
-							sbs.value, name);
+							sbs.value, name, 
+							bufferListSelections[sbs.value]);
 					);
 				});
 			})
@@ -144,8 +145,8 @@ XiiBufferPool {
 								bufferList[txtv.value].path, 
 								bufferList[txtv.value].bufnum,
 								txtv.value,  // the number of the buffer in the list
-								name
-								);
+								name,
+								bufferListSelections[txtv.value]);
 						);
 				});
 			});	
@@ -157,8 +158,13 @@ XiiBufferPool {
 			.action_({ arg butt;
 				if(butt.value == 1, {
 					window.bounds_(Rect(window.bounds.left, window.bounds.top-90, 222, 285));
+					ampAnalyserSynth = Synth(\xiiVuMeter, 
+									[\bus, inbus, \amp, amp], addAction:\addToTail);
+
 				}, {
 					window.bounds_(Rect(window.bounds.left, window.bounds.top+90, 222, 195));
+					ampAnalyserSynth.free; // kill the analyser
+
 				});	
 			});	
 
@@ -206,12 +212,12 @@ XiiBufferPool {
 								{ vuview.value = \amp.asSpec.unmap(msg[3]) }.defer;
 							});
 						}).add;
-						ampAnalyserSynth = Synth(\xiiVuMeter, 
-							[\bus, inbus, \amp, amp], addAction:\addToTail);
+						//ampAnalyserSynth = Synth(\xiiVuMeter, 
+						//	[\bus, inbus, \amp, amp], addAction:\addToTail);
 					}, {
 						r.stop;
 						secTask.stop;
-						ampAnalyserSynth.free;
+						//ampAnalyserSynth.free;
 						responder.remove;
 						vuview.value = 0;
 
@@ -231,7 +237,7 @@ XiiBufferPool {
 								f.openRead(file);									filesize = f.numFrames * f.numChannels * 2 * 2;
 								ram = ram + (filesize/1000/1000).round(0.01);
 								{ramview.string_(ram.asString)}.defer;
-								bufferListSelections.add([0, f.numFrames-1]);
+								bufferListSelections.add([0, f.numFrames]);
 								f.close;
 								{sendBufferPoolToWidgets.value}.defer;
 								loadBufTask.stop;
@@ -333,7 +339,7 @@ XiiBufferPool {
 			buffer = Buffer.read(s, file);
 			bufferList.add(buffer);
 			// if loading from Cocoa Dialog, then all file is selected:
-			if(selections.isNil, {bufferListSelections.add([0, f.numFrames-1])});
+			if(selections.isNil, {bufferListSelections.add([0, f.numFrames])});
 			bufferListNames = bufferListNames.add(file.basename);
 			// size = frames * channels * bytes * 16 to 32 bit converson
 			filesize = f.numFrames * f.numChannels * 2 * 2;

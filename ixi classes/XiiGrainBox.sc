@@ -507,10 +507,10 @@ startStopButt = SCButton(win,Rect(10, 30, 102, 18))
 		});
 		AppClock.play(r);
 		10.do({arg i;		
-			b = 	SCTextField(win,Rect(20,20+(i*40),30,30));
+			b = 	SCTextField(w,Rect(20,20+(i*40),30,30));
 			b.setProperty(\boxColor,colList.at(i));
-			SCStaticText(win, Rect(60, 18+(i*40), 230, 15)).string_(stringList[i][0]);
-			SCStaticText(win, Rect(60, 34+(i*40), 230, 15)).string_(stringList[i][1]);
+			SCStaticText(w, Rect(60, 18+(i*40), 230, 15)).string_(stringList[i][0]);
+			SCStaticText(w, Rect(60, 34+(i*40), 230, 15)).string_(stringList[i][1]);
 			});
 	}
 	

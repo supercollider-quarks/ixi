@@ -23,7 +23,7 @@ XiiPolyMachine {
 		var createCodeWin, codeArray, codeFlagArray, audioStreamFlagArray;
 		var synthPrototypeArray;
 		var createEnvWin, envArray, envFlagArray, createAudioStreamBusWin;
-		var point;
+		var point, relativeTime, relativeTimeRadioButt;
 		
 		fixedBoxSize = true;
 		meter = [16, 16, 16, 16];
@@ -41,6 +41,8 @@ XiiPolyMachine {
 		envFlagArray = [true, true, true, true];
 		envArray = Array.fill(4, {[[ 0.0, 1.0, 0.7, 0.7, 0.0], [0.05, 0.1, 0.5, 0.2], 1]}); // levels, times, duration
 		stateNum = 0; // number of states in the dictionary
+		relativeTime = false;
+		
 		synthPrototypeArray = Array.fill(4, "{
 	var env, sine;
 	env = EnvGen.ar(Env.perc, doneAction:2);
@@ -54,7 +56,7 @@ point = if(setting.isNil, {Point(10, 500)}, {setting[1]});
 params = if(setting.isNil, {[1, 0]}, {setting[2]});
 
 
-		win = SCWindow("ixi polymachine", Rect(point.x, point.y, 760, 260), resizable:false).front;
+		win = SCWindow("polymachine", Rect(point.x, point.y, 760, 260), resizable:false).front;
 		
 		indexBoxArray = Array.fill(4, {arg i;
 			BoxGrid.new(win, bounds: Rect(260, 10+(i*60), 16*30, 12), columns: 16, rows: 1)
@@ -69,6 +71,10 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 				.setFillMode_(true)
 				.setNodeBorder_(5)
 				.setFillColor_(XiiColors.darkgreen)
+				.nodeUpAction_({arg nodeloc; 
+					codeArray[i].put(nodeloc[0].asInteger, synthPrototypeArray[i]);
+					//[\codeArrayFIXED, codeArray[i]].postln;
+				})
 				.rightDownAction_({arg nodeloc; 
 					selectBoxArray[i].setState_(nodeloc[0], 0, 1);
 					createCodeWin.value(i, nodeloc[0]);
@@ -81,7 +87,7 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 			tmparr = selectBoxArray[i].getNodeStates[0];
 			tmparr = tmparr++Array.fill((meter.size), {0});
 			if(fixedBoxSize == false, {
-				fixedRadioButt.value_(0);
+				//fixedRadioButt.value_(0);
 				indexBoxArray[i].remove; selectBoxArray[i].remove; // remove the views
 				win.bounds_(Rect(win.bounds.left, win.bounds.top, 760, 260));
 				indexBoxArray[i]=BoxGrid.new(win, Rect(260, 10+(i*60), 16*30, 12), numCol,1)
@@ -95,12 +101,16 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 						.setNodeBorder_(5)
 						.setFillColor_(XiiColors.darkgreen)
 						.setNodeStates_([tmparr])
+						.nodeUpAction_({arg nodeloc; 
+							codeArray[i].put(nodeloc[0].asInteger, synthPrototypeArray[i]);
+							//[\codeArrayNOTFIXED, codeArray[i]].postln;
+						})
 						.rightDownAction_({arg nodeloc; 
 							selectBoxArray[i].setState_(nodeloc[0], 0, 1);
 							createCodeWin.value(i, nodeloc[0]);
 						});
 			}, {
-				fixedRadioButt.value_(1);
+				//fixedRadioButt.value_(1);
 				indexBoxArray[i].remove; selectBoxArray[i].remove;
 				incr = meter.copy.sort.top - 16;
 				win.bounds_(Rect(win.bounds.left, win.bounds.top, 760+(incr*30), 260));
@@ -116,6 +126,10 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 						.setNodeBorder_(5)
 						.setFillColor_(XiiColors.darkgreen)
 						.setNodeStates_([tmparr])
+						.nodeUpAction_({arg nodeloc; 
+							codeArray[i].put(nodeloc[0].asInteger, synthPrototypeArray[i]);
+							//[\codeArrayFIXED, codeArray[i]].postln;
+						})
 						.rightDownAction_({arg nodeloc; 
 							selectBoxArray[i].setState_(nodeloc[0], 0, 1);
 							createCodeWin.value(i, nodeloc[0]);
@@ -125,9 +139,9 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 		};
 
 		stepsArray = Array.fill(4, {arg i;
-			OSCIISlider(win, Rect(130, 10+(i*60), 60, 8), "- steps", 2, 32, 16, 1)
+			OSCIISlider(win, Rect(130, 10+(i*60), 60, 8), "- steps", 2, 48, 16, 1)
 				.font_(Font("Helvetica", 9))
-				.action_({ arg sl;
+				.action_({ arg sl; var state;
 					drawBoxGrids.value(sl.value, i, true);
 				});
 		});
@@ -335,7 +349,7 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 				});
 			});
 			
-		fixedRadioButt = OSCIIRadioButton(win, Rect(10, 132, 14, 14), "fixed boxsize")
+		fixedRadioButt = OSCIIRadioButton(win, Rect(10, 135, 12, 12), "fix size")
 				.font_(Font("Helvetica", 9))
 				.value_(1)
 				.action_({arg butt; var boxarray;
@@ -348,11 +362,33 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 						4.do({arg i; drawBoxGrids.value(boxarray[i].getNodeStates[0].size, i)});
 					});
 				});
+				
+		relativeTimeRadioButt = OSCIIRadioButton(win, Rect(64, 135, 12, 12), "rel time")
+				.font_(Font("Helvetica", 9))
+				.value_(0)
+				.action_({arg butt; var boxarray;
+					if(butt.value == 1, {
+						relativeTime = true;
+						startButt.valueAction_(0);
+					},{
+						relativeTime = false;
+						startButt.valueAction_(0);
+					});
+				});
 
 		tempoSlider = OSCIISlider.new(win, Rect(10, 157, 100, 8), "- tempo", 60, 480, 120, 1)
 						.font_(Font("Helvetica", 9))						.action_({arg sl; 
 							tempo = sl.value/60;
-							clockArray.do({arg clock; clock.tempo_(tempo)});
+							clockArray.do({arg clock, i; var temp;
+								try({
+									if(relativeTime, {
+										temp = (tempo * meter[i])/meter.mean;
+										clock.tempo_(temp)
+									}, {
+										clock.tempo_(tempo)
+									});
+								})
+							});
 						});
 		
 		volumeSlider = OSCIISlider.new(win, Rect(10, 187, 100, 8), "- vol", 0, 1.0, 1, 0.01, \amp)
@@ -387,8 +423,12 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 
 		startSequencer = {
 			synthGroup = Group.new;
-			clockArray = Array.fill(4, {arg i;
-				tClock = TempoClock(tempo);
+			clockArray = Array.fill(4, {arg i; var tClock;
+				if(relativeTime, {
+					tClock = TempoClock( (tempo * meter[i])/meter.mean ); // as time is relative, I get means for means time
+				},{
+					tClock = TempoClock( tempo );
+				});
 				tClock.schedAbs(tClock.beats.ceil, { arg beat, sec; var buffer, start, end, code, times, tempsynthdef;
 					if(selectBoxArray[i].getState(beat%meter[i], 0) == 1, {
 						if(codeFlagArray[i] == true, { // sample or code?

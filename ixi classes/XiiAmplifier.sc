@@ -20,7 +20,7 @@ XiiAmplifier {
 		
 		tgt = 1;
 		addAct = \addToTail;
-		
+
 		s = server ? Server.local;
 		name = "Amplifier";
 		channels = if(setting.isNil, {ch}, {setting[0]});
@@ -43,13 +43,13 @@ XiiAmplifier {
 		
 		SynthDef(\xiiAmplifier1x1, { arg inbus, outbus, pan, amp=1;
 			var in;
-			in = In.ar(inbus, 1) * amp;
+			in = InFeedback.ar(inbus, 1) * amp;
 			Out.ar(outbus, in);
 		}).load(s);
 		
 		SynthDef(\xiiAmplifier2x2, { arg inbus, outbus, pan, amp=1;
 			var in;
-			in = In.ar(inbus, 2) * amp;
+			in = InFeedback.ar(inbus, 2) * amp;
 			Out.ar(outbus, in);
 		}).load(s);
 				
@@ -65,6 +65,7 @@ XiiAmplifier {
 			.canFocus_(false)
 			.action_({ arg ch;
 				if(channels==1, {inbus = ch.value}, {inbus = ch.value * 2});
+				[\inbus, inbus].postln;
 				synth.set(\inbus, inbus );
 				params[0] = ch.value;
 			});
@@ -78,7 +79,8 @@ XiiAmplifier {
 			.font_(Font("Helvetica", 9))
 			.canFocus_(false)
 			.action_({ arg ch;
-				if(channels==2, {outbus = ch.value}, {outbus = ch.value * 2});
+				if(channels==1, {outbus = ch.value}, {outbus = ch.value * 2});
+				[\outbus, outbus].postln;
 				synth.set(\outbus, outbus );
 				params[1] = ch.value;
 			});

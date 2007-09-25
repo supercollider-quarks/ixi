@@ -325,7 +325,7 @@ XiiLoadSynthDefs {
 		
 		SynthDef(\xiiTrigRecAnalyser1x1, {arg out=120, inbus=8, prerectime=1, sensitivity=0.8;
 			var in, signal;
-			in = In.ar(inbus, 1);
+			in = InFeedback.ar(inbus, 1);
 			signal = DelayN.ar(in, 2, prerectime); 
 			Out.ar(out, signal);
 			SendTrig.kr(Amplitude.kr(in) >= sensitivity, 666);
@@ -333,7 +333,7 @@ XiiLoadSynthDefs {
 
 		SynthDef(\xiiTrigRecAnalyser2x2, {arg out=120, inbus=8, prerectime=1, sensitivity=0.8;
 			var in, signal;
-			in = In.ar(inbus, 2);
+			in = InFeedback.ar(inbus, 2);
 			signal = DelayN.ar(in, 2, prerectime); 
 			Out.ar(out, signal);
 			SendTrig.kr(Amplitude.kr(Mix.ar(in)) >= sensitivity, 666);
@@ -357,10 +357,10 @@ XiiLoadSynthDefs {
 		}).load(s);
 		
 				
-		// -------------- LiveBuffer Synths ----------------------
+		// -------------- StratoSampler Synths ----------------------
 		SynthDef(\xiiStratoSamplerRec,{ arg  inbus=0, bufnum=0, reclevel=1.0, prelevel=0.0;
 		    var ain;
-		    ain = In.ar(inbus, 1);     // In
+		    ain = InFeedback.ar(inbus, 1);     // In
 		    RecordBuf.ar(ain, bufnum, recLevel: reclevel, preLevel: prelevel);
 		}, [0.2, 0.2 , 0.2, 0.2]).load(s);
 	   

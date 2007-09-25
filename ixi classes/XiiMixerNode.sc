@@ -46,13 +46,13 @@ XiiMixerNode {
 		
 		SynthDef(\mixerNode1x2, { arg inbus, outbus, pan;
 			var in;
-			in = In.ar(inbus, 1);
+			in = InFeedback.ar(inbus, 1);
 			Out.ar(outbus, Pan2.ar(in, pan));
 		}).load(s);
 		
 		SynthDef(\mixerNode2x1, { arg inbus, outbus, pan;
 			var in;
-			in = In.ar(inbus, 2);
+			in = InFeedback.ar(inbus, 2);
 			in = Balance2.ar(in[0], in[1], pan);
 						
 			Out.ar(outbus, Mix.ar(in));

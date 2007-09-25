@@ -20,7 +20,7 @@ XiiBandpass {
 							level=1.0;
 							
 		Ê Êvar fx, sig; 
-		Ê Êsig = In.ar(inbus,1); 
+		Ê Êsig = InFeedback.ar(inbus,1); 
 		Ê Êfx = BPF.ar(sig, freq, rq); 
 		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
 		}).load(s); 	
@@ -34,7 +34,7 @@ XiiBandpass {
 							level=1.0;
 							
 		Ê Êvar fx, sig; 
-		Ê Êsig = In.ar(inbus, 2); 
+		Ê Êsig = InFeedback.ar(inbus, 2); 
 		Ê Êfx = BPF.ar(sig, freq, rq); 
 		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
 		}).load(s); 	
@@ -77,7 +77,7 @@ XiiLowpass {
 							level=1.0;
 							
 		Ê Êvar fx, sig; 
-		Ê Êsig = In.ar(inbus,1); 
+		Ê Êsig = InFeedback.ar(inbus,1); 
 		Ê Êfx = LPF.ar(sig, freq); 
 		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
 		}).load(s); 	
@@ -90,7 +90,7 @@ XiiLowpass {
 							level=1.0;
 							
 		Ê Êvar fx, sig; 
-		Ê Êsig = In.ar(inbus, 2); 
+		Ê Êsig = InFeedback.ar(inbus, 2); 
 		Ê Êfx = LPF.ar(sig, freq); 
 		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
 		}).load(s); 	
@@ -131,7 +131,7 @@ XiiHighpass {
 							level=1.0;
 							
 		Ê Êvar fx, sig; 
-		Ê Êsig = In.ar(inbus,1); 
+		Ê Êsig = InFeedback.ar(inbus,1); 
 		Ê Êfx = HPF.ar(sig, freq); 
 		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
 		}).load(s); 	
@@ -144,7 +144,7 @@ XiiHighpass {
 							level=1.0;
 							
 		Ê Êvar fx, sig; 
-		Ê Êsig = In.ar(inbus, 2); 
+		Ê Êsig = InFeedback.ar(inbus, 2); 
 		Ê Êfx = HPF.ar(sig, freq); 
 		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
 		}).load(s); 	
@@ -189,7 +189,7 @@ XiiRLowpass {
 							level=1.0;
 							
 		Ê Êvar fx, sig; 
-		Ê Êsig = In.ar(inbus,1); 
+		Ê Êsig = InFeedback.ar(inbus,1); 
 		Ê Êfx = RLPF.ar(sig, freq, rq); 
 		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
 		}).load(s); 	
@@ -203,7 +203,7 @@ XiiRLowpass {
 							level=1.0;
 							
 		Ê Êvar fx, sig; 
-		Ê Êsig = In.ar(inbus, 2); 
+		Ê Êsig = InFeedback.ar(inbus, 2); 
 		Ê Êfx = RLPF.ar(sig, freq, rq); 
 		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
 		}).load(s); 	
@@ -249,7 +249,7 @@ XiiRHighpass {
 							level=1.0;
 							
 		Ê Êvar fx, sig; 
-		Ê Êsig = In.ar(inbus,1); 
+		Ê Êsig = InFeedback.ar(inbus,1); 
 		Ê Êfx = RHPF.ar(sig, freq, rq); 
 		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
 		}).load(s); 	
@@ -263,7 +263,7 @@ XiiRHighpass {
 							level=1.0;
 							
 		Ê Êvar fx, sig; 
-		Ê Êsig = In.ar(inbus, 2); 
+		Ê Êsig = InFeedback.ar(inbus, 2); 
 		Ê Êfx = RHPF.ar(sig, freq, rq); 
 		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
 		}).load(s); 	
@@ -309,7 +309,7 @@ XiiResonant {
 							level=1.0;
 							
 		Ê Êvar fx, sig; 
-		Ê Êsig = In.ar(inbus,1); 
+		Ê Êsig = InFeedback.ar(inbus,1); 
 		Ê Êfx = Resonz.ar(sig, freq, rq); 
 		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
 		}).load(s); 	
@@ -323,7 +323,7 @@ XiiResonant {
 							level=1.0;
 							
 		Ê Êvar fx, sig; 
-		Ê Êsig = In.ar(inbus, 2); 
+		Ê Êsig = InFeedback.ar(inbus, 2); 
 		Ê Êfx = Resonz.ar(sig, freq, rq); 
 		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
 		}).load(s); 	
@@ -370,7 +370,7 @@ XiiKlanks {
 							level=0;
 							
 		Ê Êvar fx1, fx2, fx3, fx4, sig; 
-		Ê Êsig = In.ar(inbus, 1); 
+		Ê Êsig = InFeedback.ar(inbus, 1); 
 		Ê Êfx1 = Ringz.ar(sig*gain, freq1, ring1, amp1); 
 		Ê Êfx2 = Ringz.ar(sig*gain, freq2, ring2, amp2); 
 		Ê Êfx3 = Ringz.ar(sig*gain, freq3, ring3, amp3); 
@@ -388,7 +388,7 @@ XiiKlanks {
 							level=0;
 							
 		Ê Êvar fx1, fx2, fx3, fx4, sig; 
-		Ê Êsig = In.ar(inbus, 2); 
+		Ê Êsig = InFeedback.ar(inbus, 2); 
 		Ê Êfx1 = Ringz.ar(sig*gain, freq1, ring1, amp1); 
 		Ê Êfx2 = Ringz.ar(sig*gain, freq2, ring2, amp2); 
 		Ê Êfx3 = Ringz.ar(sig*gain, freq3, ring3, amp3); 

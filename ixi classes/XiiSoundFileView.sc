@@ -22,11 +22,11 @@ XiiSoundFileView {
 	var bufferPoolNum, vol;
 	var start, end, seltime, logo;
 	
-	*new { arg path, bufnum, num=0, name;
-		^super.new.initXiiSoundFileView(path, bufnum, num, name);
+	*new { arg path, bufnum, num=0, name, selArray;
+		^super.new.initXiiSoundFileView(path, bufnum, num, name, selArray);
 		}
 		
-	initXiiSoundFileView {arg path, bufnum, numInPool, name;
+	initXiiSoundFileView {arg path, bufnum, numInPool, name, selArray;
 		logo = [
 Point(1,7), Point(8, 1), Point(15,1), Point(15,33),Point(24, 23), Point(15,14), Point(15,1), 
 Point(23,1),Point(34,13), Point(45,1), Point(61,1), Point(66,6), Point(66,37), Point(59,43),
@@ -75,7 +75,8 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 		soundfile.openRead(path);
 		chNum = soundfile.numChannels;
 		vol = 1;
-
+		selArray = if(selArray.sum == soundfile.numFrames, {[0,0]}, {selArray});
+		
 		sndfileview = SCSoundFileView.new(window, Rect(10, 0, 780, 190))
 			.soundfile_(soundfile)
 			.read(0, soundfile.numFrames)
@@ -92,6 +93,8 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 			.background_(bgColor)
 			.canFocus_(false)
 			.setSelectionColor(0, Color.new255(105, 185, 125))
+			.setSelectionStart(0, selArray[0])		
+			.setSelectionSize(0, selArray[1]) // size in frames
 			.mouseUpAction_({
 				if(synthRunFlag == true, { // IT'S LOOPING
 					start = sndfileview.selections[0][0]; // the start
