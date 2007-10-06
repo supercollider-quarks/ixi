@@ -1,0 +1,17 @@
+
+// preferences - you can change the things within the brackets.
+
+~pref = ()
+	.emailSent_(true) // change to true when you have sent ixi an email
+	.numberOfChannels_(52) // number of audio channels used
+	.polyMachineTracks_(4) // how many tracks in polymachine (4 is default)
+	.midi_(false) // using midi or not?
+	.midiControllerNumbers_( [73, 72, 91, 93, 74, 71, 5, 84, 7] ) // evolution mk-449c
+	.midiRotateWindowChannel_(10) // the controller number used to switch between windows
+	.midiInPorts_( 2 ) // how many inports you are using
+	.midiOutPorts_( 2 ); // how many outports - not used really yet
+	
+// To find the MIDI controller numbers your controller is outputting run the following line:
+// [      XiiTestMIDI.new;    ]  
+// by highlighting the text (not square brackets) and hit ENTER or fn+RETURN.
+// you will get a window that will post the numbers of your midi controller.
