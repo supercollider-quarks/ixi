@@ -51,7 +51,7 @@ XiiDelay {
 		Ê Ê["Delay", "Feedback", "Fx level", "Dry Level"], 
 		Ê Ê[ \delay, \feedback, \fxlevel, \level], 
 		Ê Ê[delayTailSpec, \amp, \amp, \amp], 
-		Ê Êif(setting.isNil.not, {setting[5]}, {[0.4, 0.4, 0.8, 1]})
+		Ê Êif(setting.notNil, {setting[5]}, {[0.4, 0.4, 0.8, 1]})
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
@@ -97,7 +97,7 @@ XiiFreeverb {
 		Ê Ê["Room", "Damp", "Dry/Wet", "Fx Level", "Dry Level"], 
 		Ê Ê[\room, \damp, \mix, \fxlevel, \level], 
 		Ê Ê[\amp, \amp, mixSpec, \amp, \amp], 
-		Ê Êif(setting.isNil.not, {setting[5]}, {[0.8, 0.8, 0.75, 0.8, 0.2 ]})
+		Ê Êif(setting.notNil, {setting[5]}, {[0.8, 0.8, 0.75, 0.8, 0.2 ]})
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
@@ -149,7 +149,7 @@ XiiAdCVerb {
 		Ê Ê["RevTime", "Damp", "Fx level", "Dry Level"], 
 		Ê Ê[\revtime, \hfdamping, \mix, \level], 
 		Ê Ê[roomSpec, \amp, mixSpec, \amp], 
-		Ê Êif(setting.isNil.not, {setting[5]}, {[8, 0.7, 0.1, 1 ]})
+		Ê Êif(setting.notNil, {setting[5]}, {[8, 0.7, 0.1, 1 ]})
 		]; 
 		
 		xiigui = if(channels == 2, {	// stereo
@@ -197,7 +197,7 @@ XiiDistortion {
 		Ê Ê["PreGain", "PostGain", "Fx Level", "Dry Level"], 
 		Ê Ê[\pregain, \postgain, \mix, \level], 
 		Ê Ê[preGainSpec, postGainSpec, \amp, \amp], 
-		Ê Êif(setting.isNil.not, {setting[5]}, {[10, 10, 0.5, 0]})
+		Ê Êif(setting.notNil, {setting[5]}, {[10, 10, 0.5, 0]})
 		]; 
 		
 		xiigui = if(channels == 2, {	// stereo
@@ -255,7 +255,7 @@ XiiixiReverb {
 		Ê Ê["Predelay", "Combdecay", "Allpass", "Fx level", "Dry Level"], 
 		Ê Ê[\predelay, \combdecay, \allpassdecay, \fxlevel, \level], 
 		Ê Ê[predelSpec, combDecSpec, allpassDecSpec, \amp, \amp], 
-		Ê Êif(setting.isNil.not, {setting[5]}, {[0.045, 15, 1, 0.31, 0.5]})
+		Ê Êif(setting.notNil, {setting[5]}, {[0.045, 15, 1, 0.31, 0.5]})
 		]; 
 		
 		xiigui = if(channels == 2, {	// stereo
@@ -310,7 +310,7 @@ XiiChorus {
 		Ê Ê["PreDelay", "Depth", "Speed", "Fx Level", "Dry Level"], 
 		Ê Ê[\predelay, \depth, \speed, \fxlevel, \level], 
 		Ê Ê[preDelaySpec, depthSpec, speedSpec, \amp, \amp], 
-		Ê Êif(setting.isNil.not, {setting[5]}, {[0.08, 0.05, 0.1, 0.5, 0]})
+		Ê Êif(setting.notNil, {setting[5]}, {[0.08, 0.05, 0.1, 0.5, 0]})
 		]; 
 		
 		xiigui = if(channels == 2, {	// stereo
@@ -358,7 +358,7 @@ XiiOctave {
 		Ê Ê["Pitch1", "Vol1", "Pitch2", "Vol2", "Dispersion", "Fx level", "Dry Level"], 
 		Ê Ê[\pitch1, \vol1, \pitch2, \vol2, \dispersion, \fxlevel, \level], 
 		Ê Ê[pitchSpec, \amp, pitchSpec, \amp, \amp, \amp, \amp], 
-		Ê Êif(setting.isNil.not, {setting[5]}, {[1.25, 0.25, 0.5, 1.0, 0, 1.0, 0.2 ]})
+		Ê Êif(setting.notNil, {setting[5]}, {[1.25, 0.25, 0.5, 1.0, 0, 1.0, 0.2 ]})
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
@@ -404,7 +404,7 @@ XiiTremolo {
 		Ê Ê["Freq", "Strength", "Fx level", "Dry Level"], 
 		Ê Ê[\freq, \strength, \fxlevel, \level], 
 		Ê Ê[freqSpec, \amp, \amp, \amp], 
-		Ê Êif(setting.isNil.not, {setting[5]}, {[0.5, 0.4, 0.65, 0 ]})
+		Ê Êif(setting.notNil, {setting[5]}, {[0.5, 0.4, 0.65, 0 ]})
 		]; 
 		
 		xiigui = if(channels == 2, {	// stereo
@@ -633,8 +633,8 @@ XiiEqualizer {
 			var t;
 			size.do({arg i; bandSynthList[i].free}); 
 			CmdPeriod.remove(cmdPeriodFunc);
-			~globalWidgetList.do({arg widget, i; if(widget == this, {t = i})});
-			try{~globalWidgetList.removeAt(t)};
+			XQ.globalWidgetList.do({arg widget, i; if(widget == this, {t = i})});
+			try{XQ.globalWidgetList.removeAt(t)};
 			point = Point(win.bounds.left, win.bounds.top);
 			Archive.global.at(\win_position).put(name.asSymbol, point);
 			}); 
@@ -900,6 +900,61 @@ XiiMultiDelay {
 			XiiEffectGUI.new("MultiDelay 1x1", \xiiMultidelay1x1, params, channels, this, setting);		})
 	}
 }
+
+
+
+XiiCyberPunk {	
+	var <>xiigui;
+
+	*new { arg server, channels, setting = nil;
+		^super.new.initCyberPunk(server, channels, setting);
+		}
+		
+	initCyberPunk {arg server, channels, setting;
+	
+		var pitchSpec, punkSpec, memlenSpec, params, s; 
+		s = server ? Server.local;
+		
+		// mono
+		SynthDef(\xiiCyberPunk1x1, {| inbus=0, outbus=0, pitchratio=0, zcperchunk=0, memlen =0, fxlevel=0.75, level=0 | 
+		Ê Êvar fx, sig; 
+		Ê Êsig = InFeedback.ar(inbus, 1); 
+		Ê Êfx = Squiz.ar(sig, pitchratio, zcperchunk, memlen); 
+		Ê ÊOut.ar(outbus, (fx*fxlevel) + (sig * level)) // level 
+		}).load(s); 
+
+		// stereo
+		SynthDef(\xiiCyberPunk2x2, {| inbus=0, outbus=0,pitchratio=0, zcperchunk=0, memlen =0,  fxlevel=0.75, level=0 | 
+		Ê Êvar fx, sig; 
+		Ê Êsig = InFeedback.ar(inbus, 2); 
+		Ê Êfx = Squiz.ar(sig, pitchratio, zcperchunk, memlen); 
+		Ê ÊOut.ar(outbus, (fx*fxlevel) + (sig * level)) // level 
+		}).load(s); 
+
+		pitchSpec = ControlSpec.new(1, 10, \linear, 0.01, 1); 
+		punkSpec = ControlSpec.new(1, 10, \linear, 0.01, 1); 
+		memlenSpec = ControlSpec.new(0.001, 0.2, \linear, 0.001, 0.1); 
+		
+		params = [ 
+		Ê Ê["PitchRatio", "CyperPunk", "Memlen", "Fx Level", "Dry Level"], 
+		Ê Ê[\pitchratio, \zcperchunk, \memlen, \fxlevel, \level], 
+		Ê Ê[pitchSpec, punkSpec, memlenSpec, \amp, \amp], 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[2, 1, 0.1, 1, 0 ]})
+		]; 
+		
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("CyberPunk 2x2", \xiiCyberPunk2x2, params, channels, this, setting); 
+			},{				// mono
+			XiiEffectGUI.new("CyberPunk 1x1", \xiiCyberPunk1x1, params, channels, this, setting); 
+			});
+
+	}
+}
+
+
+
+
+
 
 
 

@@ -39,7 +39,7 @@ XiiAmplifier {
 		outbus = params[1];
 		amp = params[2];
 		
-		win = SCWindow.new(name, Rect(point.x, point.y, 222, 70), resizable:false).front;
+		win = SCWindow.new(name, Rect(point.x, point.y, 222, 70), resizable:false);
 		
 		SynthDef(\xiiAmplifier1x1, { arg inbus, outbus, pan, amp=1;
 			var in;
@@ -128,12 +128,13 @@ XiiAmplifier {
 		cmdPeriodFunc = { onOffButt.valueAction_(0)};
 		CmdPeriod.add(cmdPeriodFunc);
 			
+		win.front;
 		win.onClose_({
 			var t;
 			onOffButt.valueAction_(0);
 			CmdPeriod.remove(cmdPeriodFunc);
-			~globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
-			try{~globalWidgetList.removeAt(t)};
+			XQ.globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
+			try{XQ.globalWidgetList.removeAt(t)};
 			synth.free;
 			point = Point(win.bounds.left, win.bounds.top);
 			XiiWindowLocation.storeLoc(name, point);

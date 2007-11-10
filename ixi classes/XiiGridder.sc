@@ -72,10 +72,10 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 		tuningArray = this.makeTuning(12, transposition, maxFreq).reverse;
 		pitchRatioArray = this.makeRatioTuning(12, transposition).reverse;
 		
-		scaleDict = if(Object.readArchive("gridderScales.ixi") == nil, {
+		scaleDict = if(Object.readArchive("preferences/gridderScales.ixi") == nil, {
 					().add(12 -> this.loadScales);
 					}, {
-					 Object.readArchive("gridderScales.ixi");
+					 Object.readArchive("preferences/gridderScales.ixi");
 					});
 
 		scalelib = this.loadScales;
@@ -92,7 +92,7 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 	Out.ar(outbus, Pan2.ar(sine, pan));
 }).play(Server.default)}.asCompileString;
 
-		win = SCWindow("Gridder", Rect(point.x, point.y, 615, 500), resizable:false).front;
+		win = SCWindow("Gridder", Rect(point.x, point.y, 615, 500), resizable:false);
 		
 		viewKeybButt = SCButton(win, Rect(590, 476, 16, 16))
 				.canFocus_(false)
@@ -130,7 +130,7 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 		
 		selbPool = SCPopUpMenu(win, Rect(10, 10, 100, 16))
 			.font_(Font("Helvetica", 9))
-			.items_(if(~globalBufferDict.keys.asArray == [], {["no pool"]}, {~globalBufferDict.keys.asArray}))
+			.items_(if(XQ.globalBufferDict.keys.asArray == [], {["no pool"]}, {XQ.globalBufferDict.keys.asArray}))
 			.value_(0)
 			.background_(Color.white)
 			.action_({ arg item;
@@ -150,10 +150,10 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 		ldSndsGBufferList = {arg argPoolName;
 			poolName = argPoolName.asSymbol;
 
-			if(try {~globalBufferDict.at(poolName)[0] } != nil, {
+			if(try {XQ.globalBufferDict.at(poolName)[0] } != nil, {
 				sndNameList = [];
 				bufferList = List.new;
-				~globalBufferDict.at(poolName)[0].do({arg buffer;
+				XQ.globalBufferDict.at(poolName)[0].do({arg buffer;
 					sndNameList = sndNameList.add(buffer.path.basename);
 					bufferList.add(buffer.bufnum);
 				 });
@@ -197,7 +197,7 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 					grid.clearGrid;
 					sclArray = scalelib[popup.value][1];
 					
-					if(scalelib[popup.value][2].isNil.not, {
+					if(scalelib[popup.value][2].notNil, {
 						gridNodeSampleIndexArray = scalelib[popup.value][2];
 					});
 					
@@ -702,12 +702,13 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 		cmdPeriodFunc = { startButt.valueAction_(0)};
 		CmdPeriod.add(cmdPeriodFunc);
 
+		win.front;
 		win.onClose_({
 			var t;
 			CmdPeriod.remove(cmdPeriodFunc);
-			~globalWidgetList.do({arg widget, i; if(widget === this, {t = i})});
-			try{~globalWidgetList.removeAt(t)};
-			scaleDict.writeArchive("gridderScales.ixi"); 
+			XQ.globalWidgetList.do({arg widget, i; if(widget === this, {t = i})});
+			try{XQ.globalWidgetList.removeAt(t)};
+			scaleDict.writeArchive("preferences/gridderScales.ixi"); 
 		});
 		
 		//setting
@@ -773,7 +774,7 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 	updatePoolMenu {
 		var pool, poolindex;
 		pool = selbPool.items.at(selbPool.value);        // get the pool name (string)
-		selbPool.items_(~globalBufferDict.keys.asArray); // put new list of pools
+		selbPool.items_(XQ.globalBufferDict.keys.asArray); // put new list of pools
 		poolindex = selbPool.items.indexOf(pool);        // find the index of old pool in new array
 		if(poolindex != nil, {
 			selbPool.value_(poolindex); // so nothing changed, but new poolarray
@@ -785,10 +786,10 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 			0, { {arg nodeloc; var myBuffer, selStart, selEnd, sample; // the sample player
 
 				sample = gridNodeSampleIndexArray[nodeloc[1]][nodeloc[0]];
-				if(try{~globalBufferDict.at(poolName)[0][sample]} != nil, {
-					myBuffer = ~globalBufferDict.at(poolName)[0][sample];
-					selStart = ~globalBufferDict.at(poolName)[1][sample][0];
-					selEnd = selStart + ~globalBufferDict.at(poolName)[1][sample][1]-1;
+				if(try{XQ.globalBufferDict.at(poolName)[0][sample]} != nil, {
+					myBuffer = XQ.globalBufferDict.at(poolName)[0][sample];
+					selStart = XQ.globalBufferDict.at(poolName)[1][sample][0];
+					selEnd = selStart + XQ.globalBufferDict.at(poolName)[1][sample][1]-1;
 
 					if(myBuffer.numChannels == 1, {
 						Synth(\xiiPrey1x2, [	\outbus, outbus,

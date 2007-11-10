@@ -55,7 +55,7 @@ point = if(setting.isNil, {Point(320, 730)}, {setting[1]});
 params = if(setting.isNil, {[1, [0,0]]}, {setting[2]});
 outbusarray = params[1];
 
-win = SCWindow.new("   grainBox", Rect(point.x, point.y, 756, 300), resizable:false).front;
+win = SCWindow.new("   grainBox", Rect(point.x, point.y, 756, 300), resizable:false);
 win.drawHook = {
 	Color.new255(255, 100, 0).set;
 	Pen.width = 3;
@@ -67,7 +67,7 @@ win.drawHook = {
 	});
 	Pen.stroke
 };
-win.refresh;
+//win.refresh;
 
 
 getCenterPos = { arg envval, i; var spec, myvar;
@@ -302,12 +302,12 @@ fileListPopup.add(SCPopUpMenu(win,Rect(190+(i*316), 264, 140, 18))
 			.value_(i)
 			.action_({ arg popup; var filepath, soundfile, selStart, selEnd;
 						var checkBufLoadTask, myTempBuffer;
-				filepath = ~globalBufferDict.at(poolName)[0][popup.value].path;
-				selStart = ~globalBufferDict.at(poolName)[1][popup.value][0];
-				selEnd = selStart + ~globalBufferDict.at(poolName)[1][popup.value][1]-1;
+				filepath = XQ.globalBufferDict.at(poolName)[0][popup.value].path;
+				selStart = XQ.globalBufferDict.at(poolName)[1][popup.value][0];
+				selEnd = selStart + XQ.globalBufferDict.at(poolName)[1][popup.value][1]-1;
 				soundfile = SoundFile.new;
 				soundfile.openRead(filepath);
-				//myBuffer = ~globalBufferList[gBufferPoolNum][0][popup.value];
+				//myBuffer = XQ.globalBufferList[gBufferPoolNum][0][popup.value];
 				if(soundfile.numChannels == 2, {
 				//myTempBuffer = Buffer.readChannel(s, filepath, 0, soundfile.numFrames, [0]);
 					myTempBuffer = Buffer.readChannel(s, filepath, selStart, selEnd, [0]);
@@ -347,7 +347,7 @@ popupOutBus = SCPopUpMenu(win,Rect(127+(i*316), 264,50,18))
 
 selbPool = SCPopUpMenu(win, Rect(10, 5, 102, 16))
 	.font_(Font("Helvetica", 9))
-	.items_(if(~globalBufferDict.keys.asArray == [], {["no pool"]}, {~globalBufferDict.keys.asArray}))
+	.items_(if(XQ.globalBufferDict.keys.asArray == [], {["no pool"]}, {XQ.globalBufferDict.keys.asArray}))
 	.value_(0)
 	.background_(Color.white)
 	.action_({ arg item; var dictArray;
@@ -426,23 +426,24 @@ startStopButt = SCButton(win,Rect(10, 30, 102, 18))
 		cmdPeriodFunc = { startStopButt.valueAction_(0);};
 		CmdPeriod.add(cmdPeriodFunc);
 		
+		win.front;
 		win.onClose_({
 			var t;
 			CmdPeriod.remove(cmdPeriodFunc);
 			synthsList.do(_.free);
-			~globalWidgetList.do({arg widget, i; if(widget == this, {t = i})});
-			try{~globalWidgetList.removeAt(t)};
+			XQ.globalWidgetList.do({arg widget, i; if(widget == this, {t = i})});
+			try{XQ.globalWidgetList.removeAt(t)};
 		});
 
 		// loads stereo files, but converts to mono elsewhere
 
 		ldSndsGBufferList = {arg argPoolName;
 			poolName = argPoolName.asSymbol;
-			if(try {~globalBufferDict.at(poolName)[0] } != nil, {
+			if(try {XQ.globalBufferDict.at(poolName)[0] } != nil, {
 				sndNameList = [];
 				bufferList = List.new;
 				sampleDurList = List.new;
-				~globalBufferDict.at(poolName)[0].do({arg buffer;
+				XQ.globalBufferDict.at(poolName)[0].do({arg buffer;
 					sndNameList = sndNameList.add(buffer.path.basename);
 					bufferList.add(buffer.bufnum);
 					sampleDurList.add(buffer.numFrames/44100);
@@ -461,7 +462,7 @@ startStopButt = SCButton(win,Rect(10, 30, 102, 18))
 	updatePoolMenu {
 		var pool, poolindex;
 		pool = selbPool.items.at(selbPool.value);  
-		selbPool.items_(~globalBufferDict.keys.asArray);
+		selbPool.items_(XQ.globalBufferDict.keys.asArray);
 		poolindex = selbPool.items.indexOf(pool);
 		if(poolindex != nil, {
 			selbPool.value_(poolindex);

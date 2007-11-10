@@ -43,7 +43,7 @@ point = if(setting.isNil, {Point(310, 250)}, {setting[1]});
 params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]});
 
 		win = SCWindow("SoundScratcher", 
-				Rect(point.x, point.y, bounds.width+20, bounds.height+10), resizable:false).front;
+				Rect(point.x, point.y, bounds.width+20, bounds.height+10), resizable:false);
 		pointcolor = Color.new255(200,50,40);
 		strokecolor = Color.black;
 		pointsize = 6;
@@ -87,6 +87,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 		soundfile = SoundFile.new;
 		soundfile.openRead("sounds/a11wlk01.wav");
 
+		[\boundsWIDTH, bounds.width].postln;
 		sndfileview = SCSoundFileView.new(win, Rect(120, 5, bounds.width-120, bounds.height-10))
 			.soundfile_(soundfile)
 			.read(0, soundfile.numFrames)
@@ -105,6 +106,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 		tabletView = SCTabletView(win, Rect(120, 5, bounds.width-120, bounds.height-10))
 			.canFocus_(false)
 			.mouseDownAction_({arg view,x,y,pressure;
+				//gPressure = pressure; // TESTING
 				gPressure = if(wacomFlag, {pressure}, {0.5}); // fixing pointsize mouse/wacom
 				if( playPathFlag == true, {playPathTask.stop; recordPathButt.valueAction_(0)});
 				
@@ -117,18 +119,17 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 					pointlist.add(pointp);
 					pointsizelist.add(gPressure); 
 					this.refresh;
-				
-					if(myTempBuffer.isNil.not, {
+					if(myTempBuffer.notNil, {
 						switch(synthesisStylePop.value,
 							0, { // WARP
 							synth = Synth(\xiiWarp, 
 							[\bufnum, myTempBuffer.bufnum, \outbus, outbus, \pointer, x/680, 
-							\rate, 1.5-(y/320), \amp, globalvol]);
+							\freq, 1.5-(y/320), \vol, globalvol]);
 							},
 							1, { // SCRATCH
 							synth = Synth(\xiiScratch1x2, 
 							[\bufnum, myTempBuffer.bufnum, \outbus, outbus,
-							\pos, (x/680)*myBuffer.numFrames, \amp, globalvol]);
+							\pos, (x/680)*myBuffer.numFrames, \vol, globalvol]);
 						});
 					})
 				});
@@ -152,7 +153,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 						pointsizelist.add(if(wacomFlag, {pressure}, {0.5}));
 						this.refresh;
 					});
-					if(myTempBuffer.isNil.not, {
+					if(myTempBuffer.notNil, {
 						if(grainFlag == false, {
 						synth.set(\vol, [0,1,\amp, 0.00001].asSpec.map(pressure)*globalvol);
 						synth.set(\freq, 1.5-(y/320));
@@ -179,7 +180,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 										meanpressure,
 										rateMultiplier] // if speed is increased
 								);
-					if(myTempBuffer.isNil.not, {
+					if(myTempBuffer.notNil, {
 						if(synthesisStylePop.value == 5, { // grainCircles
 							grainCircleSynthList.add(
 								Synth(\xiiGrains, [
@@ -218,7 +219,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 						pointlist.add(pointp);
 						pointsizelist.add(pressure);
 						this.refresh;
-						if(myTempBuffer.isNil.not, {
+						if(myTempBuffer.notNil, {
 							if(grainFlag == false, { synth.set(\gate,0)});
 						});
 					});
@@ -327,7 +328,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 	
 		selbPool = SCPopUpMenu(win, Rect(10, 10, 100, 16))
 			.font_(Font("Helvetica", 9))
-			.items_(if(~globalBufferDict.keys.asArray == [], {["no pool"]}, {~globalBufferDict.keys.asArray.sort}))
+			.items_(if(XQ.globalBufferDict.keys.asArray == [], {["no pool"]}, {XQ.globalBufferDict.keys.asArray.sort}))
 			.value_(0)
 			.background_(Color.white)
 			.action_({ arg item; var checkBufLoadTask;
@@ -362,7 +363,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 					var filepath, selStart, selNumFrames, checkBufLoadTask, restartPlayPath;
 					restartPlayPath = false;
 					
-					if(try {~globalBufferDict.at(poolName)[0] } != nil, {
+					if(try {XQ.globalBufferDict.at(poolName)[0] } != nil, {
 				
 					if(synthesisStylePop.value == 2, {randomGrainTask.stop});
 					if(synthesisStylePop.value == 3, {linearGrainTask.stop});
@@ -370,15 +371,15 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 					if(playPathTask.isPlaying, {playPathTask.stop; restartPlayPath = true;});
 					myTempBuffer.free;
 					
-					filepath = ~globalBufferDict.at(poolName)[0][popup.value].path;
-					selStart = ~globalBufferDict.at(poolName)[1][popup.value][0];
-					selNumFrames =  ~globalBufferDict.at(poolName)[1][popup.value][1]-1;
+					filepath = XQ.globalBufferDict.at(poolName)[0][popup.value].path;
+					selStart = XQ.globalBufferDict.at(poolName)[1][popup.value][0];
+					selNumFrames =  XQ.globalBufferDict.at(poolName)[1][popup.value][1]-1;
 					soundfile = SoundFile.new;
 					soundfile.openRead(filepath);
 					sndfileview.soundfile_(soundfile);
 					sndfileview.read(selStart, selNumFrames);
 					sndfileview.elasticMode_(true);
-					myBuffer = ~globalBufferDict.at(poolName)[0][popup.value];
+					myBuffer = XQ.globalBufferDict.at(poolName)[0][popup.value];
 					// create a mono buffer if the sound is stereo
 					if(soundfile.numChannels == 2, {
 				myTempBuffer = Buffer.readChannel(s, filepath, selStart, selNumFrames, [0]);
@@ -412,11 +413,11 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 				
 		ldSndsGBufferList = {arg argPoolName;			
 			poolName = argPoolName.asSymbol;
-			if(try {~globalBufferDict.at(poolName)[0] } != nil, {
+			if(try {XQ.globalBufferDict.at(poolName)[0] } != nil, {
 				sndNameList = [];
 				bufferList = List.new;
-				~globalBufferDict.at(poolName)[0].do({arg buffer, i;
-					if(buffer.path.isNil.not, {
+				XQ.globalBufferDict.at(poolName)[0].do({arg buffer, i;
+					if(buffer.path.notNil, {
 						sndNameList = sndNameList.add(buffer.path.basename);
 					},{
 						sndNameList = sndNameList.add("liveBuffer "++i.asString);
@@ -636,7 +637,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 				});
 			});
 
-		wacomRButt = OSCIIRadioButton(win, Rect(10, 263, 12, 12), "wacom")
+		wacomRButt = OSCIIRadioButton(win, Rect(10, 263, 12, 12), "wacom ")
 						.font_(Font("Helvetica", 9))
 						.action_({ arg butt;
 							mouseRButt.switchState;
@@ -644,7 +645,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 							pointsize = 6;
 							params[6] = butt.value;
 						});
-		mouseRButt = OSCIIRadioButton(win, Rect(66, 263, 12, 12), "mouse")
+		mouseRButt = OSCIIRadioButton(win, Rect(66, 263, 12, 12), "mouse ")
 						.font_(Font("Helvetica", 9))
 						.value_(1)
 						.action_({arg butt;
@@ -675,7 +676,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 					params[9] = popup.value;
 				});
 		
-
+		win.front;
 		win.onClose_({ 
 			var t;
 			myTempBuffer.free;
@@ -685,25 +686,26 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 			recordPathTask.stop;
 			playPathTask.stop;
 			grainCircleSynthList.do({arg synth; synth.free;});
-			~globalWidgetList.do({arg widget, i; if(widget == this, {t = i})});
-			try{~globalWidgetList.removeAt(t)};
+			XQ.globalWidgetList.do({arg widget, i; if(widget == this, {t = i})});
+			try{XQ.globalWidgetList.removeAt(t)};
 		});
 		
 		randomGrainTask = Task({
-			if(myTempBuffer.isNil.not, {
+			if(myTempBuffer.notNil, {
 				inf.do({
 					if(pointlist.size > 0, { // if there are any grains
 						pointlist.size.do({
-							var point, pointindex;
+							var point, pointindex, zvol;
 							pointindex = pointlist.size.rand;
 							point = pointlist[pointindex];
+							zvol = if(wacomFlag, {pointsizelist[pointindex]}, {1}); // full vol on mouse
 							if(point != nil, { // in case grains are erazed in middle of loop
 								Synth.grain(\xiiGrain, 
 									[\bufnum, myTempBuffer.bufnum,
 									\outbus, outbus,
-									\pos, ((point.x-122)/680)*myTempBuffer.numFrames, 
+									\pos, ((point.x-122)/680) * myTempBuffer.numFrames, 
 									\dur, graindur,
-					\vol, [0,1,\amp, 0.00001].asSpec.map(pointsizelist[pointindex])* globalvol,
+									\vol, [0,1,\amp, 0.00001].asSpec.map(zvol) * globalvol,
 									\rate, 1.5-(point.y/320),
 									\envType, grainEnvType
 								]);
@@ -718,19 +720,20 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 		});
 		
 		linearGrainTask = Task({
-			if(myTempBuffer.isNil.not, {
+			if(myTempBuffer.notNil, {
 				inf.do({
 					if(pointlist.size > 0, { // if there are any grains
 						pointlist.size.do({arg p, pointindex;
-							var point;
+							var point, zvol;
 							point = pointlist[pointindex];
+							zvol = if(wacomFlag, {pointsizelist[pointindex]}, {1}); // full vol on mouse
 							if(point != nil, { // in case grains are erazed in middle of loop
 								Synth.grain(\xiiGrain, 
 									[\bufnum, myTempBuffer.bufnum, 
 									\outbus, outbus,
-									\pos, ((point.x-122)/680)*myTempBuffer.numFrames, 
+									\pos, ((point.x-122)/680) * myTempBuffer.numFrames, 
 									\dur, graindur,
-					\vol, [0,1,\amp, 0.00001].asSpec.map(pointsizelist[pointindex]) * globalvol,
+									\vol, [0,1,\amp, 0.00001].asSpec.map(zvol) * globalvol,
 									\rate, 1.5-(point.y/320),
 									\envType, grainEnvType
 								]);
@@ -756,7 +759,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 			auto = false;
 			boundaries = false;
 
-			if(myTempBuffer.isNil.not, {
+			if(myTempBuffer.notNil, {
 				pointlist = List.new;
 				pointsizelist = List.new;
 				point = Point(420+(50.rand), 50+(60.rand));
@@ -796,7 +799,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 									\outbus, outbus,
 									\pos, ((ppoint.x-122)/680)*myTempBuffer.numFrames, 
 									\dur, graindur,
-					\vol, [0,1,\amp, 0.00001].asSpec.map(pointsizelist[p]) * globalvol,
+									\vol, 1 * globalvol,
 									\rate, 1.5-(ppoint.y/320),
 									\envType, grainEnvType
 								]);
@@ -822,29 +825,29 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 		});
 
 		playPathTask = Task({ //var counter;
-				if(myTempBuffer.isNil.not, {
+				if(myTempBuffer.notNil, {
 					switch(synthType,
 						\warp, { // WARP
 							synth = Synth(\xiiWarp, 
 							[\bufnum, myTempBuffer.bufnum, \outbus, outbus, 
 							\pointer, (recPathList[0][0].x-122)/680, 
-							\rate, 1.5-(recPathList[0][0].y/320), \amp, globalvol]);
+							\rate, 1.5-(recPathList[0][0].y/320), \vol, globalvol]);
 						},
 						\scratch, { // SCRATCH
 							synth = Synth(\xiiScratch1x2, 
 								[\bufnum, myTempBuffer.bufnum, \outbus, outbus,
 								\pos, ((recPathList[0][0].x-122)/680)*myBuffer.numFrames, 
-								\amp, globalvol]);
+								\vol, globalvol]);
 						});
 				});
 				0.1.wait;
 				inf.do({
 					pointlist = List.new;
 					pointsizelist = List.new;
-
 					recPathList.do({arg pointNsize, i;
 						pointlist.add(pointNsize[0]);
-						pointsizelist.add(pointNsize[1]);
+						//pointsizelist.add(pointNsize[1]);
+						pointsizelist.add(if(wacomFlag, {pointNsize[1]}, {0.5})); // high vol - small width
 						
 						if(grainFlag == false, {
 							synth.set(\vol, [0,1,\amp, 0.00001].asSpec.map(pointNsize[1])*globalvol);
@@ -852,7 +855,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 							synth.set(\pos, ((pointNsize[0].x-122)/680) * myTempBuffer.numFrames); // scratch
 							synth.set(\freq, 1.5-(pointNsize[0].y/320));
 						});
-						this.refresh;
+						this.refresh; // redraw gui
 						0.04.wait;
 					});
 				});
@@ -891,7 +894,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 	updatePoolMenu {
 		var pool, poolindex;
 		pool = selbPool.items.at(selbPool.value);        // get the pool name (string)
-		selbPool.items_(~globalBufferDict.keys.asArray); // put new list of pools
+		selbPool.items_(XQ.globalBufferDict.keys.asArray); // put new list of pools
 		poolindex = selbPool.items.indexOf(pool);        // find the index of old pool in new array
 		if(poolindex != nil, {
 			selbPool.value_(poolindex); // so nothing changed, but new poolarray

@@ -132,8 +132,8 @@ XixiPrey {
 		});
 		ateFunc = switch (funcnr,
 			0, { { var selStart, selEnd; // the sample player
-				selStart = ~globalBufferDict.at(poolname)[1][bufferindex][0];
-				selEnd = selStart + ~globalBufferDict.at(poolname)[1][bufferindex][1]-1;
+				selStart = XQ.globalBufferDict.at(poolname)[1][bufferindex][0];
+				selEnd = selStart + XQ.globalBufferDict.at(poolname)[1][bufferindex][1]-1;
 				if(myBuffer.numChannels == 1, {
 					Synth(\xiiPrey1x2, [	\outbus, outbus,
 										\bufnum, myBufNum, 
@@ -245,9 +245,9 @@ XixiPrey {
 		poolname = argpoolname.asSymbol;
 		if(loading, { // if loading a bufferpool
 			if(myBufNum == -1, {  // if I don't have a buffer assigned then assign...
-				if(try {~globalBufferDict.at(poolname)[0] } != nil, {
-					bufferindex = prey%~globalBufferDict.at(poolname)[0].size; // if buf < preys
-					myBuffer = ~globalBufferDict.at(poolname)[0].wrapAt(bufferindex);
+				if(try {XQ.globalBufferDict.at(poolname)[0] } != nil, {
+					bufferindex = prey%XQ.globalBufferDict.at(poolname)[0].size; // if buf < preys
+					myBuffer = XQ.globalBufferDict.at(poolname)[0].wrapAt(bufferindex);
 					myBufNum = myBuffer.bufnum;
 					myBufferName = myBuffer.path.basename;
 					sampleNameField.string_(myBufferName);
@@ -256,7 +256,7 @@ XixiPrey {
 		}, {
 			if(selected, { // if selected then assign a sound
 				bufferindex = prey;
-				myBuffer = ~globalBufferDict.at(poolname)[0].wrapAt(bufferindex);
+				myBuffer = XQ.globalBufferDict.at(poolname)[0].wrapAt(bufferindex);
 				myBufNum = myBuffer.bufnum;
 				myBufferName = myBuffer.path.basename;
 				sampleNameField.string_(myBufferName);
@@ -266,9 +266,9 @@ XixiPrey {
 	
 	setRandomBuffer {arg argpoolname;
 		poolname = argpoolname.asSymbol;
-		if(try {~globalBufferDict.at(poolname)[0] } != nil, {
-			bufferindex = ~globalBufferDict.at(poolname)[0].size.rand; // choose a random buffer
-			myBuffer = ~globalBufferDict.at(poolname)[0][bufferindex];
+		if(try {XQ.globalBufferDict.at(poolname)[0] } != nil, {
+			bufferindex = XQ.globalBufferDict.at(poolname)[0].size.rand; // choose a random buffer
+			myBuffer = XQ.globalBufferDict.at(poolname)[0][bufferindex];
 			myBufNum = myBuffer.bufnum;
 			myBufferName = myBuffer.path.basename;
 			sampleNameField.string_(myBufferName);

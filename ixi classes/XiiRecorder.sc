@@ -40,9 +40,9 @@ XiiRecorder {
 			});
 		}).add;
 		ampAnalyserSynth = Synth(\xiiVuMeter, 
-			[\bus, inbus, \amp, amp], addAction:\addToTail);
+			[\inbus, inbus, \amp, amp], addAction:\addToTail);
 
-		win = SCWindow.new(name, Rect(point.x, point.y, 222, 80), resizable:false).front;
+		win = SCWindow.new(name, Rect(point.x, point.y, 222, 80), resizable:false);
 					
 		stereoButt = OSCIIRadioButton(win, Rect(10,5,14,14), "stereo")
 						.value_(params[0])
@@ -93,6 +93,7 @@ XiiRecorder {
 						r.stop;
 						secTask.stop;
 						vuview.value = 0;
+						txtv.string_(filename = PathName(filename).nextName);
 					});
 				}, {
 					XiiAlert("you need to start a server in order to record");
@@ -117,7 +118,7 @@ XiiRecorder {
 			.canFocus_(false)
 			.action_({ arg ch;
 				inbus = if(numChannels == 2, {ch.value * 2}, {ch.value});
-				ampAnalyserSynth.set(\bus, inbus);
+				ampAnalyserSynth.set(\inbus, inbus);
 				params[2] = ch.value;
 			});
 			
@@ -154,14 +155,15 @@ XiiRecorder {
 		cmdPeriodFunc = { recButton.valueAction_(0);};
 		CmdPeriod.add(cmdPeriodFunc);
 
+		win.front;
 		win.onClose_({
 			var t;
 			recButton.valueAction_(0); // stop recording
 			CmdPeriod.remove(cmdPeriodFunc);
 			ampAnalyserSynth.free;
 			responder.remove;
-			~globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
-			try{~globalWidgetList.removeAt(t)};
+			XQ.globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
+			try{XQ.globalWidgetList.removeAt(t)};
 			// write window position to archive.sctxar
 			point = Point(win.bounds.left, win.bounds.top);
 			XiiWindowLocation.storeLoc(name, point);

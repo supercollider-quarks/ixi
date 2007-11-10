@@ -54,7 +54,7 @@ synthRunningFlag = false;
 fftbuf = Buffer.alloc(s, 512);
 trackbuf = Buffer.alloc(s, 512);
 
-win = SCWindow.new("Mushrooms", Rect(point.x, point.y, 820, 320), resizable: false).front;
+win = SCWindow.new("Mushrooms", Rect(point.x, point.y, 820, 320), resizable: false);
 
 // just display a temp buf in the GUI so it's not empty
 {bufPlot = XiiBufferOnsetPlot.new(fftbuf, win, Rect( 120, 5, 680, 300))}.defer(1);
@@ -83,7 +83,7 @@ oscResponder =  OSCresponderNode(s.addr,'/tr',{ arg thistime, responder, msg;
 
 		selbPool = SCPopUpMenu(win, Rect(10, 10, 100, 16))
 			.font_(Font("Helvetica", 9))
-			.items_(if(~globalBufferDict.keys.asArray == [], {["no pool"]}, {~globalBufferDict.keys.asArray.sort}))
+			.items_(if(XQ.globalBufferDict.keys.asArray == [], {["no pool"]}, {XQ.globalBufferDict.keys.asArray.sort}))
 			.value_(0)
 			.background_(Color.white)
 			.action_({ arg item; var checkBufLoadTask;
@@ -98,15 +98,15 @@ oscResponder =  OSCresponderNode(s.addr,'/tr',{ arg thistime, responder, msg;
 					var filepath, selStart, selNumFrames, checkBufLoadTask, restartPlayPath;
 					restartPlayPath = false;
 					startButt.valueAction_(0); // stop the synth if playing
-					if(try {~globalBufferDict.at(poolName)[0] } != nil, {
+					if(try {XQ.globalBufferDict.at(poolName)[0] } != nil, {
 					myTempBuffer.free; // free the old temp buf
-					filepath = ~globalBufferDict.at(poolName)[0][popup.value].path;
-					selStart = ~globalBufferDict.at(poolName)[1][popup.value][0];
-					selNumFrames =  ~globalBufferDict.at(poolName)[1][popup.value][1]-1;
+					filepath = XQ.globalBufferDict.at(poolName)[0][popup.value].path;
+					selStart = XQ.globalBufferDict.at(poolName)[1][popup.value][0];
+					selNumFrames =  XQ.globalBufferDict.at(poolName)[1][popup.value][1]-1;
 
 					soundfile = SoundFile.new;
 					soundfile.openRead(filepath);
-					myBuffer = ~globalBufferDict.at(poolName)[0][popup.value];
+					myBuffer = XQ.globalBufferDict.at(poolName)[0][popup.value];
 					// create a mono buffer if the sound is stereo
 					if(soundfile.numChannels == 2, {
 				myTempBuffer = Buffer.readChannel(s, filepath, selStart, selNumFrames, [0]);
@@ -124,11 +124,11 @@ oscResponder =  OSCresponderNode(s.addr,'/tr',{ arg thistime, responder, msg;
 				
 		ldSndsGBufferList = {arg argPoolName;
 			poolName = argPoolName.asSymbol;
-			if(try {~globalBufferDict.at(poolName)[0] } != nil, {
+			if(try {XQ.globalBufferDict.at(poolName)[0] } != nil, {
 				sndNameList = [];
 				bufferList = List.new;
-				~globalBufferDict.at(poolName)[0].do({arg buffer, i;
-					if(buffer.path.isNil.not, {
+				XQ.globalBufferDict.at(poolName)[0].do({arg buffer, i;
+					if(buffer.path.notNil, {
 						sndNameList = sndNameList.add(buffer.path.basename);
 					},{
 						sndNameList = sndNameList.add("liveBuffer "++i.asString);
@@ -378,7 +378,7 @@ startIndexDrawClock = {
 	setPlayFunc = {arg funcnr=0;
 		playFunc = switch (funcnr,
 			0, { {arg rate; 
-				if(try{~globalBufferDict.at(poolName)[0][0]} != nil, {
+				if(try{XQ.globalBufferDict.at(poolName)[0][0]} != nil, {
 						if(myBuffer.numChannels == 1, {
 						Synth(\xiiMush1x2, [	\outbus, outbus,
 											\bufnum, myPlayBuf.bufnum, 
@@ -550,8 +550,8 @@ setPlayFunc.value(1);
 
 		selbPool = SCPopUpMenu(win, Rect(10, 10, 100, 16))
 			.font_(Font("Helvetica", 9))
-			.items_(if(~globalBufferDict.keys.asArray == [], 
-					{["no pool"]}, {~globalBufferDict.keys.asArray.sort}))
+			.items_(if(XQ.globalBufferDict.keys.asArray == [], 
+					{["no pool"]}, {XQ.globalBufferDict.keys.asArray.sort}))
 			.value_(0)
 			.background_(Color.white)
 			.action_({ arg item;
@@ -564,20 +564,20 @@ setPlayFunc.value(1);
 				.items_(["no buffer"])
 				.background_(Color.white)
 				.action_({ arg popup; 						
-					if(try {~globalBufferDict.at(poolName)[0] } != nil, {
-						myPlayBuf = ~globalBufferDict.at(poolName)[0][popup.value];
-						onsetSelStart = ~globalBufferDict.at(poolName)[1][popup.value][0];
-						onsetSelEnd = onsetSelStart + ~globalBufferDict.at(poolName)[1][popup.value][1]-1;
+					if(try {XQ.globalBufferDict.at(poolName)[0] } != nil, {
+						myPlayBuf = XQ.globalBufferDict.at(poolName)[0][popup.value];
+						onsetSelStart = XQ.globalBufferDict.at(poolName)[1][popup.value][0];
+						onsetSelEnd = onsetSelStart + XQ.globalBufferDict.at(poolName)[1][popup.value][1]-1;
 	
 					});	
 				});
 				
 		ldSndsGBufferList = {arg argPoolName; var sndNameList;
 			poolName = argPoolName.asSymbol;
-			if(try {~globalBufferDict.at(poolName)[0] } != nil, {
+			if(try {XQ.globalBufferDict.at(poolName)[0] } != nil, {
 				sndNameList = [];
-				~globalBufferDict.at(poolName)[0].do({arg buffer, i;
-					if(buffer.path.isNil.not, {
+				XQ.globalBufferDict.at(poolName)[0].do({arg buffer, i;
+					if(buffer.path.notNil, {
 						sndNameList = sndNameList.add(buffer.path.basename);
 					},{
 						sndNameList = sndNameList.add("liveBuffer "++i.asString);
@@ -602,6 +602,7 @@ setPlayFunc.value(1);
 					});
 		};
 
+win.front;
 win.onClose_({
 	var t;
 	refreshClock.stop;
@@ -611,8 +612,8 @@ win.onClose_({
 	analysisSynth.free;
 	timeSynthTask.stop;
 	oscResponder.remove;
-	~globalWidgetList.do({arg widget, i; if(widget == this, { t = i })});
-	try{~globalWidgetList.removeAt(t)};
+	XQ.globalWidgetList.do({arg widget, i; if(widget == this, { t = i })});
+	try{XQ.globalWidgetList.removeAt(t)};
 
 });
 
@@ -634,7 +635,7 @@ drawIndexButt.valueAction_(params[9]);
 	updatePoolMenu {
 		var pool, poolindex;
 		pool = selbPool.items.at(selbPool.value);  
-		selbPool.items_(~globalBufferDict.keys.asArray); 
+		selbPool.items_(XQ.globalBufferDict.keys.asArray); 
 		poolindex = selbPool.items.indexOf(pool);
 		if(poolindex != nil, {
 			selbPool.value_(poolindex);

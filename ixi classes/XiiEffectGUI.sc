@@ -2,7 +2,7 @@
 // called from each effect in the XiiEffects.sc file
 // NOTE: The creator argument is the effect object which
 // is necessary to have here on closing the window in order to 
-// free the reference to the object in the ~globalWidgetList
+// free the reference to the object in the XQ.globalWidgetList
 
 // the setting argument is passed from the settings of XiiQuarks.sc
 // if the gui is run from a setting
@@ -22,12 +22,12 @@ XiiEffectGUI {
 		var onOffButt, cmdPeriodFunc;
 		
 		param = par; // I need to return this from a func so put into a var
-		tgt = if(setting.isNil.not, {setting[3]}, {1});
-		inbus = if(setting.isNil.not, {setting[1]}, {0}); 
-		outbus = if(setting.isNil.not, {setting[2]}, {0}); 
-//		addAct = if(setting.isNil.not, {setting[4]}, {\addToTail}); 
+		tgt = if(setting.notNil, {setting[3]}, {1});
+		inbus = if(setting.notNil, {setting[1]}, {0}); 
+		outbus = if(setting.notNil, {setting[2]}, {0}); 
+//		addAct = if(setting.notNil, {setting[4]}, {\addToTail}); 
 		addAct = \addToTail; 
-		fxOn = false; 
+		fxOn = if(setting.notNil, {setting[6]}, { false }); 
 		slider = Array.newClear(param[0].size); 
 		bufnum = nil;
 		specs = param[2];
@@ -114,10 +114,10 @@ XiiEffectGUI {
 		         synthParams = ['inbus', inbus].add(synthParams.flop).flat; 
 		         synthParams = ['outbus', outbus].add(synthParams.flop).flat; 
 		         synth = Synth.new(synthdef, synthParams, target: tgt.asTarget, addAction: addAct); 
-		         nodeLabel.string = synth.nodeID 
+		         nodeLabel.string = synth.nodeID;
 		       }) 
 		   }); 
-		
+				
 		param[0].size.do({|i| 
 		   slider[i] = EZSlider(win, 288@15, param[0][i], param[2][i], 
 									labelWidth: 50, numberWidth: 40); 
@@ -170,14 +170,17 @@ XiiEffectGUI {
 				Server.default.bufferAllocator.free(bufnum);
 			});
 			
-			~globalWidgetList.do({arg widget, i; if(widget === creator, { t = i})});
-			try{~globalWidgetList.removeAt(t)};
+			XQ.globalWidgetList.do({arg widget, i; if(widget === creator, { t = i})});
+			try{XQ.globalWidgetList.removeAt(t)};
 
 			// write window position to archive.sctxar
 			point = Point(win.bounds.left, win.bounds.top);
 			XiiWindowLocation.storeLoc(name, point);
 		}); 
 		
+		// on or off?
+		if(fxOn, { onOffButt.valueAction_(1) });
+
 		win.front; 
 	} // end of initGui
 	
@@ -190,7 +193,7 @@ XiiEffectGUI {
 	getState {
 		var point;
 		point = Point(win.bounds.left, win.bounds.top);
-		^[channels, inbus, outbus, tgt, point, param[3]];
+		^[channels, inbus, outbus, tgt, point, param[3], fxOn];
 	}
 	
 }

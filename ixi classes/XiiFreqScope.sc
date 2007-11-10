@@ -171,8 +171,8 @@ XiiFreqScope {
 			var t; 
 			scope.kill;
 			CmdPeriod.remove(cmdPeriodFunc);
-			~globalWidgetList.do({arg widget, i; if(widget == this, { t = i}) });
-			try{~globalWidgetList.removeAt(t)};
+			XQ.globalWidgetList.do({arg widget, i; if(widget == this, { t = i}) });
+			try{XQ.globalWidgetList.removeAt(t)};
 		 }).front;
 	}
 	

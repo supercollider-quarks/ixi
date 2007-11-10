@@ -124,6 +124,8 @@ XiiBufferOnsetPlot {
 				.elasticMode_(1)
 				.showIndex_(true);
 			);
+			/*
+			// not used yet - will be used when nodes can be selected
 			tabletViews.add(
 				SCTabletView(win, Rect(bounds.left, bounds.top + ((bounds.height/numChannels)*i),
 											 bounds.width, bounds.height/numChannels))
@@ -133,6 +135,7 @@ XiiBufferOnsetPlot {
 						if(chosennode.isNil, {"no node".postln;}, {"found node".postln;});
 					})
 			);
+			*/
 		});
 		^win.front;
 	}

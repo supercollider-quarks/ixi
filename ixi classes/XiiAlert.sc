@@ -4,12 +4,16 @@ XiiAlert("ixi alert: you need to do stuff to do stuff");
 
 XiiAlert {
 	
+	var <>xiigui, <>win;
+
 	*new {arg message;
 		^super.new.initXiiAlert(message);
 	}
 
 	initXiiAlert {arg message;
-		var win, a, p, b, str;
+		var a, p, b, str;
+		xiigui = nil;
+
 		p = [ // the ixi logo
 		Point(1,7), Point(8, 1), Point(15,1), Point(15,33),Point(24, 23), Point(15,14), Point(15,1), 
 		Point(23,1),Point(34,13), Point(45,1), Point(61,1), Point(66,6), Point(66,37), Point(59,43),

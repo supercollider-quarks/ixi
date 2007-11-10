@@ -46,6 +46,7 @@ XiiTrigRecorder {
 				});
 		
 		win = SCWindow("TrigRecorder", Rect(point.x, point.y, 242, 106), resizable:false);
+
 		sensibang = Bang.new(win, Rect(10, 10, 50, 50))
 				.setBackground_(Color.white);
 		
@@ -111,7 +112,7 @@ XiiTrigRecorder {
 				})
 				.value_( inbus/channels );
 		
-		sensi = OSCIISlider.new(win, Rect(130, 10, 100, 10), "- sensitivity", 0, 1, params[1], 0.01, \amp)
+		sensi = OSCIISlider.new(win, Rect(130, 10, 100, 10), "- sensitivity", 0.01, 1, params[1], 0.01, \amp)
 			.font_(Font("Helvetica", 9))
 			.action_({arg sl; 
 				analyser.set(\sensitivity, sl.value);
@@ -193,13 +194,14 @@ XiiTrigRecorder {
 					osc.remove; 
 					countDownTask.stop
 				};
+				
 		win.onClose_({ 
 			var t;
 			endFunc.value;
 			point = Point(win.bounds.left, win.bounds.top);
 			XiiWindowLocation.storeLoc(name, point);
-			~globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
-			try{~globalWidgetList.removeAt(t)};
+			XQ.globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
+			try{XQ.globalWidgetList.removeAt(t)};
 		 });	 
 	}
 	

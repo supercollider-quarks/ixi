@@ -41,7 +41,7 @@ XiiPlayer {
 		foreColor = Color.new255(103, 148, 103);
 		outbus = 0;
 		
-		win = SCWindow.new(name, Rect(point.x, point.y, 222, 195), false).front;
+		win = SCWindow.new(name, Rect(point.x, point.y, 222, 195), false);
 
 		timeText = SCStaticText(win, Rect(60, 130, 40, 18))
 					.string_("00:00");
@@ -181,12 +181,13 @@ XiiPlayer {
 		cmdPeriodFunc = { playButton.valueAction_(0)};
 		CmdPeriod.add(cmdPeriodFunc);
 
+		win.front;
 		win.onClose_({
 			var t;
 			playButton.valueAction_(0);
 			CmdPeriod.remove(cmdPeriodFunc);
-			~globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
-			try{~globalWidgetList.removeAt(t)};
+			XQ.globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
+			try{XQ.globalWidgetList.removeAt(t)};
 			// write window position to archive.sctxar
 			point = Point(win.bounds.left, win.bounds.top);
 			XiiWindowLocation.storeLoc(name, point);

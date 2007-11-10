@@ -24,26 +24,28 @@ XiiPolyMachine {
 		var synthPrototypeArray;
 		var createEnvWin, envArray, envFlagArray, createAudioStreamBusWin;
 		var point, relativeTime, relativeTimeRadioButt;
+		var tracks;
 		
+		tracks = XQ.pref.polyMachineTracks; // 4 is default (XQ.pref is set in the preferences/preferences.ixi file)
 		fixedBoxSize = true;
-		meter = [16, 16, 16, 16];
-		bufNumArray = [0, 0, 0, 0];
-		volArray = [0.9,0.9,0.9,0.9];
+		meter = Array.fill(tracks, {16});
+		bufNumArray = Array.fill(tracks, {0});
+		volArray = Array.fill(tracks, {1});
 		outbus = 0;
-		inbusArray = [20, 20, 20, 20]; // each channel can have different inbus in audiostream
+		inbusArray = Array.fill(tracks, {20}); // each channel can have dif inbus in audiostream
 		tempo = 2;
 		globalvol = 1;
 		synthGroup = Group.new(server, \addToHead);
 		stateDict = (); // dictionary of saved states
-		codeArray = [(), (), (), ()];
-		codeFlagArray = [true, true, true, true];
-		audioStreamFlagArray = [false, false, false, false];
-		envFlagArray = [true, true, true, true];
-		envArray = Array.fill(4, {[[ 0.0, 1.0, 0.7, 0.7, 0.0], [0.05, 0.1, 0.5, 0.2], 1]}); // levels, times, duration
+		codeArray = Array.fill(tracks, {()}); // a dictionary inside the array
+		codeFlagArray = Array.fill(tracks, {true});
+		audioStreamFlagArray = Array.fill(tracks, {false});
+		envFlagArray = Array.fill(tracks, {true});
+		envArray = Array.fill(tracks, {[[ 0.0, 1.0, 0.7, 0.7, 0.0], [0.05, 0.1, 0.5, 0.2], 1]}); // levels, times, duration
 		stateNum = 0; // number of states in the dictionary
 		relativeTime = false;
 		
-		synthPrototypeArray = Array.fill(4, "{
+		synthPrototypeArray = Array.fill(tracks, "{
 	var env, sine;
 	env = EnvGen.ar(Env.perc, doneAction:2);
 	sine = SinOsc.ar(440, 0, 0.5 * env);
@@ -56,16 +58,16 @@ point = if(setting.isNil, {Point(10, 500)}, {setting[1]});
 params = if(setting.isNil, {[1, 0]}, {setting[2]});
 
 
-		win = SCWindow("polymachine", Rect(point.x, point.y, 760, 260), resizable:false).front;
+		win = SCWindow("polymachine", Rect(point.x, point.y, 760, tracks*62), resizable:false);
 		
-		indexBoxArray = Array.fill(4, {arg i;
+		indexBoxArray = Array.fill(tracks, {arg i;
 			BoxGrid.new(win, bounds: Rect(260, 10+(i*60), 16*30, 12), columns: 16, rows: 1)
 				.setFillMode_(true)
 				.setNodeBorder_(4)
 				.setFillColor_(Color.white);
 		});
 		
-		selectBoxArray = Array.fill(4, {arg i;
+		selectBoxArray = Array.fill(tracks, {arg i;
 			BoxGrid.new(win, bounds: Rect(260, 30+(i*60), 16*30, 23), columns: 16, rows: 1)
 				.setBackgrColor_(XiiColors.lightgreen)
 				.setFillMode_(true)
@@ -89,7 +91,7 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 			if(fixedBoxSize == false, {
 				//fixedRadioButt.value_(0);
 				indexBoxArray[i].remove; selectBoxArray[i].remove; // remove the views
-				win.bounds_(Rect(win.bounds.left, win.bounds.top, 760, 260));
+				win.bounds_(Rect(win.bounds.left, win.bounds.top, 760, tracks*62));
 				indexBoxArray[i]=BoxGrid.new(win, Rect(260, 10+(i*60), 16*30, 12), numCol,1)
 						.setFillMode_(true)
 						.setNodeBorder_(4)
@@ -113,7 +115,7 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 				//fixedRadioButt.value_(1);
 				indexBoxArray[i].remove; selectBoxArray[i].remove;
 				incr = meter.copy.sort.top - 16;
-				win.bounds_(Rect(win.bounds.left, win.bounds.top, 760+(incr*30), 260));
+				win.bounds_(Rect(win.bounds.left, win.bounds.top, 760+(incr*30), tracks*62));
 				indexBoxArray[i] = 
 				BoxGrid.new(win, Rect(260, 10+(i*60), numCol*30, 12), numCol, 1)
 						.setFillMode_(true)
@@ -138,7 +140,7 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 			win.refresh;
 		};
 
-		stepsArray = Array.fill(4, {arg i;
+		stepsArray = Array.fill(tracks, {arg i;
 			OSCIISlider(win, Rect(130, 10+(i*60), 60, 8), "- steps", 2, 48, 16, 1)
 				.font_(Font("Helvetica", 9))
 				.action_({ arg sl; var state;
@@ -146,7 +148,7 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 				});
 		});
 		
-		envButtArray = Array.fill(4, {arg i;
+		envButtArray = Array.fill(tracks, {arg i;
 			SCButton(win, Rect(196, 10+(i*60) , 15, 16))
 				.states_([["e", Color.black, Color.clear]])
 				.font_(Font("Helvetica", 9))
@@ -155,7 +157,7 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 					createEnvWin.value(i);							});
 		});
 
-		envButtOnOffArray = Array.fill(4, {arg i;
+		envButtOnOffArray = Array.fill(tracks, {arg i;
 			SCButton(win, Rect(214, 10+(i*60) , 15, 16))
 				.states_([["x", Color.black, Color.clear], ["o", Color.black, XiiColors.darkgreen]])
 				.font_(Font("Helvetica", 9))
@@ -172,7 +174,7 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 		
 		selbPool = SCPopUpMenu(win, Rect(10, 10, 100, 16))
 			.font_(Font("Helvetica", 9))
-			.items_(if(~globalBufferDict.keys.asArray == [], {["no pool"]}, {~globalBufferDict.keys.asArray}))
+			.items_(if(XQ.globalBufferDict.keys.asArray == [], {["no pool"]}, {XQ.globalBufferDict.keys.asArray}))
 			.value_(0)
 			.background_(Color.white)
 			.action_({ arg item;
@@ -182,23 +184,24 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 			
 		ldSndsGBufferList = {arg argPoolName;	 var numOfBuffers;
 			poolName = argPoolName.asSymbol;
-			if(try {~globalBufferDict.at(poolName)[0] } != nil, {
-				sndfiles = Array.fill(~globalBufferDict.at(poolName)[0].size, { arg i;
-							~globalBufferDict.at(poolName)[0][i].path.basename});
+			if(try {XQ.globalBufferDict.at(poolName)[0] } != nil, {
+				sndfiles = Array.fill(XQ.globalBufferDict.at(poolName)[0].size, { arg i;
+							XQ.globalBufferDict.at(poolName)[0][i].path.basename});
 				sndfiles = sndfiles ++ ["scode", "audiostream"];
-				numOfBuffers = ~globalBufferDict.at(poolName)[0].size;
+				numOfBuffers = XQ.globalBufferDict.at(poolName)[0].size;
 				
 				bufferPopUpArray.do({arg popup, i; 
 					popup.items_(sndfiles); 
 					popup.value_(i%sndfiles.size); // if no soundfiles, then code
-					bufNumArray[i] = i%sndfiles.size; // if there are fewer than 4 soundfiles
+					bufNumArray[i] = i%sndfiles.size; // if there are fewer than 4 (or N_tracks) soundfiles
 				});
 
-				if(numOfBuffers < 4, {
+				if(numOfBuffers < tracks, { // TO BE FIXED !!!
+					//tracks.do({|i| bufNumArray[i] = i%numOfBuffers; codeFlagArray[i] = false;});
 					numOfBuffers.do({|i| bufNumArray[i] = i; codeFlagArray[i] = false;});
 				}, {
-					codeFlagArray = [false, false, false, false];
-					bufNumArray = [0, 1, 2, 3];
+					codeFlagArray = Array.fill(tracks, {false});
+					bufNumArray = Array.fill(tracks, {arg i; i});
 				});
 			}, {
 				sndfiles = ["scode", "audiostream"]; // sc code
@@ -206,7 +209,7 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 		};
 		ldSndsGBufferList.value(selbPool.items[0].asSymbol);
 		
-		bufferPopUpArray = Array.fill(4, {arg i;
+		bufferPopUpArray = Array.fill(tracks, {arg i;
 			SCPopUpMenu(win, Rect(130, 37+(i*60) , 100, 18))
 				.items_(sndfiles)
 				.value_(if(sndfiles.size==2, {0}, {i%sndfiles.size}))
@@ -230,7 +233,7 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 				});
 		});
 		
-		trackVolumeSlider = Array.fill(4, {arg i;
+		trackVolumeSlider = Array.fill(tracks, {arg i;
 			SCMultiSliderView(win, Rect(240, 10+(i*60), 12, 45))
 				.value_([0.9])		
 				.isFilled_(true)
@@ -254,17 +257,17 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 			.action_({ arg item; var chosenstate;
 				if(stateNum > 0, { // if there are any states
 				chosenstate = stateDict.at(("state "++(item.value+1).asString).asSymbol);
-				fixedBoxSize = chosenstate[4].copy;
-				volArray = chosenstate[5].copy;
-				tempo = chosenstate[6].copy;
-				codeArray = chosenstate[7].copy; 
-				envArray = chosenstate[8].copy;
-				envFlagArray = chosenstate[9].copy;
+				fixedBoxSize = chosenstate[tracks].copy;
+				volArray = chosenstate[tracks+1].copy;
+				tempo = chosenstate[tracks+2].copy;
+				codeArray = chosenstate[tracks+3].copy; 
+				envArray = chosenstate[tracks+4].copy;
+				envFlagArray = chosenstate[tracks+5].copy;
 				clockArray.do({arg clock; clock.tempo_(tempo)});
 				envButtOnOffArray.do({arg butt, i; 
 					if(chosenstate[9][i] == true, {butt.value_(1)}, 
 					{butt.value_(0)}) });
-				4.do({arg i; drawBoxGrids.value(chosenstate[i].size, i);});
+				tracks.do({arg i; drawBoxGrids.value(chosenstate[i].size, i); [\ok, i].postln;});
 				selectBoxArray.do({arg boxgrid, i; boxgrid.setNodeStates_([chosenstate[i]])});
 				trackVolumeSlider.do({arg sl, i; sl.value_([volArray[i]]); });
 				tempoSlider.value_(tempo*60);
@@ -289,7 +292,7 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 				stateNum = stateNum + 1;
 				statesPop.items_(Array.fill(stateNum, {|i| "state "++(i+1).asString}));
 				statesPop.value_(stateNum-1);
-				statesarray = Array.fill(4, {|i| selectBoxArray[i].getNodeStates[0]});
+				statesarray = Array.fill(tracks, {|i| selectBoxArray[i].getNodeStates[0]});
 				statesarray = statesarray.add(fixedBoxSize.copy); // fixedBoxSize flag - index slot 4
 				statesarray = statesarray.add(volArray.copy);     // volume array      - index slot 5
 				statesarray = statesarray.add(tempo.copy);        // tempo             - index slot 6
@@ -297,6 +300,7 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 				statesarray = statesarray.add(envArray.copy);     // env array         - index slot 8
 				statesarray = statesarray.add(envFlagArray.copy); // on/off states     - index slot 9
 				stateDict.add(("state "++stateNum.asString).asSymbol -> statesarray);
+				[\statesarray, statesarray].postln;
 			});
 
 		clearSeqButt = SCButton(win, Rect(10, 82, 97, 18))
@@ -320,14 +324,14 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 					if(stateNum > 0, { // if there are any states
 					statesPop.items_(Array.fill(stateNum, {|i| "state "++(i+1).asString}));
 					chosenstate = stateDict.at("state 1".asSymbol);
-					fixedBoxSize = chosenstate[4].copy;
-					volArray = chosenstate[5].copy; 
-					tempo = chosenstate[6].copy;
-					codeArray = chosenstate[7].copy;
-					envArray = chosenstate[8].copy;
-					envFlagArray = chosenstate[9].copy;
+					fixedBoxSize = chosenstate[tracks].copy;
+					volArray = chosenstate[tracks+1].copy; 
+					tempo = chosenstate[tracks+2].copy;
+					codeArray = chosenstate[tracks+3].copy;
+					envArray = chosenstate[tracks+4].copy;
+					envFlagArray = chosenstate[tracks+5].copy;
 					clockArray.do({arg clock; clock.tempo_(tempo)});
-					4.do({arg i; drawBoxGrids.value(chosenstate[i].size, i);});
+					tracks.do({arg i; drawBoxGrids.value(chosenstate[i].size, i);});
 					selectBoxArray.do({arg boxgrid, i; boxgrid.setNodeStates_([chosenstate[i]])});
 					trackVolumeSlider.do({arg sl, i; sl.value_([volArray[i]]); });
 					tempoSlider.value_(tempo*60);
@@ -356,10 +360,10 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 					boxarray = selectBoxArray.copy;
 					if(butt.value == 1, {
 						fixedBoxSize = true;
-						4.do({arg i; drawBoxGrids.value(boxarray[i].getNodeStates[0].size, i)});
+						tracks.do({arg i; drawBoxGrids.value(boxarray[i].getNodeStates[0].size, i)});
 					},{
 						fixedBoxSize = false;
-						4.do({arg i; drawBoxGrids.value(boxarray[i].getNodeStates[0].size, i)});
+						tracks.do({arg i; drawBoxGrids.value(boxarray[i].getNodeStates[0].size, i)});
 					});
 				});
 				
@@ -423,7 +427,7 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 
 		startSequencer = {
 			synthGroup = Group.new;
-			clockArray = Array.fill(4, {arg i; var tClock;
+			clockArray = Array.fill(tracks, {arg i; var tClock;
 				if(relativeTime, {
 					tClock = TempoClock( (tempo * meter[i])/meter.mean ); // as time is relative, I get means for means time
 				},{
@@ -445,10 +449,10 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 						
 							if(audioStreamFlagArray[i] == false, { // if playing buffers
 							
-								if(try{~globalBufferDict.at(poolName)[0][bufNumArray[i]]} != nil, {
-									buffer = ~globalBufferDict.at(poolName)[0].wrapAt(bufNumArray[i]);
-									start = ~globalBufferDict.at(poolName)[1].wrapAt(bufNumArray[i])[0];
-									end = start + ~globalBufferDict.at(poolName)[1].wrapAt(bufNumArray[i])[1];
+								if(try{XQ.globalBufferDict.at(poolName)[0][bufNumArray[i]]} != nil, {
+									buffer = XQ.globalBufferDict.at(poolName)[0].wrapAt(bufNumArray[i]);
+									start = XQ.globalBufferDict.at(poolName)[1].wrapAt(bufNumArray[i])[0];
+									end = start + XQ.globalBufferDict.at(poolName)[1].wrapAt(bufNumArray[i])[1];
 									
 									if(envFlagArray[i] == true, { // envelope on
 										times = envArray[i][1]*envArray[i][2];
@@ -613,12 +617,13 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 		cmdPeriodFunc = { startButt.valueAction_(0);};
 		CmdPeriod.add(cmdPeriodFunc);
 		
+		win.front;
 		win.onClose_({
 			var t;
 			clockArray.do(_.stop);
 			CmdPeriod.remove(cmdPeriodFunc);
-			~globalWidgetList.do({arg widget, i; if(widget === this, {t = i})});
-			try{~globalWidgetList.removeAt(t)};
+			XQ.globalWidgetList.do({arg widget, i; if(widget === this, {t = i})});
+			try{XQ.globalWidgetList.removeAt(t)};
 		});
 
 		// setting		
@@ -630,7 +635,7 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 	updatePoolMenu {
 		var pool, poolindex;
 		pool = selbPool.items.at(selbPool.value);        // get the pool name (string)
-		selbPool.items_(~globalBufferDict.keys.asArray); // put new list of pools
+		selbPool.items_(XQ.globalBufferDict.keys.asArray); // put new list of pools
 		poolindex = selbPool.items.indexOf(pool);        // find the index of old pool in new array
 		if(poolindex != nil, {
 			selbPool.value_(poolindex); // so nothing changed, but new poolarray

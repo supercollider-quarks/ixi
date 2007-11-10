@@ -10,7 +10,7 @@ XiiScaleSynth {
 		var screenX, screenY, tabletScreenY;
 		var setScale, setTrans, scales, scaleNames, scaleMenu;
 		var boxColList, makeColorList, server;
-		var transBuf, scaleBuf, outbus, outbusPoP;
+		var transBuf, scaleBuf, outbus, outbusPoP, glvol;
 		
 		server = argserver ? Server.default;
 		//  screen resolution
@@ -20,6 +20,7 @@ XiiScaleSynth {
 		// the initials transformations of the base scale.
 		trns1 = 5; // first row up from base scale (which is in C)
 		trns2 = 7; // secon row up from the base scale.
+		glvol = 1;
 		
 		tabletScreenY = screenY - 40; // give space for the control bar at the bottom
 		
@@ -90,8 +91,8 @@ XiiScaleSynth {
 			transBuf.free;
 			drone.free;
 			synth.free;
-			~globalWidgetList.do({arg widget, i; if(widget == this, {t = i})});
-			try{~globalWidgetList.removeAt(t)};
+			XQ.globalWidgetList.do({arg widget, i; if(widget == this, {t = i})});
+			try{XQ.globalWidgetList.removeAt(t)};
 		});
 		OSCIISlider.new(win, Rect(60, screenY-34, 100, 10), "- decay", 0.1, 10, 4, 0.01)
 			.action_({arg sl; synth.set(\decayTime, sl.value);});
@@ -115,6 +116,9 @@ XiiScaleSynth {
 				synth.set(\out, outbus);
 				drone.set(\out, outbus);
 			});
+
+		OSCIISlider.new(win, Rect(810, screenY-34, 60, 10), "- vol", 0, 1, 1, 0.01)
+			.action_({arg sl; glvol = sl.value; synth.set(\glvol, glvol) });
 
 		win.front;
 		
@@ -162,7 +166,7 @@ XiiScaleSynth {
 		setTrans.value(4, 9);
 		// -------------------
 
-SynthDef(\scaleSynth,{ arg out=0, buf1=0, buf2 = 1, vol=0, volLag=0.1, carPartial = 1, modPartial = 1, index = 3, mul = 0.5, delayTime=0.04, decayTime=4;
+SynthDef(\scaleSynth,{ arg out=0, buf1=0, buf2 = 1, vol=0, volLag=0.1, carPartial = 1, modPartial = 1, index = 3, glvol = 1, delayTime=0.04, decayTime=4;
 	var xPitch, yPitch, oscillator;
 	var modulator, carrier, freq; // FM variables
 	var signal; 
@@ -173,7 +177,7 @@ SynthDef(\scaleSynth,{ arg out=0, buf1=0, buf2 = 1, vol=0, volLag=0.1, carPartia
 	
 	// ======= the FM synth
 	modulator = SinOsc.ar([freq * modPartial, 3 +(freq *modPartial)], 0, freq * index * LFNoise1.kr(5.reciprocal).abs );
-	carrier = SinOsc.ar((freq * carPartial) + modulator, 0, mul*Lag.kr(vol, volLag));
+	carrier = SinOsc.ar((freq * carPartial) + modulator, 0, glvol*Lag.kr(vol, volLag));
 
 	// ======= the REVERB
 	signal = OnePole.ar(carrier, 0.9);
@@ -201,7 +205,7 @@ SynthDef(\droneSynth,{ arg out=0, vol=0.2, volLag=0.1, freq = 261;
 	)
 }).load(server);
 
-		synth = Synth(\scaleSynth, [\buf1, scaleBuf.bufnum, \buf2, transBuf.bufnum]);
+		synth = Synth(\scaleSynth, [\buf1, scaleBuf.bufnum, \buf2, transBuf.bufnum, \glvol, glvol]);
 		drone = Synth(\droneSynth, [\vol, 0]);
 		
 }

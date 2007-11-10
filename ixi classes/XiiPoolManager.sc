@@ -1,27 +1,29 @@
 XiiPoolManager {
-	var <>xiigui;
+	var <>xiigui, <>win, params;
 	
-	*new { arg server, channels, rect, pool;
-		^super.new.initXiiPoolManager(server, channels, rect, pool);
+	*new { arg server, channels, setting=nil, rect, pool;
+		^super.new.initXiiPoolManager(server, channels, setting, rect, pool);
 		}
 		
-	initXiiPoolManager {arg server, channels, argrect, pool;
-		var win, rect;
+	initXiiPoolManager {arg server, channels, setting, argrect, pool;
+		var rect;
 		var selPool, txtv, saveButt, delPool, loadPool;
 		var bufferDict, name, point;
-		
-		xiigui = nil;
-		
+				
 		rect = argrect ? Rect(200, 100, 160, 56);		
 		name = "PoolManager";
-		point = XiiWindowLocation.new(name);
-		bufferDict = if(Object.readArchive("bufferPools.ixi").isNil,{
+		
+		point = if(setting.isNil, {XiiWindowLocation.new(name)}, {setting[1]});
+		xiigui = nil; // not using window server class here
+		params = if(setting.isNil, {[0,0,0,0,0]}, {setting[2]});
+
+		bufferDict = if(Object.readArchive("preferences/bufferPools.ixi").isNil,{
 						()
 					}, {
-						Object.readArchive("bufferPools.ixi")					}); // if no dict, create it
+						Object.readArchive("preferences/bufferPools.ixi")					}); // if no dict, create it
 		
 		win = SCWindow.new("PoolManager", Rect(point.x, point.y, rect.width, rect.height),
-			 resizable:false).front;
+			 resizable:false);
 		
 		selPool = SCPopUpMenu(win, Rect(10, 5, 140, 16))
 			.font_(Font("Helvetica", 9))
@@ -38,7 +40,7 @@ XiiPoolManager {
 			.action_({
 				bufferDict.removeAt(selPool.items[selPool.value].asSymbol);
 				selPool.items_(bufferDict.keys.asArray);
-				bufferDict.writeArchive("bufferPools.ixi");
+				bufferDict.writeArchive("preferences/bufferPools.ixi");
 			});
 
 		loadPool = SCButton(win, Rect(82, 27, 67, 16))
@@ -46,9 +48,9 @@ XiiPoolManager {
 			.states_([["load pool", Color.black, Color.clear]])
 			.action_({
 				if(bufferDict.at(selPool.items[selPool.value]) != nil, {
-					~globalWidgetList.add(
+					XQ.globalWidgetList.add(
 						// here sending bufferpaths and selection array
-						XiiBufferPool.new(Server.default, selPool.items[selPool.value].asString)
+						XiiBufferPool.new(Server.default, nil, nil, selPool.items[selPool.value].asString)
 							.loadBuffers(
 								bufferDict.at(selPool.items[selPool.value])[0], // pathnames
 								bufferDict.at(selPool.items[selPool.value])[1]  // selections
@@ -58,7 +60,7 @@ XiiPoolManager {
 			});
 
 		// if the manager is created from a save button in the pool
-		if(pool.isNil.not, {
+		if(pool.notNil, {
 			txtv = SCTextView(win, Rect(10, 51, 100, 14))
 					.hasVerticalScroller_(false)
 					.autohidesScrollers_(true)
@@ -73,26 +75,34 @@ XiiPoolManager {
 					str = if(txtv.string == "", {Date.getDate.stamp.asString}, {txtv.string});
 					// saving filepaths and selection list into file
 					bufferDict.add((str).asSymbol -> 
-						[pool.getFilePaths, ~globalBufferDict.at(pool.name.asSymbol)[1]]);
+						[pool.getFilePaths, XQ.globalBufferDict.at(pool.name.asSymbol)[1]]);
 					selPool.items_(bufferDict.keys.asArray);
 					// store the old bufferList
-					oldnamelist = ~globalBufferDict.at(pool.name.asSymbol);
-					// get rid of the old index key in ~globalBufferDict
-					~globalBufferDict.removeAt(pool.name.asSymbol);
+					oldnamelist = XQ.globalBufferDict.at(pool.name.asSymbol);
+					// get rid of the old index key in XQ.globalBufferDict
+					XQ.globalBufferDict.removeAt(pool.name.asSymbol);
 					// put it back as the new
-					~globalBufferDict.add(str.asSymbol -> oldnamelist);
+					XQ.globalBufferDict.add(str.asSymbol -> oldnamelist);
 					// and rename the window
 					pool.setName_(str);
-					bufferDict.writeArchive("bufferPools.ixi");
+					bufferDict.writeArchive("preferences/bufferPools.ixi");
 				});
 		});
 		
+		win.front;
 		win.onClose_({
 			var t;
-			~globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
-			try{~globalWidgetList.removeAt(t)};
+			XQ.globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
+			try{XQ.globalWidgetList.removeAt(t)};
 			point = Point(win.bounds.left, win.bounds.top);
 			XiiWindowLocation.storeLoc(name, point);
 		});
 	}
+	
+	getState { // for save settings
+		var point;		
+		point = Point(win.bounds.left, win.bounds.top);
+		^[2, point, params]; // channels, point, params
+	}
+
 }

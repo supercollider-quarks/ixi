@@ -27,7 +27,7 @@ OSCIIRadioButton {
 							
 		stringbounds = Rect(	buttrect.left+buttrect.width+5,
 							buttrect.top,
-							string.size * 8, // size of each letter around 7 pixels?
+							string.size * 5, // size of each letter around 5 pixels?
 							16);
 							
 		stringview = SCStaticText(w, stringbounds)
@@ -76,7 +76,10 @@ OSCIIRadioButton {
 	
 	states_{arg states;
 		button.states_(states);				
-
+	}
+	
+	valueAction_{arg val;
+		button.valueAction_(val);				
 	}
 }
 

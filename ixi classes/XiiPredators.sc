@@ -65,10 +65,10 @@ params = if(setting.isNil, {[4, 18, 20, 1, 0, 0.4]}, {setting[2]});
 		// -- the buffers
 		ldSndsGBufferList = {arg argPoolName;
 			poolname = argPoolName.asSymbol;
-			if(try {~globalBufferDict.at(poolname)[0] } != nil, {
+			if(try {XQ.globalBufferDict.at(poolname)[0] } != nil, {
 				sndNameList = [];
 				bufferList = List.new;
-				~globalBufferDict.at(poolname)[0].do({arg buffer;
+				XQ.globalBufferDict.at(poolname)[0].do({arg buffer;
 					sndNameList = sndNameList.add(buffer.path.basename);
 					bufferList.add(buffer.bufnum);
 				 });
@@ -151,7 +151,7 @@ params = if(setting.isNil, {[4, 18, 20, 1, 0, 0.4]}, {setting[2]});
 		
 		selbPool = SCPopUpMenu(win, Rect(265, 485, 102, 16)) // 530
 				.font_(Font("Helvetica", 9))
-				.items_( if(~globalBufferDict.keys.asArray == [], {["no pool"]}, {~globalBufferDict.keys.asArray.sort}) )
+				.items_( if(XQ.globalBufferDict.keys.asArray == [], {["no pool"]}, {XQ.globalBufferDict.keys.asArray.sort}) )
 				.value_(0)
 				.background_(Color.white)
 				.action_({ arg item;
@@ -417,8 +417,8 @@ params = if(setting.isNil, {[4, 18, 20, 1, 0, 0.4]}, {setting[2]});
 			a.stop;
 			a.remove;
 			CmdPeriod.remove(cmdPeriodFunc);
-			~globalWidgetList.do({arg widget, i; if(widget == this, {t = i})});
-			try{~globalWidgetList.removeAt(t)};
+			XQ.globalWidgetList.do({arg widget, i; if(widget == this, {t = i})});
+			try{XQ.globalWidgetList.removeAt(t)};
 		});
 		
 		// setting
@@ -433,7 +433,7 @@ params = if(setting.isNil, {[4, 18, 20, 1, 0, 0.4]}, {setting[2]});
 	updatePoolMenu {
 		var pool, poolindex;
 		pool = selbPool.items.at(selbPool.value);        // get the pool name (string)
-		selbPool.items_(~globalBufferDict.keys.asArray); // put new list of pools
+		selbPool.items_(XQ.globalBufferDict.keys.asArray); // put new list of pools
 		poolindex = selbPool.items.indexOf(pool);        // find the index of old pool in new array
 		if(poolindex != nil, {
 			selbPool.value_(poolindex); // so nothing changed, but new poolarray

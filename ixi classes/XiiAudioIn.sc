@@ -1,10 +1,10 @@
 // for all instruments:
 
-// <>xiigui
+// <>xiigui, <>win
 // setting = nil
 // params
 // getState method
-// try{~globalWidgetList.removeAt(t)};
+// try{XQ.globalWidgetList.removeAt(t)};
 
 
 XiiAudioIn {	
@@ -25,6 +25,7 @@ XiiAudioIn {
 		name = "          AudioIn 2x2";
 		s = server ? Server.local;
 		
+		// set up presets (storing window location and parameters)
 		point = if(setting.isNil, {XiiWindowLocation.new(name)}, {setting[1]});
 		xiigui = nil; // not using window server class here
 		params = if(setting.isNil, {[0,0,0,0,0]}, {setting[2]});
@@ -33,10 +34,8 @@ XiiAudioIn {
 		foreColor = XiiColors.darkgreen;
 		outbus = params[4];
 		
-		win = SCWindow.new(name, Rect(point.x, point.y, 222, 106), resizable:false).front;
-		
-		//xiigui = XiiParamStore.new(this, win, params);
-		
+		win = SCWindow.new(name, Rect(point.x, point.y, 222, 106), resizable:false);
+				
 		spec = ControlSpec(0, 1.0, \amp); // for amplitude in rec slider
 		
 		inmeterl = SCRangeSlider(win, Rect(10, 10, 20, 80));
@@ -120,14 +119,15 @@ XiiAudioIn {
 		cmdPeriodFunc = { onOffButt.valueAction_(0)};
 		CmdPeriod.add(cmdPeriodFunc);
 			
+		win.front;
 		win.onClose_({
 			var t;
 			responder.remove;
 			audioInSynth.free;
 			CmdPeriod.remove(cmdPeriodFunc);
 			
-			~globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
-			try{~globalWidgetList.removeAt(t)};
+			XQ.globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
+			try{XQ.globalWidgetList.removeAt(t)};
 
 			// write window position to archive.sctxar
 			point = Point(win.bounds.left, win.bounds.top);

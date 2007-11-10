@@ -60,7 +60,7 @@ runningFlag = false;
 
 buffer = Buffer.alloc(s, 44100 * bufferSecs, 1); 
 
-win = SCWindow.new("StratoSampler", Rect(point.x, point.y, 820, 240)).front;
+win = SCWindow.new("StratoSampler", Rect(point.x, point.y, 820, 240));
 
 bufPlot = XiiBufferPlot.new(buffer, win, Rect( 120, 5, 680, 220));
 
@@ -214,21 +214,21 @@ writeBuffer = {
 		copiedBuffer = Buffer.read(s, writtenPath);
 		s.sync;
 		{
-		if(~globalBufferDict.includesKey('stratosamples'), {
+		if(XQ.globalBufferDict.includesKey('stratosamples'), {
 			if(bufInBufferDictFlag == true, {
-				~globalBufferDict.at('stratosamples')[0].removeAt(mySlot);
-				~globalBufferDict.at('stratosamples')[0].insert(mySlot, copiedBuffer);
+				XQ.globalBufferDict.at('stratosamples')[0].removeAt(mySlot);
+				XQ.globalBufferDict.at('stratosamples')[0].insert(mySlot, copiedBuffer);
 			},{
 				writtenBufferNames.add(soundName);
-				~globalBufferDict.at('stratosamples')[0].add(copiedBuffer);
-				~globalBufferDict.at('stratosamples')[1].add([0, buffer.numFrames-1]);
+				XQ.globalBufferDict.at('stratosamples')[0].add(copiedBuffer);
+				XQ.globalBufferDict.at('stratosamples')[1].add([0, buffer.numFrames-1]);
 			});
 		}, {
-			~globalBufferDict.add('stratosamples' -> 
+			XQ.globalBufferDict.add('stratosamples' -> 
 					[List[copiedBuffer], List[[0, buffer.numFrames-1]]]); // buf not loaded
 			writtenBufferNames.add(soundName);
 			// If we're creating this dict in the global buffer pool notify other instr
-			~globalWidgetList.do({arg widget;
+			XQ.globalWidgetList.do({arg widget;
 				{ // the various widgets that receive and use bufferpools
 				if(widget.isKindOf(XiiBufferPlayer), {widget.updatePoolMenu;});
 				if(widget.isKindOf(XiiGrainBox), {widget.updatePoolMenu;});
@@ -351,6 +351,7 @@ startIndexDrawClock = {
 	}).play;
 };
 
+win.front;
 win.onClose_({
 	var t;
 	refreshClock.stop;
@@ -362,8 +363,8 @@ win.onClose_({
 		playSynth.free;
 	};
 	
-	~globalWidgetList.do({arg widget, i; if(widget == this, {t = i})});
-	try{~globalWidgetList.removeAt(t)};
+	XQ.globalWidgetList.do({arg widget, i; if(widget == this, {t = i})});
+	try{XQ.globalWidgetList.removeAt(t)};
 });
 
 // setting

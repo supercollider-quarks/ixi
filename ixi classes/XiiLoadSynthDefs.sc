@@ -13,32 +13,32 @@ XiiLoadSynthDefs {
 		// --- the SoundScratcher --- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		
 		// the lag time is good around 4 seconds
-		SynthDef(\xiiScratch1x2, {arg outbus=0, bufnum, pos=0, vol=0, gate=1;
+		SynthDef.writeOnce(\xiiScratch1x2, {arg outbus=0, bufnum, pos=0, vol=0, gate=1;
 			var signal, env;
 			env = EnvGen.kr(Env.adsr(0.2, 0.2, 1, 0.21, 1, -4), gate, doneAction:2);
 			signal = BufRd.ar(1, bufnum, Lag.ar(K2A.ar(pos), 4), 1) * env * vol;
 			Out.ar(outbus, signal!2);
-		}).load(s);
+		});
 		
 		
-		SynthDef(\xiiWarp, {arg outbus=0, bufnum = 0, freq=1, pointer=0, vol=0, gate=1;
+		SynthDef.writeOnce(\xiiWarp, {arg outbus=0, bufnum = 0, freq=1, pointer=0, vol=0, gate=1;
 			var signal, env;
 			env = EnvGen.kr(Env.adsr(0.2, 0.2, 1, 0.21, 1, -4), gate, doneAction:2);
 			signal = Warp1.ar(bufnum, pointer, freq, 0.09, 8, 0.2) * env * vol;
 			Out.ar(outbus, signal!2);
-		}).load(s);
+		});
 		
-		SynthDef(\xiiGrain, {arg outbus=0, bufnum, rate=1, pos=0, dur=0.05, vol=1, envType=0;
+		SynthDef.writeOnce(\xiiGrain, {arg outbus=0, bufnum, rate=1, pos=0, dur=0.05, vol=1, envType=0;
 			var signal, env, sineenv, percenv;
 			sineenv = EnvGen.kr(Env.sine(dur, vol), doneAction:2);
 			percenv = EnvGen.kr(Env.perc(0.001, dur*2, vol), doneAction:2);
 			env = Select.kr(envType, [sineenv, percenv]);
 			signal = PlayBuf.ar(1, bufnum, rate, 1.0, pos) * env ;
 			Out.ar(outbus, Pan2.ar(signal, Rand(-0.75, 0.75)));
-		}).load(s);
+		});
 		
 		
-		SynthDef(\xiiGrains, {arg 	outbus=0, bufnum, dur=0.3, trate=10, ratelow= 0.5, 
+		SynthDef.writeOnce(\xiiGrains, {arg 	outbus=0, bufnum, dur=0.3, trate=10, ratelow= 0.5, 
 								ratehigh=1.5, left=0.3, right=0.4, vol=0.2, globalvol=1;
 			var clk, pos, pan, rate;
 			clk = Impulse.kr(trate);
@@ -46,31 +46,31 @@ XiiLoadSynthDefs {
 			rate = TRand.kr(ratelow, ratehigh, clk);
 			pan = WhiteNoise.kr(0.6);
 			Out.ar(outbus, TGrains.ar(2, clk, bufnum, rate, pos, dur, pan, vol)*globalvol);
-		}).load(s);
+		});
 		
-		SynthDef(\xiiGrainsSQ, {arg outbus=0, bufnum, dur=0.3, trate=10, rate, left=0.3, vol=0.2, globalvol=1;
+		SynthDef.writeOnce(\xiiGrainsSQ, {arg outbus=0, bufnum, dur=0.3, trate=10, rate, left=0.3, vol=0.2, globalvol=1;
 			var clk, pos, pan;
 			clk = Impulse.kr(trate);
 			pan = WhiteNoise.kr(0.6);
 			Out.ar(outbus, TGrains.ar(2, clk, bufnum, rate, left, dur, pan, vol) * globalvol);
-		}).load(s);
+		});
 		
 
 		// --- the XiiPlayer --- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DiskIn
 		
 		
-		SynthDef(\xiiPlayer1, { arg outbus = 0, bufnum = 0, vol=0;
+		SynthDef.writeOnce(\xiiPlayer1, { arg outbus = 0, bufnum = 0, vol=0;
 			Out.ar(outbus, (DiskIn.ar(1, bufnum) * vol).dup);
-		}).load(s);
+		});
 
-		SynthDef(\xiiPlayer2, { arg outbus = 0, bufnum = 0, vol=0;
+		SynthDef.writeOnce(\xiiPlayer2, { arg outbus = 0, bufnum = 0, vol=0;
 			Out.ar(outbus, DiskIn.ar(2, bufnum) * vol);
-		}).load(s);
+		});
 
 
 		// --- the AudioIn tool  --- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DiskIn
 	
-		SynthDef(\xiiAudioIn, { arg out=0, volL, volR, panL, panR;
+		SynthDef.writeOnce(\xiiAudioIn, { arg out=0, volL, volR, panL, panR;
 			var updateRate=40, ampl, ampr, left, right;
 			left =  AudioIn.ar(1) * volL;
 			right = AudioIn.ar(2) * volR;
@@ -80,12 +80,12 @@ XiiLoadSynthDefs {
 			SendTrig.kr(Impulse.kr(updateRate), 801, ampr);
 			Out.ar(out, Pan2.ar(left, panL));
 			Out.ar(out, Pan2.ar(right, panR));
-		}).load(s);
+		});
 
 
 		// --- the bufferplayer --- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		
-		SynthDef(\xiiBufPlayerSTEREO, {arg trigID = 10, out=0, bufnum=0, vol=0.0, pan = 1, trig=0, 
+		SynthDef.writeOnce(\xiiBufPlayerSTEREO, {arg trigID = 10, out=0, bufnum=0, vol=0.0, pan = 1, trig=0, 
 				pitch=1.0, onOff=0, startPos=0, endPos= 1000;
 			var updateRate=40, playbuf, ampl, ampr, signal;
 			playbuf = LoopBuf.ar(2, bufnum, pitch, trig, startPos, startPos, endPos) * vol;
@@ -95,9 +95,9 @@ XiiLoadSynthDefs {
 			SendTrig.kr(Impulse.kr(updateRate), trigID, ampl);
 			SendTrig.kr(Impulse.kr(updateRate), trigID+1, ampr);
 			Out.ar(out, signal);
-		}).load(s);
+		});
 		
-		SynthDef(\xiiBufPlayerMONO, {arg trigID = 10, out=0, bufnum=0, vol=0.0, pan = 0, trig=0, 
+		SynthDef.writeOnce(\xiiBufPlayerMONO, {arg trigID = 10, out=0, bufnum=0, vol=0.0, pan = 0, trig=0, 
 				pitch=1.0, onOff=0, startPos=0, endPos= 1000;
 			var updateRate=40, playbuf, ampl;
 			playbuf = LoopBuf.ar(1, bufnum, pitch, trig, startPos, startPos, endPos) * vol;
@@ -105,28 +105,28 @@ XiiLoadSynthDefs {
 			SendTrig.kr(Impulse.kr(updateRate), trigID, ampl);
 			SendTrig.kr(Impulse.kr(updateRate), trigID+1, ampl);
 			Out.ar(out, Pan2.ar(playbuf, pan));
-		}).load(s);
+		});
 
 
 		// --- the polymachine --- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		
-		SynthDef(\xiiPolyrhythm1x2, {arg outbus=0, bufnum=0, vol=1, pan = 1, 
+		SynthDef.writeOnce(\xiiPolyrhythm1x2, {arg outbus=0, bufnum=0, vol=1, pan = 1, 
 								trig=0, pitch=1, startPos=0, endPos= -1;
 			var playbuf, env;
 			env = EnvGen.ar(Env.linen(0.00001, (endPos-startPos)/44100, 0.0001), doneAction:2);
 			playbuf = LoopBuf.ar(1, bufnum, pitch, trig, startPos, startPos, endPos) * vol * env;
 			Out.ar(outbus, playbuf!2);
-		}).load(s);
+		});
 		
-		SynthDef(\xiiPolyrhythm2x2, {arg outbus=0, bufnum=0, vol=1, pan = 1, 
+		SynthDef.writeOnce(\xiiPolyrhythm2x2, {arg outbus=0, bufnum=0, vol=1, pan = 1, 
 								trig=0, pitch=1, startPos=0, endPos= -1;
 			var playbuf, env;
 			env = EnvGen.ar(Env.linen(0.00001, (endPos-startPos)/44100, 0.0001), doneAction:2);
 			playbuf = LoopBuf.ar(2, bufnum, pitch, trig, startPos, startPos, endPos) * vol * env;
 			Out.ar(outbus, playbuf);
-		}).load(s);
+		});
 		
-		SynthDef(\xiiPolyrhythm1x2Env, {arg outbus=0, bufnum=0, vol=1, pan = 1, trig=0, pitch=1, 
+		SynthDef.writeOnce(\xiiPolyrhythm1x2Env, {arg outbus=0, bufnum=0, vol=1, pan = 1, trig=0, pitch=1, 
 				startPos=0, endPos= -1, levels = #[0, 0.0, 1.0, 0.8, 0.0], times = #[0.0, 0.1, 0.5, 1.0];
 			var playbuf, env, killenv;
 			env = EnvGen.kr(Env.new(levels, times)); // killenv kills because there is no loop:0 in the new LoopBuf
@@ -134,9 +134,9 @@ XiiLoadSynthDefs {
 			//playbuf = LoopBuf.ar(1, bufnum, pitch, trig, startPos, endPos, loop:0) * vol * env; // old loopbuf
 			playbuf = LoopBuf.ar(1, bufnum, pitch, trig, startPos, startPos, endPos) * vol * env * killenv;
 			Out.ar(outbus, playbuf!2);
-		}).load(s);
+		});
 
-		SynthDef(\xiiPolyrhythm2x2Env, {arg outbus=0, bufnum=0, vol=1, pan = 1, trig=0, pitch=1, 
+		SynthDef.writeOnce(\xiiPolyrhythm2x2Env, {arg outbus=0, bufnum=0, vol=1, pan = 1, trig=0, pitch=1, 
 				startPos=0, endPos= -1, levels = #[0, 0.0, 1.0, 0.8, 0.0], times = #[0.0, 0.1, 0.5, 1.0];
 			var playbuf, env, killenv;
 			env = EnvGen.kr(Env.new(levels, times)); // killenv kills because there is no loop:0 in the new LoopBuf
@@ -144,21 +144,21 @@ XiiLoadSynthDefs {
 			playbuf = LoopBuf.ar(2, bufnum, pitch, trig, startPos, startPos, endPos) * vol * env * killenv; 
 			//playbuf = LoopBuf.ar(2, bufnum, pitch, trig, startPos, endPos, loop:0) * vol * env;/ / old loopbuf
 			Out.ar(outbus, playbuf);
-		}).load(s);
+		});
 
 		
-		SynthDef(\xiiPolyrhythmAudioStream2x2Env, {arg inbus=20, outbus=0, vol=1, 
+		SynthDef.writeOnce(\xiiPolyrhythmAudioStream2x2Env, {arg inbus=20, outbus=0, vol=1, 
 				levels = #[0, 0.0, 1.0, 0.8, 0.0], times = #[0.0, 0.07, 0.1, 0.062];
 			var in, env, killenv;
 			env = EnvGen.kr(Env.new(levels, times), doneAction:2);
 			in = InFeedback.ar(inbus, 2) * vol * env; 
 			Out.ar(outbus, in);
-		}).load(s);
+		});
 
 		// --- the grainbox --- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		
 		
-		SynthDef(\xiiGranny, {arg out=0, trigRate=1, freq=1, centerPos=0.5, dur=0.05, 
+		SynthDef.writeOnce(\xiiGranny, {arg out=0, trigRate=1, freq=1, centerPos=0.5, dur=0.05, 
 						pan=0.2, amp = 0.4, buffer=0, cntrPosRandWidth=0.1, cntrPosRandFreq=10,
 						 durRandWidth=0.1,  durRandFreq=10, revVol=0.1, delayTime=4,
 						 decayTime=6, aDelTime=1, aDecTime=1, rateRandWidth=0.01, 
@@ -186,45 +186,45 @@ XiiLoadSynthDefs {
 			4.do({ revSignal = AllpassN.ar(revSignal, 0.150, [0.050.rand,0.051.rand] 
 				* aDelTime, aDecTime) });
 			Out.ar(out, granny + LeakDC.ar(revSignal) * vol);
-		}).load(s);
+		});
 		
 		// ------ the predators ------- !!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 		// - the sample player
-		SynthDef(\xiiPrey1x2, {arg outbus=0, bufnum, rate=1, startPos=0, endPos= -1, timesc=1.0,
+		SynthDef.writeOnce(\xiiPrey1x2, {arg outbus=0, bufnum, rate=1, startPos=0, endPos= -1, timesc=1.0,
 			vol=1, levels = #[0, 0.0, 1.0, 0.8, 0.0], times = #[0.0, 0.17, 0.4, 0.162]; 
 			var bufplay, env;
 			bufplay = LoopBuf.ar(1, bufnum, rate, 1, startPos, startPos, endPos) * vol;
 			env = EnvGen.kr(Env.new(levels, times), timeScale: timesc, doneAction:2);
 			Out.ar(outbus, (bufplay!2)*env);
-		}).load(s);
+		});
 		
-		SynthDef(\xiiPrey2x2, {arg outbus=0, bufnum, rate=1, startPos=0, endPos= -1, timesc=1.0,
+		SynthDef.writeOnce(\xiiPrey2x2, {arg outbus=0, bufnum, rate=1, startPos=0, endPos= -1, timesc=1.0,
 			vol=1, levels = #[0, 0.0, 1.0, 0.8, 0.0], times = #[0.0, 0.17, 0.4, 0.162]; 
 			var bufplay, env;
 			bufplay = LoopBuf.ar(2, bufnum, rate, 1, startPos, startPos, endPos) * vol;
 			env = EnvGen.kr(Env.new(levels, times), timeScale: timesc, doneAction:2);
 			Out.ar(outbus, bufplay*env);
-		}).load(s);
+		});
 		
-		SynthDef(\xiiAudioStream, {arg inbus=20, outbus=0, amp=1, pitchratio=1.0, timesc=1.0, 
+		SynthDef.writeOnce(\xiiAudioStream, {arg inbus=20, outbus=0, amp=1, pitchratio=1.0, timesc=1.0, 
 				levels = #[0, 0.0, 1.0, 0.8, 0.0], times = #[0.0, 0.17, 0.4, 0.162];
 			var in, env, killenv;
 			env = EnvGen.kr(Env.new(levels, times), timeScale: timesc, doneAction:2);
 			in = InFeedback.ar(inbus, 2); 
 			in = PitchShift.ar(in, 0.1, pitchratio, 0, 0.004) * amp * env;
 			Out.ar(outbus, in);
-		}).load(s);
+		});
 
-		SynthDef(\xiiCode, {arg outbus=0, freq=440, pan=0, amp=1;
+		SynthDef.writeOnce(\xiiCode, {arg outbus=0, freq=440, pan=0, amp=1;
 			var env, sine;
 			env = EnvGen.ar(Env.perc, doneAction:2);
 			sine = SinOsc.ar(freq, 0, env*amp);
 			Out.ar(outbus, Pan2.ar(sine, pan));
-		}).load(s);
+		});
 		
 		// - the bell synthesis
-		SynthDef(\xiiBells, {arg outbus=0, freq=440, dur=1, amp=0.4, pan=0;
+		SynthDef.writeOnce(\xiiBells, {arg outbus=0, freq=440, dur=1, amp=0.4, pan=0;
 		        var x, env;
 		        env = EnvGen.kr(Env.perc(0.01, Rand(333,666)/freq, amp), doneAction:2);
 		        x = Mix.ar([SinOsc.ar(freq, 0, 0.3), SinOsc.ar(freq*2, 0, 0.2)] ++
@@ -232,57 +232,57 @@ XiiLoadSynthDefs {
 		        //x = BPF.ar(x, freq, 4.91);
 		        x = Pan2.ar(x, pan);
 		        Out.ar(outbus, x*env);
-		}).load(s);
+		});
 		
 		// - harmonic sines
-		SynthDef(\xiiSines, {arg outbus=0, freq=440, dur=1, amp=0.4, pan=0;
+		SynthDef.writeOnce(\xiiSines, {arg outbus=0, freq=440, dur=1, amp=0.4, pan=0;
 		        var x, env;
 		        env = EnvGen.kr(Env.perc(0.01, 220/freq, amp), doneAction:2);
 		        x = Mix.ar(Array.fill(8, {SinOsc.ar(freq*IRand(1,10),0, 0.12)}));
 		        x = RLPF.ar(x, freq*14, Rand(0.04,1));
 		        x = Pan2.ar(x,pan);
 		        Out.ar(outbus, x*env);
-		}).load(s);
+		});
 				
 		// - synth1
 		
-		SynthDef(\xiiSynth1, {arg outbus, freq=440, dur=1, amp=0.4, pan=0;
+		SynthDef.writeOnce(\xiiSynth1, {arg outbus, freq=440, dur=1, amp=0.4, pan=0;
 		        var x, env;
 		        env = EnvGen.kr(Env.perc(0.01, 220/freq, amp), doneAction:2);
 		        x = Mix.ar([FSinOsc.ar(freq, pi/2, 0.5), Pulse.ar(freq, Rand(0.3,0.5))]);
 		        x = RLPF.ar(x, freq*14, Rand(0.04,1));
 		        x = Pan2.ar(x,pan);
 		        Out.ar(outbus, x*env);
-		}).load(s);
+		});
 		
-		SynthDef(\xiiKs_string, { arg outbus, note, pan, rand, delayTime, noiseType=1;
+		SynthDef.writeOnce(\xiiKs_string, { arg outbus, note, pan, rand, delayTime, noiseType=1;
 			var x, y, env;
 			env = Env.new(#[1, 1, 0],#[2, 0.001]);
 			x = Decay.ar(Impulse.ar(0, 0, rand), 0.1+rand, WhiteNoise.ar); 
 		 	x = CombL.ar(x, 0.05, note.reciprocal, delayTime, EnvGen.ar(env, doneAction:2)); 
 			x = Pan2.ar(x, pan);
 			Out.ar(outbus, LeakDC.ar(x));
-		}).load(s);
+		});
 		
-		SynthDef(\xiiImpulse, { arg outbus, pan, amp;
+		SynthDef.writeOnce(\xiiImpulse, { arg outbus, pan, amp;
 			var x, y, env, imp;
 			env = Env.perc(0.0000001, 0.1);
 			imp = Impulse.ar(1);
 			x = Pan2.ar(imp * EnvGen.ar(env, doneAction:2), pan) * amp;
 			Out.ar(outbus, LeakDC.ar(x));
-		}).load(s);
+		});
 		
 		
-		SynthDef(\xiiRingz, {arg outbus, freq, pan, amp;
+		SynthDef.writeOnce(\xiiRingz, {arg outbus, freq, pan, amp;
 			var ring, trig;
 			trig = (Impulse.ar(0.005, 180) * 0.01)
 						* EnvGen.ar(Env.perc(0.001, 220/freq), doneAction:2);
 			ring = Ringz.ar(trig, [freq, freq+2], 220/freq);
 			ring = Pan2.ar(ring, pan) * amp;
 			Out.ar(outbus, ring);
-		}).load(s);
+		});
 		
-		SynthDef(\xiiKlanks, { arg outbus=0, freq= 1.0, amp = 1, pan;
+		SynthDef.writeOnce(\xiiKlanks, { arg outbus=0, freq= 1.0, amp = 1, pan;
 			var trig, klan, env;
 			var  p, exc, x, s;
 			trig = PinkNoise.ar( 0.11 );
@@ -292,18 +292,18 @@ XiiLoadSynthDefs {
 			klan = LPF.ar(klan, freq*2);
 			env = EnvGen.ar(Env.perc(0.001, 340/freq), doneAction:2);
 			Out.ar( outbus, Pan2.ar( klan * env, pan ));
-		}).load(s);
+		});
 		
 		// --------------- The Gridder ---------------------
 		
-		SynthDef(\xiiSine, {arg outbus=0, freq=440, phase=0, pan=0, amp=0.61;
+		SynthDef.writeOnce(\xiiSine, {arg outbus=0, freq=440, phase=0, pan=0, amp=0.61;
 			var env, sine;
 			env = EnvGen.ar(Env.perc, doneAction:2);
 			sine = sum(SinOsc.ar([freq, freq+1], phase, 0.5*env*amp*AmpComp.kr(freq, 65)));
 			Out.ar(outbus, Pan2.ar(sine, pan));
-		}).load(s);
+		});
 		
-		SynthDef(\xiiString, {arg outbus=0, freq=440, pan=0, amp=1;
+		SynthDef.writeOnce(\xiiString, {arg outbus=0, freq=440, pan=0, amp=1;
 			var pluck, period, string;
 			pluck = PinkNoise.ar(Decay.kr(Impulse.kr(0.005), 0.05));
 			period = freq.reciprocal;
@@ -311,99 +311,99 @@ XiiLoadSynthDefs {
 			string = LeakDC.ar(LPF.ar(Pan2.ar(string, pan), 12000)) * amp;
 			DetectSilence.ar(string, doneAction:2);
 			Out.ar(outbus, string)
-		}).load(s);
+		});
 				
-		SynthDef(\xiiGridder, {arg outbus=0, freq=440, pan=0, amp=1;
+		SynthDef.writeOnce(\xiiGridder, {arg outbus=0, freq=440, pan=0, amp=1;
 			var env, sine;
 			env = EnvGen.ar(Env.perc, doneAction:2);
 			sine = SinOsc.ar(freq, 0, env*amp);
 			Out.ar(outbus, Pan2.ar(sine, pan));
-		}).load(s);
+		});
 		
 		
 		// -------------- TrigRecorder ----------------------
 		
-		SynthDef(\xiiTrigRecAnalyser1x1, {arg out=120, inbus=8, prerectime=1, sensitivity=0.8;
+		SynthDef.writeOnce(\xiiTrigRecAnalyser1x1, {arg out=120, inbus=8, prerectime=1, sensitivity=0.8;
 			var in, signal;
 			in = InFeedback.ar(inbus, 1);
 			signal = DelayN.ar(in, 2, prerectime); 
 			Out.ar(out, signal);
 			SendTrig.kr(Amplitude.kr(in) >= sensitivity, 666);
-		}).load(s);
+		});
 
-		SynthDef(\xiiTrigRecAnalyser2x2, {arg out=120, inbus=8, prerectime=1, sensitivity=0.8;
+		SynthDef.writeOnce(\xiiTrigRecAnalyser2x2, {arg out=120, inbus=8, prerectime=1, sensitivity=0.8;
 			var in, signal;
 			in = InFeedback.ar(inbus, 2);
 			signal = DelayN.ar(in, 2, prerectime); 
 			Out.ar(out, signal);
 			SendTrig.kr(Amplitude.kr(Mix.ar(in)) >= sensitivity, 666);
-		}).load(s);
+		});
 		
-		SynthDef(\xiiTrigRecorderRec1x1, {arg bufnum, inbus=120;
+		SynthDef.writeOnce(\xiiTrigRecorderRec1x1, {arg bufnum, inbus=120;
 			DiskOut.ar(bufnum, In.ar(inbus, 1));
-		}).load(s);
+		});
 		
-		SynthDef(\xiiTrigRecorderRec2x2, {arg bufnum, inbus=120;
+		SynthDef.writeOnce(\xiiTrigRecorderRec2x2, {arg bufnum, inbus=120;
 			DiskOut.ar(bufnum, In.ar(inbus, 2));
-		}).load(s);
+		});
 
 				
 		// -------------- Recorder vumeter ----------------------
-		SynthDef(\xiiVuMeter, {arg bus = 0, amp = 1.0, rate = 15, rel = 1;
+		SynthDef.writeOnce(\xiiVuMeter, {arg inbus = 0, amp = 1.0, rate = 15, rel = 1;
 			var signal, amplitude;
-			signal = InFeedback.ar(bus, 1) * amp;
+			signal = InFeedback.ar(inbus, 1) * amp;
 			amplitude = AmplitudeMod.kr(signal, 0.01, rel);
 			SendTrig.kr(Impulse.kr(rate), 820, amplitude);
-		}).load(s);
+		});
 		
 				
 		// -------------- StratoSampler Synths ----------------------
-		SynthDef(\xiiStratoSamplerRec,{ arg  inbus=0, bufnum=0, reclevel=1.0, prelevel=0.0;
+		SynthDef.writeOnce(\xiiStratoSamplerRec,{ arg  inbus=0, bufnum=0, reclevel=1.0, prelevel=0.0;
 		    var ain;
 		    ain = InFeedback.ar(inbus, 1);     // In
 		    RecordBuf.ar(ain, bufnum, recLevel: reclevel, preLevel: prelevel);
-		}, [0.2, 0.2 , 0.2, 0.2]).load(s);
+		}, [0.2, 0.2 , 0.2, 0.2]);
 	   
-	   SynthDef(\xiiStratoSamplerPlay,{ arg outbus=0, bufnum,  endloop=1000, amp=1.0; 
+	   SynthDef.writeOnce(\xiiStratoSamplerPlay,{ arg outbus=0, bufnum,  endloop=1000, amp=1.0; 
 			var signal;
 			signal = LoopBuf.ar(1, bufnum, 1, 1, 0, 0, endLoop:endloop) * amp;
 			Out.ar(outbus, signal!2);
-		}).load(s);
+		});
 		
 		
 		// ----------------- Mushrooms --------------------
 		
 		// -------------- BufferOnsets Synth ----------------------
-	   SynthDef(\xiiBufOnset,{ arg outbus=0, bufnum,  rate=1.0, endloop=1000, amp=1.0; 
+	   SynthDef.writeOnce(\xiiBufOnset,{ arg outbus=0, bufnum,  rate=1.0, endloop=1000, amp=1.0; 
 			var signal;
 			signal = LoopBuf.ar(1, bufnum, rate, 1, 0, 0, endLoop:endloop) * amp;
 			Out.ar(outbus, signal!2);
-		}).load(s);
+		});
 		
 				// - the sample player
-		SynthDef(\xiiMush1x2, {arg outbus=0, bufnum, rate=1, startPos=0, endPos= -1, timesc=1.0,
+		SynthDef.writeOnce(\xiiMush1x2, {arg outbus=0, bufnum, rate=1, startPos=0, endPos= -1, timesc=1.0,
 			vol=1; 
 			var bufplay, env;
 			bufplay = LoopBuf.ar(1, bufnum, rate, 1, startPos, startPos, endPos) * vol;
 			env = EnvGen.kr(Env.perc(0.001,0.2), timeScale: timesc, doneAction:2);
 			Out.ar(outbus, (bufplay!2)*env);
-		}).load(s);
+		});
 		
-		SynthDef(\xiiMush2x2, {arg outbus=0, bufnum, rate=1, startPos=0, endPos= -1, timesc=1.0,
+		SynthDef.writeOnce(\xiiMush2x2, {arg outbus=0, bufnum, rate=1, startPos=0, endPos= -1, timesc=1.0,
 			vol=1; 
 			var bufplay, env;
 			bufplay = LoopBuf.ar(2, bufnum, rate, 1, startPos, startPos, endPos) * vol;
 			env = EnvGen.kr(Env.perc(0.001,0.2), timeScale: timesc, doneAction:2);
 			Out.ar(outbus, bufplay*env);
-		}).load(s);
+		});
 		
-		SynthDef(\xiiMushTime,{ arg outbus=0, bufnum, rate=1.0, startloop=0, endloop=1000, amp=1.0; 
+		SynthDef.writeOnce(\xiiMushTime,{ arg outbus=0, bufnum, rate=1.0, startloop=0, endloop=1000, amp=1.0; 
 			var signal;	
 			signal = LoopBuf.ar(1, bufnum, rate, 1, startloop, startloop, endLoop:endloop) * amp;
 			Out.ar(outbus, signal!2);
-		}).load(s);
+		});
 
-		SynthDef(\xiiMushFFT, {arg outbus=0, thresh, bufnum, fftbuf, trackbuf,rate=1.0, amp=1, 
+		SynthDef.writeOnce(\xiiMushFFT, {arg outbus=0, thresh, bufnum, fftbuf, trackbuf,rate=1.0, amp=1, 
 								startloop=0, endloop=1000;
 			var sig, onsets, pips, am;
 			sig = LoopBuf.ar(1, bufnum, rate, 1, startloop, startloop, endLoop:endloop);
@@ -412,14 +412,39 @@ XiiLoadSynthDefs {
 			6.do{ am = max(am, Delay1.kr(am))}; // get the max power over the last 6 control periods
 			SendTrig.kr(onsets, 840, am);
 			Out.ar(outbus, ((sig * amp)).dup);
-		}).load(s);
+		});
 		
 		// the default code synth of the  mushrooms
-		SynthDef(\xiiMushroom, {arg outbus=0, freq=440, pan=0, amp=1;
+		SynthDef.writeOnce(\xiiMushroom, {arg outbus=0, freq=440, pan=0, amp=1;
 			var env, sine;
 			env = EnvGen.ar(Env.perc, doneAction:2);
 			sine = SinOsc.ar(freq, 0, env*amp);
 			Out.ar(outbus, Pan2.ar(sine, pan));
-		}).load(s);
+		});
+		
+		SynthDef.writeOnce(\xiiLoopBufXSndFileView1x1, { arg out=0, bufnum=0, start=0, end= -1, vol = 1;
+			var z;
+			z = Pan2.ar(LoopBuf.ar(1, bufnum, 1, 1, start, start, end), 0.0) * vol;
+			Out.ar(out, z);
+		});
+		
+		SynthDef.writeOnce(\xiiLoopBufXSndFileView2x2, { arg out=0, bufnum=0, start=0, end= -1, vol = 1;
+			var z;
+			z = LoopBuf.ar(2, bufnum, 1, 1, start, start, end) * vol;
+			Out.ar(out, z);
+		});
+
+		SynthDef.writeOnce(\xiiPlayBufXSndFileView1x1, { arg out=0, bufnum=0, start=0, end= -1, vol = 1;
+			var z;
+			z = Pan2.ar(PlayBuf.ar(1, bufnum, 1, 1, start, start, end), 0.0) * vol;
+			Out.ar(out, z);
+		});
+		
+		SynthDef.writeOnce(\xiiPlayBufXSndFileView2x2, { arg out=0, bufnum=0, start=0, end= -1, vol = 1;
+			var z;
+			z = PlayBuf.ar(2, bufnum, 1, 1, start, start, end) * vol;
+			Out.ar(out, z)
+		});
+
 	}
 }	

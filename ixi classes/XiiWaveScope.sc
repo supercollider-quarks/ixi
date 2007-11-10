@@ -17,7 +17,6 @@ XiiWaveScope {
 			XiiAlert("The WaveScope works only on the internal server!");
 		},{
 			name = "wavescope";
-			
 			point = if(setting.isNil, {XiiWindowLocation.new(name)}, {setting[1]});
 			win = SCWindow.new(name, Rect(point.x, point.y, 400, 328));
 			win.view.decorator = FlowLayout(Rect(6, 0, 400, 328));
@@ -141,8 +140,8 @@ XiiWaveScope {
 		win.onClose_({ 
 			var t;
 			CmdPeriod.remove(cmdPeriodFunc);
-			~globalWidgetList.do({arg widget, i; if(widget === this, {t = i})});
-			try{~globalWidgetList.removeAt(t)};
+			XQ.globalWidgetList.do({arg widget, i; if(widget === this, {t = i})});
+			try{XQ.globalWidgetList.removeAt(t)};
 			this.free;		
  		});
 	}

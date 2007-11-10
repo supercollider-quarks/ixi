@@ -5,15 +5,15 @@ XiiBufferPlayer {
 	
 	var selbPool, poolName, ldSndsGBufferList;
 	
-	*new {arg server, ch, setting = nil, tracks=8;
-		^super.new.initXiiBufferPlayer(server, ch, setting, tracks);
+	*new {arg server, ch, setting = nil;
+		^super.new.initXiiBufferPlayer(server, ch, setting);
 	}
 
-	initXiiBufferPlayer {arg server, chnls, setting, tracks;
+	initXiiBufferPlayer {arg server, chnls, setting;
 
 var outmeterl, outmeterr, responder, bufsec, session, quitButt;
 var sndfiles;
-var channels; // = 8; // 8 or 16 is IDEAL !
+var tracks; // = 8; // 8 or 16 is IDEAL !
 var trigID;
 var sliderList;
 var bufferList, synthList, stMonoList, argList, globalList;
@@ -26,16 +26,16 @@ var sfdropDownList, globalVolSlider, tracksButt;
 var s, p, point;
 var idNum, drawRadioButt, createResponder;
 
-if(classIDNum.isNil, {classIDNum = 50});
+if(classIDNum.isNil, {classIDNum = 50}); // sendtrig id starts with 50
 idNum = classIDNum;
 
-channels = tracks;
+tracks = XQ.pref.bufferPlayerTracks; //tracks;
 s = server;
 sliderList = List.new;
-synthList = Array.fill(channels, nil);
+synthList = Array.fill(tracks, nil);
 stMonoList = List.new;
 argList = List.new;
-globalList = Array.fill(channels, 0);
+globalList = Array.fill(tracks, 0);
 volSlList = List.new;
 panSlList = List.new;
 pitchSlList = List.new;
@@ -58,13 +58,9 @@ xiigui = nil;
 point = if(setting.isNil, {Point(260, 600)}, {setting[1]});
 params = if(setting.isNil, {[1, 0, 0, 1]}, {setting[2]});
 
-if(channels <= 8, {
-	windowSize = Rect(point.x, point.y, 1015, 270);
-	}, {
-	windowSize = Rect(point.x, point.y, 1015, 540);
-	});
+windowSize = Rect(point.x, point.y, 1015, (tracks/8).round(1)*270);
 
-win = SCWindow.new("multibuffer player", windowSize, resizable:false).front;
+win = SCWindow.new("multibuffer player", windowSize, resizable:false);
 win.drawHook = {
 	Color.new255(255, 100, 0).set;
 	Pen.width = 3;
@@ -76,11 +72,10 @@ win.drawHook = {
 	});
 	Pen.stroke
 };
-win.refresh;
 
 selbPool = SCPopUpMenu(win, Rect(15, 5, 90, 16))
 	.font_(Font("Helvetica", 9))
-	.items_(if(~globalBufferDict.keys.asArray == [], {["no pool"]}, {~globalBufferDict.keys.asArray.sort}))
+	.items_(if(XQ.globalBufferDict.keys.asArray == [], {["no pool"]}, {XQ.globalBufferDict.keys.asArray.sort}))
 	.value_(0)
 	.background_(Color.white)
 	.action_({ arg item; var outbus;
@@ -152,9 +147,9 @@ SCStaticText(win, Rect(5, 100, 105, 160))
 			
 ldSndsGBufferList = {arg argPoolName;
 	poolName = argPoolName.asSymbol;
-	if( try{ ~globalBufferDict.at(poolName)[0] } != nil, {
-		sndfiles = Array.fill(~globalBufferDict.at(poolName)[0].size, { arg i;
-					~globalBufferDict.at(poolName)[0][i].path.basename});
+	if( try{ XQ.globalBufferDict.at(poolName)[0] } != nil, {
+		sndfiles = Array.fill(XQ.globalBufferDict.at(poolName)[0].size, { arg i;
+					XQ.globalBufferDict.at(poolName)[0][i].path.basename});
 	}, {
 		sndfiles = [];
 	});
@@ -162,13 +157,13 @@ ldSndsGBufferList = {arg argPoolName;
 
 ldSndsGBufferList.value(selbPool.items[0].asSymbol);
 
-channels.do({ arg i; 
+tracks.do({ arg i; 
 	var trigID, ch, sf, glButt, startPos, endPos;
 
 	trigID = idNum + (i * 2);
 	argList.add([0,0,1,0,0]); // volume - pan - pitch - onOff - outbus 
 
-	if(i == 8, {lowRow=270; virIndex= -8});
+	if((i>0)and:{(i%8)==0}, {lowRow=lowRow+270; virIndex= virIndex-8});
 
 	sliderList.add( // the left volume signal
 		outmeterl = SCRangeSlider(win, Rect(120+(virIndex+i*rowspace), 5+lowRow, 20, 100));
@@ -211,7 +206,7 @@ channels.do({ arg i;
 			});
 	
 startButtList.add(SCButton(win,Rect(177+(virIndex+i*rowspace), 110+lowRow, 41, 18))
-					.states_([	["start",Color.black, Color.clear],
+					.states_([	["play",Color.black, Color.clear],
 								["stop",Color.black, Color.new255(155, 205, 155)]])
 					.font_(Font("Helvetica", 9))
 					.action_({ arg butt; var startPos, endPos;
@@ -219,12 +214,12 @@ startButtList.add(SCButton(win,Rect(177+(virIndex+i*rowspace), 110+lowRow, 41, 1
 					if(butt.value == 1, {
 					
 		trigID = idNum + (i * 2);
-		startPos = ~globalBufferDict.at(poolName)[1][sfdropDownList[i].value][0];
-		endPos = startPos + ~globalBufferDict.at(poolName)[1][sfdropDownList[i].value][1];
+		startPos = XQ.globalBufferDict.at(poolName)[1][sfdropDownList[i].value][0];
+		endPos = startPos + XQ.globalBufferDict.at(poolName)[1][sfdropDownList[i].value][1];
 		synthList[i] = 
-			if(~globalBufferDict.at(poolName)[0][sfdropDownList[i].value].numChannels == 2, {
+			if(XQ.globalBufferDict.at(poolName)[0][sfdropDownList[i].value].numChannels == 2, {
 				Synth.new(\xiiBufPlayerSTEREO, 
-					[ \bufnum, ~globalBufferDict.at(poolName)[0][sfdropDownList[i].value].bufnum, 
+					[ \bufnum, XQ.globalBufferDict.at(poolName)[0][sfdropDownList[i].value].bufnum, 
 					  \trigID, trigID, // the bus for the gui update
 					  \out, argList[i][4],
 					  \vol, argList[i][0], 
@@ -238,7 +233,7 @@ startButtList.add(SCButton(win,Rect(177+(virIndex+i*rowspace), 110+lowRow, 41, 1
 			}, {
 
 				Synth.new(\xiiBufPlayerMONO, 
-					[ \bufnum, ~globalBufferDict.at(poolName)[0][sfdropDownList[i].value].bufnum, 
+					[ \bufnum, XQ.globalBufferDict.at(poolName)[0][sfdropDownList[i].value].bufnum, 
 					  \trigID, trigID, // the bus for the gui update
 					  \out, argList[i][4],
 					  \vol, argList[i][0], 
@@ -265,12 +260,12 @@ sfdropDownList.add(SCPopUpMenu(win,Rect(120+(virIndex+i*rowspace), 135+lowRow , 
 	.background_(Color.white)
 	.action_({ arg sf; var startPos, endPos; 
 		stMonoList.at(i).string_(
-			if(~globalBufferDict.at(poolName)[0].at(sf.value).numChannels == 2, 
+			if(XQ.globalBufferDict.at(poolName)[0].at(sf.value).numChannels == 2, 
 				{"stereo"}, {"mono"})
 		);		
-		synthList.at(i).set(\bufnum, ~globalBufferDict.at(poolName)[0][sf.value].bufnum);
-		startPos = ~globalBufferDict.at(poolName)[1][sf.value][0];
-		endPos = startPos + ~globalBufferDict.at(poolName)[1][sf.value][1];
+		synthList.at(i).set(\bufnum, XQ.globalBufferDict.at(poolName)[0][sf.value].bufnum);
+		startPos = XQ.globalBufferDict.at(poolName)[1][sf.value][0];
+		endPos = startPos + XQ.globalBufferDict.at(poolName)[1][sf.value][1];
 	});
 );
 
@@ -280,7 +275,7 @@ volSlList.add(OSCIISlider.new(win,
 			.action_({arg sl; var globalActiveCounter = 0, volAll = 0;
 				if(synthList[i] !=nil, { synthList[i].set(\vol, sl.value) });
 				argList[i][0] = sl.value;
-				channels.do({arg i;
+				tracks.do({arg i;
 					if(globalList[i] == 1, {
 						globalActiveCounter = globalActiveCounter + 1;
 						volAll = volAll + argList[i][0];
@@ -306,9 +301,9 @@ pitchSlList.add(OSCIISlider.new(win,
 			})
 		);
 	
-	if(try {~globalBufferDict.at(poolName)[0]} != nil, {
+	if(try {XQ.globalBufferDict.at(poolName)[0]} != nil, {
 		{stMonoList.wrapAt(i).string_(
-		if(~globalBufferDict.at(poolName)[0].wrapAt(i).numChannels == 2, {"stereo"}, {"mono"}))
+		if(XQ.globalBufferDict.at(poolName)[0].wrapAt(i).numChannels == 2, {"stereo"}, {"mono"}))
 		}.defer;
 	});
 }); // end of channel loop
@@ -316,21 +311,21 @@ pitchSlList.add(OSCIISlider.new(win,
 		reLoadSndsGBufferList = {arg arggBufferPoolName;
 			
 			poolName = arggBufferPoolName;
-			sndfiles = Array.fill(~globalBufferDict.at(poolName)[0].size, { arg i;
-						~globalBufferDict.at(poolName)[0][i].path.basename});
+			sndfiles = Array.fill(XQ.globalBufferDict.at(poolName)[0].size, { arg i;
+						XQ.globalBufferDict.at(poolName)[0][i].path.basename});
 			
-			if(try {~globalBufferDict.at(poolName)[0]} != nil, {
-				channels.do({arg i; var startPos, endPos;
+			if(try {XQ.globalBufferDict.at(poolName)[0]} != nil, {
+				tracks.do({arg i; var startPos, endPos;
 					sfdropDownList[i].items = sndfiles;
 					sfdropDownList[i].value_(i);
 					{stMonoList.at(i).string_(
-						if(~globalBufferDict.at(poolName)[0].wrapAt(i).numChannels == 2, 
+						if(XQ.globalBufferDict.at(poolName)[0].wrapAt(i).numChannels == 2, 
 							{"stereo"}, {"mono"})
 						)
 					}.defer;
 					if(synthList[i] !=nil, { 
 						synthList[i].set(\bufnum, 
-							~globalBufferDict.at(poolName)[0].wrapAt(i).bufnum);
+							XQ.globalBufferDict.at(poolName)[0].wrapAt(i).bufnum);
 					});
 				});
 			});
@@ -351,7 +346,7 @@ pitchSlList.add(OSCIISlider.new(win,
 			responder = OSCresponderNode(s.addr, '/tr', { arg time, responder, msg;
 				{ 
 				win.isClosed.not.if({ // if window is not closed, update GUI...
-					if((msg[2]-idNum >= 0) && (msg[2] <= (idNum+40)), {
+					if((msg[2]-idNum >= 0) && (msg[2] <= (idNum+(tracks*2))), {
 						sliderList.at(msg[2]-idNum).hi_(1-(msg[3].ampdb.abs * 0.01)) 
 					});
 				});
@@ -360,22 +355,23 @@ pitchSlList.add(OSCIISlider.new(win,
 		};
 		createResponder.value;
 
+		win.front;
 		win.onClose_({ 
 			var t;
 			responder.remove;
 			synthList.size.do({arg i; synthList[i].free;});
 			bufferList = nil;
-			~globalWidgetList.do({arg widget, i; if(widget === this, {t = i})});
-			try{~globalWidgetList.removeAt(t)};
+			XQ.globalWidgetList.do({arg widget, i; if(widget === this, {t = i})});
+			try{XQ.globalWidgetList.removeAt(t)};
 		
 		});
-		classIDNum = classIDNum + 50; // increase the classvar in case the user opens another bp
+		classIDNum = classIDNum + (tracks*2) + 2; // increase the classvar in case the user opens another bp
 	} // end of initXiiBufferPlayer
 
 	updatePoolMenu {
 		var pool, poolindex;
 		pool = selbPool.items.at(selbPool.value);
-		selbPool.items_(~globalBufferDict.keys.asArray);
+		selbPool.items_(XQ.globalBufferDict.keys.asArray);
 		poolindex = selbPool.items.indexOf(pool);        
 		if(poolindex != nil, {
 			selbPool.value_(poolindex);

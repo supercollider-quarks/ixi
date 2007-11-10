@@ -34,7 +34,7 @@ XiiEQMeter {
 		inbus = params[0]*2;
 		cutfreqs = [20, 25, 32.5, 44, 54, 65, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000, 20000];
 		
-		win = SCWindow(name, Rect(point.x, point.y, 520, 243), resizable:false).front;
+		win = SCWindow(name, Rect(point.x, point.y, 520, 243), resizable:false);
 		multislider = SCMultiSliderView(win, Rect(10, 5, 496, 200))
 						.value_(0.dup(size))
 						.size_(size)
@@ -200,14 +200,15 @@ XiiEQMeter {
 		cmdPeriodFunc = { onOffButt.valueAction_(0)};
 		CmdPeriod.add(cmdPeriodFunc);
 
+		win.front;
 		win.onClose_({
 			var t;
 			this.stop;
 			b.free;
 			c.free;
 			CmdPeriod.remove(cmdPeriodFunc);
-			~globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
-			try{~globalWidgetList.removeAt(t)};
+			XQ.globalWidgetList.do({arg widget, i; if(widget === this, { t = i})});
+			try{XQ.globalWidgetList.removeAt(t)};
 			// write window position to archive.sctxar
 			point = Point(win.bounds.left, win.bounds.top);
 			XiiWindowLocation.storeLoc(name, point);

@@ -47,7 +47,7 @@ XiiBandpass {
 		Ê Ê["Freq", "RQ", "Fx level", "Dry Level"], 
 		Ê Ê[ \freq, \rq, \fxlevel, \level], 
 		Ê Ê[freqSpec, rqSpec, \amp, \amp], 
-		Ê Êif(setting.isNil.not, {setting[5]}, {[2000, 0.5, 1, 0]})
+		Ê Êif(setting.notNil, {setting[5]}, {[2000, 0.5, 1, 0]})
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
@@ -101,7 +101,7 @@ XiiLowpass {
 		Ê Ê["Freq", "Fx level", "Dry Level"], 
 		Ê Ê[ \freq, \fxlevel, \level], 
 		Ê Ê[freqSpec, \amp, \amp], 
-		Ê Êif(setting.isNil.not, {setting[5]}, {[2000, 1, 0]})
+		Ê Êif(setting.notNil, {setting[5]}, {[2000, 1, 0]})
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
@@ -155,7 +155,7 @@ XiiHighpass {
 		Ê Ê["Freq", "Fx level", "Dry Level"], 
 		Ê Ê[ \freq, \fxlevel, \level], 
 		Ê Ê[freqSpec, \amp, \amp], 
-		Ê Êif(setting.isNil.not, {setting[5]}, {[2000, 1, 0]})
+		Ê Êif(setting.notNil, {setting[5]}, {[2000, 1, 0]})
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
@@ -215,7 +215,7 @@ XiiRLowpass {
 		Ê Ê["Freq", "RQ", "Fx level", "Dry Level"], 
 		Ê Ê[ \freq, \rq, \fxlevel, \level], 
 		Ê Ê[freqSpec, rqSpec, \amp, \amp], 
-		Ê Êif(setting.isNil.not, {setting[5]}, {[2000, 0.5, 1, 0]})
+		Ê Êif(setting.notNil, {setting[5]}, {[2000, 0.5, 1, 0]})
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
@@ -275,7 +275,7 @@ XiiRHighpass {
 		Ê Ê["Freq", "RQ", "Fx level", "Dry Level"], 
 		Ê Ê[ \freq, \rq, \fxlevel, \level], 
 		Ê Ê[freqSpec, rqSpec, \amp, \amp], 
-		Ê Êif(setting.isNil.not, {setting[5]}, {[2000, 0.5, 1, 0]})
+		Ê Êif(setting.notNil, {setting[5]}, {[2000, 0.5, 1, 0]})
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
@@ -335,7 +335,7 @@ XiiResonant {
 		Ê Ê["Freq", "RQ", "Fx level", "Dry Level"], 
 		Ê Ê[ \freq, \rq, \fxlevel, \level], 
 		Ê Ê[freqSpec, rqSpec, \amp, \amp], 
-		Ê Êif(setting.isNil.not, {setting[5]}, {[2000, 0.5, 1, 0]})
+		Ê Êif(setting.notNil, {setting[5]}, {[2000, 0.5, 1, 0]})
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
@@ -407,7 +407,7 @@ XiiKlanks {
 			\freq4, \amp4, \ring4, \fxlevel, \level], 
 		Ê Ê[gainSpec, freqSpec, \amp, ringSpec, freqSpec, \amp, ringSpec, 
 			freqSpec, \amp, ringSpec, freqSpec, \amp, ringSpec, \amp, \amp], 
-		Ê Êif(setting.isNil.not, {setting[5]}, 
+		Ê Êif(setting.notNil, {setting[5]}, 
 				{[0.004, 400, 1.0, 1.0, 600, 0.8, 0.9, 800, 0.7, 1.0, 1000, 0.8, 0.6, 0.4, 0]})
 		]; 
 		

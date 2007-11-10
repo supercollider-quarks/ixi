@@ -1,12 +1,12 @@
 /*
 
-~globalBufferList[0][0][0] // here one gets the first buffer
-~globalBufferList[0][1][0] // and here the selection for that
+XQ.globalBufferList[0][0][0] // here one gets the first buffer
+XQ.globalBufferList[0][1][0] // and here the selection for that
 
 		a = Synth(\playBufXSndFileView2x2, 
 					[\bufnum, 0, 
-					\start, ~globalBufferList[0][1][0][0], 
-					\end, (~globalBufferList[0][1][0][0]+~globalBufferList[0][1][0][1]), 
+					\start, XQ.globalBufferList[0][1][0][0], 
+					\end, (XQ.globalBufferList[0][1][0][0]+XQ.globalBufferList[0][1][0][1]), 
 					\loop, 1]);
 
 */
@@ -21,6 +21,7 @@ XiiSoundFileView {
 	var synthRunFlag, timeCursorTask, resetclock; //, stopclock;
 	var bufferPoolNum, vol;
 	var start, end, seltime, logo;
+	var numFramesView, selStartView, selEndView;
 	
 	*new { arg path, bufnum, num=0, name, selArray;
 		^super.new.initXiiSoundFileView(path, bufnum, num, name, selArray);
@@ -34,25 +35,13 @@ Point(53,43), Point(53,12), Point(44,22), Point(53,33), Point(53,43), Point(42,4
 Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 ];
 
-		SynthDef(\playBufXSndFileView1x1, { arg out=0, bufnum=0, start=0, end= -1, loop=0, vol = 1;
-			var z;
-			z = Pan2.ar(LoopBuf.ar(1, bufnum, 1, 1, start, end, loop), 0.0) * vol;
-			DetectSilence.ar(z, doneAction:2);
-			Out.ar(out, z);
-		}).load(Server.default);
-		
-		SynthDef(\playBufXSndFileView2x2, { arg out=0, bufnum=0, start=0, end= -1, loop=0, vol = 1;
-			var z;
-			z = LoopBuf.ar(2, bufnum, 1, 1, start, end, loop) * vol;
-			DetectSilence.ar(z, doneAction:2);
-			Out.ar(out, z)
-		}).load(Server.default);
 		
 		//bufferPoolNum = bPoolNum;
 
 		window = SCWindow.new(path.basename+"  -  bufferPool: "+name, 
-							Rect(200, 600, 800, 232), 
+							Rect(200, 600, 800, 238), 
 							resizable:false).front;	
+
 		window.drawHook = {
 			Color.new255(255, 100, 0).set;
 			Pen.width = 3;
@@ -67,7 +56,7 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 
 		bgColor = Color.new255(155, 205, 155);
 		foreColor = Color.new255(103, 148, 103);
-		loop = 0;
+		loop = false;
 		synthRunFlag = false;
 		fileNumInPool = numInPool;
 		
@@ -95,6 +84,18 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 			.setSelectionColor(0, Color.new255(105, 185, 125))
 			.setSelectionStart(0, selArray[0])		
 			.setSelectionSize(0, selArray[1]) // size in frames
+			.mouseDownAction_({arg view;
+				var selectionArray;
+				selectionArray = view.selections[view.currentSelection];
+				selStartView.string_("selStart : " + selectionArray[0]);
+				selEndView.string_("selEnd : " + (selectionArray[0]+selectionArray[1]));
+			})
+			.mouseMoveAction_({arg view;
+				var selectionArray;
+				selectionArray = view.selections[view.currentSelection];
+				selStartView.string_("selStart : " + selectionArray[0]);
+				selEndView.string_("selEnd : " + (selectionArray[0]+selectionArray[1]));
+			})
 			.mouseUpAction_({
 				if(synthRunFlag == true, { // IT'S LOOPING
 					start = sndfileview.selections[0][0]; // the start
@@ -106,15 +107,25 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 					}, { 
 						seltime = sndfileview.selections[0][1]/44100;
 					});
-
 					synth.free;
-					if(chNum == 1, {
-						synth = Synth(\playBufXSndFileView1x1, 
-									[\bufnum, bufnum, \start, start, \end, end, \loop, loop]);
+					if(loop == false, {
+						if(chNum == 1, {
+							synth = Synth(\xiiPlayBufXSndFileView1x1, 
+										[\bufnum, bufnum, \start, start, \end, end]);
+						}, {
+							synth = Synth(\xiiPlayBufXSndFileView2x2, 
+										[\bufnum, bufnum, \start, start, \end, end]);
+						});
 					}, {
-						synth = Synth(\playBufXSndFileView2x2, 
-									[\bufnum, bufnum, \start, start, \end, end, \loop, loop]);
+						if(chNum == 1, {
+							synth = Synth(\xiiLoopBufXSndFileView1x1, 
+										[\bufnum, bufnum, \start, start, \end, end]);
+						}, {
+							synth = Synth(\xiiLoopBufXSndFileView2x2, 
+										[\bufnum, bufnum, \start, start, \end, end]);
+						});
 					});
+					
 					this.startTimeCursor;
 				});
 			});
@@ -153,10 +164,25 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 				sndfileview.setSelectionStart(0, 0);
 				sndfileview.setSelectionSize(0, 0);
 				sndfileview.timeCursorPosition_(0);
-				//~globalBufferList[bufferPoolNum][1][fileNumInPool] = [0, soundfile.numFrames];
-				~globalBufferDict.at(name.asSymbol)[1][fileNumInPool] = [0, soundfile.numFrames];
+				selStartView.string_("selStart : "+ 0);
+				selEndView.string_("selEnd : "+ soundfile.numFrames);
+				
+				//XQ.globalBufferList[bufferPoolNum][1][fileNumInPool] = [0, soundfile.numFrames];
+				XQ.globalBufferDict.at(name.asSymbol)[1][fileNumInPool] = [0, soundfile.numFrames];
 			});
-					
+		
+		numFramesView = SCStaticText(window, Rect(523, 219, 80, 12))
+					.font_(Font("Helvetica", 9))
+					.string_("frames : "+ soundfile.numFrames );
+
+		selStartView = SCStaticText(window, Rect(610, 219, 80, 12))
+					.font_(Font("Helvetica", 9))
+					.string_("selStart : "+ selArray[0] );
+
+		selEndView = SCStaticText(window, Rect(690, 219, 80, 12))
+					.font_(Font("Helvetica", 9))
+					.string_("selEnd : "+ selArray[1] );
+
 		setSelButt = SCButton.new(window, Rect(595, 195, 80, 18))
 			.states_([["set selection",Color.black,Color.clear]])
 			.canFocus_(false)
@@ -168,17 +194,17 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 				if( start < 0, { start = 0 });
 				if( end > soundfile.numFrames, { end = soundfile.numFrames - 10 });
 
-				~globalBufferDict.at(name.asSymbol)[1][fileNumInPool] = [start, sndfileview.selections[0][1]];
+				XQ.globalBufferDict.at(name.asSymbol)[1][fileNumInPool] = [start, sndfileview.selections[0][1]];
 			});
-		
+							
 		loopButt = OSCIIRadioButton(window, Rect(686,197,14,14), "loop")
 			.font_(Font("Helvetica", 9))
 			.action_({arg val; 
-				if(val==1, { loop = 1 }, { loop = 0 });
+				if(val==1, { loop = true }, { loop = false });
 			});
 
 		playButt = SCButton.new(window, Rect(740, 195, 43, 18))
-			.states_([["play",Color.black,Color.clear], ["stop",Color.black,Color.clear]])
+			.states_([["play",Color.black,Color.clear], ["stop",Color.black, XiiColors.onbutton]])
 			.font_(Font("Helvetica", 9))
 			.action_({arg butt;
 				start = sndfileview.selections[0][0]; // the start
@@ -191,12 +217,22 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 				});
  				if(butt.value == 1, {
  					synthRunFlag = true;
-					if(chNum == 1, {
-						synth = Synth(\playBufXSndFileView1x1, 
-						[\bufnum, bufnum, \start, start, \end, end, \loop, loop, \vol, vol]);
+					if(loop == false, {
+						if(chNum == 1, {
+							synth = Synth(\xiiPlayBufXSndFileView1x1, 
+										[\bufnum, bufnum, \start, start, \end, end]);
+						}, {
+							synth = Synth(\xiiPlayBufXSndFileView2x2, 
+										[\bufnum, bufnum, \start, start, \end, end]);
+						});
 					}, {
-						synth = Synth(\playBufXSndFileView2x2, 
-						[\bufnum, bufnum, \start, start, \end, end, \loop, loop, \vol, vol]);
+						if(chNum == 1, {
+							synth = Synth(\xiiLoopBufXSndFileView1x1, 
+										[\bufnum, bufnum, \start, start, \end, end]);
+						}, {
+							synth = Synth(\xiiLoopBufXSndFileView2x2, 
+										[\bufnum, bufnum, \start, start, \end, end]);
+						});
 					});
 					this.startTimeCursor;
 				}, {					
@@ -223,7 +259,7 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 		
 		timeCursorTask = Task({ var pos;		
 			pos = 0;
-			if(loop == 0, { // not looping
+			if(loop == false, { // not looping
 				resetclock = SystemClock.sched(seltime, { 
 							{playButt.value_(0)}.defer; 
 							if(synthRunFlag, {synth.free}); 							synthRunFlag=false; 
@@ -248,8 +284,14 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 				});
 				
 				inf.do({
+					{
+					window.isClosed.not.if({ // if window is not closed, update...
+						sndfileview.timeCursorPosition_(start+pos)
+					})
+					}.defer;
+
 					pos = pos + 4410;
-					{sndfileview.timeCursorPosition_(start+pos)}.defer;
+					//{sndfileview.timeCursorPosition_(start+pos)}.defer;
 					0.1.wait;
 				});
 			})
