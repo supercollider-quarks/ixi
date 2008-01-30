@@ -585,12 +585,12 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 			win = SCWindow("audiostream inbus", Rect(200, 450, 250, 100), resizable:false).front;
 			win.alwaysOnTop = true;
 			
-			SCStaticText(win, Rect(20, 15, 220, 16))
-				.font_(Font("Helvetica", 9))
-				.string_("NOTE: you might have to restart Polymachine"); 
-			SCStaticText(win, Rect(20, 30, 220, 16))
-				.font_(Font("Helvetica", 9))
-				.string_("in order to receive stream from a bus"); 
+//			SCStaticText(win, Rect(20, 15, 220, 16))
+//				.font_(Font("Helvetica", 9))
+//				.string_("NOTE: you might have to restart Polymachine"); 
+//			SCStaticText(win, Rect(20, 30, 220, 16))
+//				.font_(Font("Helvetica", 9))
+//				.string_("in order to receive stream from a bus"); 
 				
 			SCStaticText(win, Rect(20, 55, 20, 16))
 				.font_(Font("Helvetica", 9)).string_("in"); 

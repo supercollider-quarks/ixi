@@ -1,3 +1,5 @@
+// XiiQuarks dependencies:
+// - midiname (wslib)
 
 // IMPORTANT IN THIS CLASS:
 // XQ.globalWidgetList
@@ -43,10 +45,18 @@
 // optimization of code
 // got rid of all environmental variables and store envir vars in the XQ class
 // soundfilefolder created on default if it doesn't exist
+// new filter: Moog VCF
+
+// NEW IN VERSION 5:
+// new instrument: Sounddrops
+// new tool: Theory (scales and chords)
+
+
 
 // TODO: make Spectral plugins
 // TODO: Test the Warp1MC Ugens that take and output multichannel (see mail sept 10, 2007)
-
+// TODO: Make interface to bufferPool so that one can put it into a var like b and live-code
+// TODO: Make a mixer channel gui
 
 /*
 a = XQ.globalWidgetList[0].xiigui.getState
@@ -78,7 +88,7 @@ XiiQuarks {
 		settingRegister = XiiSettings.new; // activate the settings registry
 
 		GUI.cocoa;
-		Server.default = Server.local; // EXPERIMENTAL !!!!
+		//Server.default = Server.local; // EXPERIMENTAL !!!!
 		
 		XQ.new; // A class containing all the settings and environment maintenance
 		
@@ -98,7 +108,7 @@ XiiQuarks {
 
 		XiiLoadSynthDefs.new(Server.default);
 	
-		name = "quarks";
+		name = " ixi quarks";
 		point = XiiWindowLocation.new(name);
 		
 		win = SCWindow(name, Rect(point.x, point.y, 275, 212), resizable:false).front;
@@ -109,9 +119,9 @@ XiiQuarks {
 		quarks = [ 
 			["AudioIn", "Recorder", "Player", "BufferPool", "PoolManager", 
 			"FreqScope", "WaveScope", "EQMeter", "MixerNode", 
-			"ChannelSplitter", "Amplifier", "TrigRecorder"],
+			"ChannelSplitter", "Amplifier", "TrigRecorder", "Theory"],
 	
-			["SoundScratcher", "StratoSampler", "Mushrooms", "Predators", 
+			["SoundScratcher", "StratoSampler", "Sounddrops", "Mushrooms", "Predators", 
 			"Gridder", "PolyMachine", "GrainBox", "BufferPlayer", "ScaleSynth"], 
 			
 			["Delay", "Freeverb", "AdCVerb", "Distortion", "ixiReverb", "Chorus",
@@ -119,7 +129,7 @@ XiiQuarks {
 			"MRRoque", "MultiDelay"],
 			
 			["Bandpass", "Lowpass", "Highpass", "RLowpass", "RHighpass", 
-			"Resonant", "Klanks"],
+			"Resonant", "Klanks", "MoogVCF", "MoogVCFFF"],
 			
 			["SpectralEQ", "MagClip", "MagSmear", "MagShift", "MagFreeze", 
 			"RectComb", "BinScramble", "BinShift"],
@@ -157,7 +167,7 @@ XiiQuarks {
 		storedSettingsPop = SCPopUpMenu(win, Rect(10, 116, 78, 16)) // 550
 			.font_(Font("Helvetica", 9))
 			.canFocus_(false)
-			.items_(settingRegister.getSettingsList)
+			.items_(settingRegister.getSettingsList.sort)
 			.background_(Color.white);
 
 		loadSettingButt = SCButton(win, Rect(95, 116, 35, 17))

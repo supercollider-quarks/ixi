@@ -61,7 +61,7 @@ XiiChannelSplitter {
 		SCStaticText(win, Rect(10, 9, 40, 16)).string_("in");
 		SCPopUpMenu(win,Rect(35, 10, 50, 16))
 			.items_(if(channels==1, {monoChList},{stereoChList}))
-			.value_(0)
+			.value_(inbus)
 			.background_(Color.white)
 			.font_(Font("Helvetica", 9))
 			.canFocus_(false)
@@ -74,7 +74,7 @@ XiiChannelSplitter {
 		SCStaticText(win, Rect(10, 34, 40, 16)).string_("out");
 		SCPopUpMenu(win,Rect(35, 35, 50, 16))
 			.items_(if(channels==1, {monoChList}, {stereoChList}))
-			.value_(0)
+			.value_(outbus)
 			.background_(Color.white)
 			.font_(Font("Helvetica", 9))
 			.canFocus_(false)
@@ -84,7 +84,7 @@ XiiChannelSplitter {
 			});
 			
 		// panning sliders
-		OSCIISlider.new(win, Rect(100, 10, 100, 10), "- amp", 0, 1, 1, 0.01)
+		OSCIISlider.new(win, Rect(100, 10, 100, 10), "- amp", 0, 1, params[2], 0.01)
 			.action_({arg sl; synth.set(\amp, sl.value)});
 
 		SCPopUpMenu(win, Rect(100, 40, 66, 16)) 

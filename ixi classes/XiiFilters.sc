@@ -14,7 +14,7 @@ XiiBandpass {
 		// mono
 		SynthDef(\xiiBPF1x1, {arg inbus=0,
 							outbus=0, 
-							freq=200, // hardcoded here
+							freq=200,
 							rq=0.4, 
 							fxlevel = 0.7, 
 							level=1.0;
@@ -28,7 +28,7 @@ XiiBandpass {
 		// stereo
 		SynthDef(\xiiBPF2x2, {arg inbus=0,
 							outbus=0, 
-							freq=200, // hardcoded here
+							freq=200,
 							rq=0.4, 
 							fxlevel = 0.7, 
 							level=1.0;
@@ -72,7 +72,7 @@ XiiLowpass {
 		// mono
 		SynthDef(\xiiLPF1x1, {arg inbus=0,
 							outbus=0, 
-							freq=200, // hardcoded here
+							freq=200, 
 							fxlevel = 0.7, 
 							level=1.0;
 							
@@ -85,7 +85,7 @@ XiiLowpass {
 		// stereo
 		SynthDef(\xiiLPF2x2, {arg inbus=0,
 							outbus=0, 
-							freq=200, // hardcoded here
+							freq=200,
 							fxlevel = 0.7, 
 							level=1.0;
 							
@@ -126,7 +126,7 @@ XiiHighpass {
 		// mono
 		SynthDef(\xiiHPF1x1, {arg inbus=0,
 							outbus=0, 
-							freq=200, // hardcoded here
+							freq=200,
 							fxlevel = 0.7, 
 							level=1.0;
 							
@@ -139,7 +139,7 @@ XiiHighpass {
 		// stereo
 		SynthDef(\xiiHPF2x2, {arg inbus=0,
 							outbus=0, 
-							freq=200, // hardcoded here
+							freq=200,
 							fxlevel = 0.7, 
 							level=1.0;
 							
@@ -183,7 +183,7 @@ XiiRLowpass {
 		// mono
 		SynthDef(\xiiRLPF1x1, {arg inbus=0,
 							outbus=0, 
-							freq=200, // hardcoded here
+							freq=200,
 							rq=0.4, 
 							fxlevel = 0.7, 
 							level=1.0;
@@ -197,7 +197,7 @@ XiiRLowpass {
 		// stereo
 		SynthDef(\xiiRLPF2x2, {arg inbus=0,
 							outbus=0, 
-							freq=200, // hardcoded here
+							freq=200,
 							rq=0.4, 
 							fxlevel = 0.7, 
 							level=1.0;
@@ -243,7 +243,7 @@ XiiRHighpass {
 		// mono
 		SynthDef(\xiiRHPF1x1, {arg inbus=0,
 							outbus=0, 
-							freq=200, // hardcoded here
+							freq=200,
 							rq=0.4, 
 							fxlevel = 0.7, 
 							level=1.0;
@@ -257,7 +257,7 @@ XiiRHighpass {
 		// stereo
 		SynthDef(\xiiRHPF2x2, {arg inbus=0,
 							outbus=0, 
-							freq=200, // hardcoded here
+							freq=200,
 							rq=0.4, 
 							fxlevel = 0.7, 
 							level=1.0;
@@ -303,7 +303,7 @@ XiiResonant {
 		// mono
 		SynthDef(\xiiResonant1x1, {arg inbus=0,
 							outbus=0, 
-							freq=200, // hardcoded here
+							freq=200,
 							rq=0.4, 
 							fxlevel = 0.7, 
 							level=1.0;
@@ -317,7 +317,7 @@ XiiResonant {
 		// stereo
 		SynthDef(\xiiResonant2x2, {arg inbus=0,
 							outbus=0, 
-							freq=200, // hardcoded here
+							freq=200,
 							rq=0.4, 
 							fxlevel = 0.7, 
 							level=1.0;
@@ -415,6 +415,205 @@ XiiKlanks {
 			XiiEffectGUI.new("Klank Filters 2x2", \xiiKlanks2x2, params, channels, this, setting);
 			}, {				// mono
 			XiiEffectGUI.new("Klank Filters 1x1", \xiiKlanks1x1, params, channels, this, setting);
+		})
+	}
+}
+
+
+
+
+XiiMoogVCFFF {	
+	var <>xiigui;
+	
+	*new { arg server, channels, setting = nil;
+		^super.new.initXiiResonant(server, channels, setting);
+		}
+		
+	initXiiResonant {arg server, channels, setting;
+
+		var freqSpec, gainSpec, params, s; 
+		
+		s = server ? Server.local;
+		
+		// mono
+		SynthDef(\xiiMoogVCFFF1x1, {arg inbus=0,
+							outbus=0, 
+							freq=200,
+							gain=1, 
+							fxlevel = 0.7, 
+							level=1.0;
+							
+		Ê Êvar fx, sig; 
+		Ê Êsig = InFeedback.ar(inbus,1); 
+		Ê Êfx = MoogFF.ar(sig, freq, gain); 
+		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
+		}).load(s); 	
+
+		// stereo
+		SynthDef(\xiiMoogVCFFF2x2, {arg inbus=0,
+							outbus=0, 
+							freq=200,
+							gain=1, 
+							fxlevel = 0.7, 
+							level=1.0;
+							
+		Ê Êvar fx, sig; 
+		Ê Êsig = InFeedback.ar(inbus, 2); 
+		Ê Êfx = MoogFF.ar(sig, freq, gain); 
+		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
+		}).load(s); 	
+
+		freqSpec = ControlSpec.new(20, 20000, \exponential, 1, 2000); 
+		gainSpec = ControlSpec.new(0.01, 4, \linear, 0.01, 1); 
+		
+		params = [ 
+		Ê Ê["Freq", "Gain", "Fx level", "Dry Level"], 
+		Ê Ê[ \freq, \gain, \fxlevel, \level], 
+		Ê Ê[freqSpec, gainSpec, \amp, \amp], 
+		Ê Êif(setting.notNil, {setting[5]}, {[2000, 1, 1, 0]})
+		]; 
+		
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("Moog VCF FF 2x2", \xiiMoogVCFFF2x2, params, channels, this, setting);
+			}, {				// mono
+			XiiEffectGUI.new("Moog VCF FF 1x1", \xiiMoogVCFFF1x1, params, channels, this, setting);
+		})
+	}
+}
+
+
+XiiMoogVCF {	
+	var <>xiigui;
+	
+	*new { arg server, channels, setting = nil;
+		^super.new.initXiiResonant(server, channels, setting);
+		}
+		
+	initXiiResonant {arg server, channels, setting;
+
+		var freqSpec, gainSpec, params, s; 
+		
+		s = server ? Server.local;
+		
+		// mono
+		SynthDef(\xiiMoogVCF1x1, {arg inbus=0,
+							outbus=0, 
+							freq=200,
+							gain=1, 
+							fxlevel = 0.7, 
+							level=1.0;
+							
+		Ê Êvar fx, sig; 
+		Ê Êsig = InFeedback.ar(inbus,1); 
+		Ê Êfx = MoogVCF.ar(sig, freq, gain); 
+		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
+		}).load(s); 	
+
+		// stereo
+		SynthDef(\xiiMoogVCF2x2, {arg inbus=0,
+							outbus=0, 
+							freq=200,
+							gain=1, 
+							fxlevel = 0.7, 
+							level=1.0;
+							
+		Ê Êvar fx, sig; 
+		Ê Êsig = InFeedback.ar(inbus, 2); 
+		Ê Êfx = MoogVCF.ar(sig, freq, gain); 
+		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
+		}).load(s); 	
+
+		freqSpec = ControlSpec.new(20, 20000, \exponential, 1, 2000); 
+		gainSpec = ControlSpec.new(0.01, 1, \linear, 0.01, 1); 
+		
+		params = [ 
+		Ê Ê["Freq", "Gain", "Fx level", "Dry Level"], 
+		Ê Ê[ \freq, \gain, \fxlevel, \level], 
+		Ê Ê[freqSpec, gainSpec, \amp, \amp], 
+		Ê Êif(setting.notNil, {setting[5]}, {[2000, 1, 1, 0]})
+		]; 
+		
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("Moog VCF 2x2", \xiiMoogVCF2x2, params, channels, this, setting);
+			}, {				// mono
+			XiiEffectGUI.new("Moog VCF 1x1", \xiiMoogVCF1x1, params, channels, this, setting);
+		})
+	}
+}
+
+
+//////////// crazy filters
+
+
+///////////////////// experimental - not working right now
+
+XiiResonzOsc {	
+	var <>xiigui;
+	
+	*new { arg server, channels, setting = nil;
+		^super.new.initXiiResonant(server, channels, setting);
+		}
+		
+	initXiiResonant {arg server, channels, setting;
+
+		var freqSpec, rqSpec, rq2Spec, params, s; 
+		
+		s = server ? Server.local;
+		
+		// mono
+		SynthDef(\xiiResonzOsc1x1, {arg inbus=0,
+							outbus=0, 
+							ffreq=200,
+							ffreq2=200,
+							rq=1,
+							rq2=2,
+							gain=1, 
+							fxlevel = 0.7, 
+							level=1.0;
+							
+		Ê Êvar fx, sig; 
+		Ê Êsig = InFeedback.ar(inbus,1); 
+		
+		fx = Resonz.ar(sig, ffreq, SinOsc.kr(rq).range(0.2, 0.8));
+		fx = Resonz.ar(fx, SinOsc.kr(ffreq2), SinOsc.ar(rq2).range(20,8000));
+
+		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
+		}).load(s); 	
+
+		// stereo
+		SynthDef(\xiiResonzOsc2x2, {arg inbus=0,
+							outbus=0, 
+							ffreq=200,
+							ffreq2=200,
+							rq=1,
+							rq2=2,
+							gain=1, 
+							fxlevel = 0.7, 
+							level=1.0;
+							
+		Ê Êvar fx, sig; 
+		Ê Êsig = InFeedback.ar(inbus,2); 
+		
+		fx = Resonz.ar(sig, ffreq, SinOsc.kr(rq).range(0.2, 0.8));
+		fx = Resonz.ar(fx, SinOsc.kr(ffreq2), SinOsc.ar(rq2).range(20,8000));
+		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
+		}).load(s); 	
+
+		freqSpec = ControlSpec.new(20, 20000, \exponential, 1, 2000); 
+		rqSpec = ControlSpec.new(20, 20000, \exponential, 1, 2000); 
+		rq2Spec = ControlSpec.new(1, 20, \exponential, 1, 1); 
+		
+		params = [ 
+		Ê Ê["Freq", "rQ", "FFreq", "rQ2", "Fx level", "Dry Level"], 
+		Ê Ê[ \freq, \rq, \ffreq, \rq2, \fxlevel, \level], 
+		Ê Ê[freqSpec, rqSpec, freqSpec, rq2Spec,\amp, \amp], 
+		Ê Êif(setting.notNil, {setting[5]}, {[2000, 2000, 2000, 2000, 1, 0]})
+		]; 
+		
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("ResonzOsc 2x2", \xiiResonzOsc2x2, params, channels, this, setting);
+			}, {				// mono
+			XiiEffectGUI.new("ResonzOsc 1x1", \xiiResonzOsc1x1, params, channels, this, setting);
 		})
 	}
 }

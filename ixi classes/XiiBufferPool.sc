@@ -304,24 +304,7 @@ XiiBufferPool {
 				1.wait;
 			});
 		});
-		
-		/*		
-		sendBufferPoolToWidgets = {
-			" - > sending pool buffers to all active quark instruments < -".postln;
-			XQ.globalWidgetList.do({arg widget;
-				{ // the various widgets that receive and use bufferpools
-				if(widget.isKindOf(XiiBufferPlayer), {widget.updatePoolMenu;});
-				if(widget.isKindOf(XiiGrainBox), {widget.updatePoolMenu;});
-				if(widget.isKindOf(XiiPredators), {widget.updatePoolMenu;});
-				if(widget.isKindOf(XiiPolyMachine), {widget.updatePoolMenu;});
-				if(widget.isKindOf(XiiGridder), {widget.updatePoolMenu;});
-				if(widget.isKindOf(XiiSoundScratcher), {widget.updatePoolMenu;});
-				if(widget.isKindOf(XiiMushrooms), {widget.updatePoolMenu;});
-				}.defer;
-			});
-		};
-		*/
-			
+
 		cmdPeriodFunc = { recButton.valueAction_(0);};
 		CmdPeriod.add(cmdPeriodFunc);
 
@@ -401,6 +384,7 @@ XiiBufferPool {
 			if(widget.isKindOf(XiiGridder), {widget.updatePoolMenu;});
 			if(widget.isKindOf(XiiSoundScratcher), {widget.updatePoolMenu;});
 			if(widget.isKindOf(XiiMushrooms), {widget.updatePoolMenu;});
+			if(widget.isKindOf(XiiSounddrops), {widget.updatePoolMenu;});
 			}.defer;
 		});
 	}

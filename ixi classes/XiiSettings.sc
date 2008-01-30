@@ -10,13 +10,9 @@ XiiSettings {
 		var file;
 		if(Object.readArchive("preferences/presets.ixi").isNil, {
 			settingsDict = IdentityDictionary.new;
+			"ixi-NOTE: NO WORRIES! 'presets.ixi' gets created when you store a preset".postln;
 		}, {
 			settingsDict = Object.readArchive("preferences/presets.ixi")
-			
-			// because readArchive is buggy I use File
-			//file = File("preferences/presets.ixi","r");
-			//settingsDict = file.readAllString.interpret;
-			//file.close;
 		});
 	}
 	
@@ -31,12 +27,8 @@ XiiSettings {
 				setting.add([widget.asString.replace("a ",\), widget.xiigui.getState]);
 			});
 		});
-		//Post << [\setting, setting];
 		settingsDict.add(settingName.asSymbol -> setting);
 		settingsDict.writeArchive("preferences/presets.ixi");
-		//file = File("preferences/presets.ixi","w");
-		//file.write(settingsDict.asCompileString);
-		//file.close;
 	}	
 	
 	getSetting { arg name;
@@ -54,17 +46,11 @@ XiiSettings {
 		"*********** LOAD PRESET ******************".postln;
 		this.clearixiQuarks; // turn all quarks off and empty the screen
 		setting = settingsDict.at(name.asSymbol);
-		//Post << [\setting, setting];
 		XQ.globalWidgetList = List.new;
 		setting.do({arg widget, i;
 			var channels, effectCodeString; 
-			// [\number, i].postln;
-			// Post << [\widget, widget];
 			channels = widget[1][0];
-			//effectCodeString = widget[0]++".new(Server.default,"++channels++","++widget[1]++")";
 			effectCodeString = widget[0]++".new(Server.default,"++channels++","++widget[1].asCompileString++")";
-			
-			// Post << [\effectCodeString, effectCodeString];
 			XQ.globalWidgetList.add( effectCodeString.interpret );
 		});
 	}

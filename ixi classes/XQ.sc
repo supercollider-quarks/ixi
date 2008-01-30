@@ -1,5 +1,4 @@
 
-
 // XQ is the storage for all environmental variables for ixiQuarks
 // it used to be kept in envir vars (~) but because of ProxySpace I put it in a storage class
 
@@ -30,12 +29,12 @@ XQ {
 		soundsfolderpath = String.scDir++"/sounds/ixiquarks";
 		if(soundsfolderpath.pathMatch==[], {
 			("mkdir -p" + soundsfolderpath.quote).unixCmd;
-			"ixiNOTE: an ixiquarks soundfolder was not found,it was created in sounds".postln;
+			"ixi-NOTE: an ixiquarks soundfolder was not found, it was created in sounds".postln;
 		});
 		preferencesfolderpath = String.scDir++"/preferences";
 		if(preferencesfolderpath.pathMatch==[], {
 			("mkdir -p" + preferencesfolderpath.quote).unixCmd;
-			"ixiNOTE: an ixiquarks preferences folder was not found,it was created".postln;
+			"ixi-NOTE: an ixiquarks preferences folder was not found, it was created".postln;
 		});
 
 	}
@@ -48,7 +47,7 @@ XQ {
 			preferences.interpret;
 		} {
 
-		"ixiNOTE: you don't have the preferences.ixi file installed! Check ixiQuarks help".postln;
+		"ixi-NOTE: you don't have the preferences.ixi file installed! Check ixiQuarks help".postln;
 			this.pref = ()
 				.emailSent_(true) // change to true when you have sent ixi an email
 				.numberOfChannels_(52) // number of audio channels used

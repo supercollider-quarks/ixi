@@ -21,12 +21,12 @@ XiiLoadSynthDefs {
 		});
 		
 		
-		SynthDef.writeOnce(\xiiWarp, {arg outbus=0, bufnum = 0, freq=1, pointer=0, vol=0, gate=1;
+		SynthDef(\xiiWarp, {arg outbus=0, bufnum = 0, freq=1, pointer=0, vol=0, gate=1;
 			var signal, env;
 			env = EnvGen.kr(Env.adsr(0.2, 0.2, 1, 0.21, 1, -4), gate, doneAction:2);
-			signal = Warp1.ar(bufnum, pointer, freq, 0.09, 8, 0.2) * env * vol;
+			signal = Warp1.ar(1, bufnum, pointer, freq, 0.09, -1, 8, 0.2, 2) * env * vol;
 			Out.ar(outbus, signal!2);
-		});
+		}).load(s);
 		
 		SynthDef.writeOnce(\xiiGrain, {arg outbus=0, bufnum, rate=1, pos=0, dur=0.05, vol=1, envType=0;
 			var signal, env, sineenv, percenv;
@@ -37,6 +37,17 @@ XiiLoadSynthDefs {
 			Out.ar(outbus, Pan2.ar(signal, Rand(-0.75, 0.75)));
 		});
 		
+		/*
+		// One day I'll use Josh's BufGrain
+		SynthDef(\xiiGrain, {arg outbus=0, bufnum, t_trig=0, rate=1, pos=0, dur=0.05, vol=1, envType=0;
+			var signal, env, sineenv, percenv;
+			sineenv = EnvGen.kr(Env.sine(dur, vol));
+			percenv = EnvGen.kr(Env.perc(0.001, dur*2, vol));
+			env = Select.kr(envType, [sineenv, percenv]);
+			signal = BufGrain.ar(t_trig, dur, bufnum, rate, pos) * env ;
+			Out.ar(outbus, Pan2.ar(signal, Rand(-0.75, 0.75)));
+		}).load(s);
+		*/
 		
 		SynthDef.writeOnce(\xiiGrains, {arg 	outbus=0, bufnum, dur=0.3, trate=10, ratelow= 0.5, 
 								ratehigh=1.5, left=0.3, right=0.4, vol=0.2, globalvol=1;
@@ -444,6 +455,11 @@ XiiLoadSynthDefs {
 			var z;
 			z = PlayBuf.ar(2, bufnum, 1, 1, start, start, end) * vol;
 			Out.ar(out, z)
+		});
+		
+		// theory synthdef
+		SynthDef.writeOnce(\midikeyboardsine, {arg freq, amp = 0.25;
+			Out.ar(0, (SinOsc.ar(freq,0,amp)*EnvGen.ar(Env.perc, doneAction:2)).dup)
 		});
 
 	}

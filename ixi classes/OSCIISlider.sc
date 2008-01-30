@@ -87,6 +87,10 @@ OSCIISlider {
 		nameText.font_(font);
 	}
 	
+	remove {
+		slider.remove; 
+		nameText.remove;
+		valueText.remove;
+	}
 } // end of class
-
 

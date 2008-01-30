@@ -6,23 +6,20 @@ XiiACDropDownChannels {
 	
 	*new { 
 		^super.new.initXiiACDropDownChannels;
-		}
+	}
 		
 	*setChannels {arg channels;
 		numChannels = channels;
 	}
-	
-	initXiiACDropDownChannels {
-	
-	
-	}
-	
+		
 	*getStereoChnList {
 		var stereolist;
 		stereolist = [];
 		(numChannels/2).do({ arg i;
 			stereolist = stereolist.add(((i*2).asString++","+((i*2)+1).asString)); 
 		});
+		//stereolist = stereolist.insert(4, "-");
+		//stereolist = stereolist.insert(6, "-");
 		^stereolist;
 	}
 
@@ -33,6 +30,8 @@ XiiACDropDownChannels {
 		numChannels.do({ arg i;
 			monolist = monolist.add(i.asString); 
 		});
+		//monolist = monolist.insert(8, "-");
+		//monolist = monolist.insert(11, "-");
 		^monolist;
 	}
 }

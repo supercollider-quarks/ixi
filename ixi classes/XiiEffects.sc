@@ -936,7 +936,7 @@ XiiCyberPunk {
 		memlenSpec = ControlSpec.new(0.001, 0.2, \linear, 0.001, 0.1); 
 		
 		params = [ 
-		Ê Ê["PitchRatio", "CyperPunk", "Memlen", "Fx Level", "Dry Level"], 
+		Ê Ê["PitchRatio", "ZC Per Chunk", "Memlen", "Fx Level", "Dry Level"], 
 		Ê Ê[\pitchratio, \zcperchunk, \memlen, \fxlevel, \level], 
 		Ê Ê[pitchSpec, punkSpec, memlenSpec, \amp, \amp], 
 		Ê Êif(setting.isNil.not, {setting[5]}, {[2, 1, 0.1, 1, 0 ]})

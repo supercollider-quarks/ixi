@@ -66,12 +66,19 @@ XiiPoolManager {
 					.autohidesScrollers_(true)
 					.focus(true)
 					.font_(Font("Helvetica", 9))
-					.string_("");
+					.string_("")
+					.keyUpAction_({arg view, key, mod, unicode; 
+						if(unicode ==13, {
+							saveButt.focus(true);
+						});
+					});
+
 	
 			saveButt = SCButton(win, Rect(115, 50, 34, 16))
 				.states_([["save",Color.black, Color.clear]])
 				.font_(Font("Helvetica", 9))
 				.action_({ arg butt; var str, oldnamelist;
+					"OO in savebutt".postln;
 					str = if(txtv.string == "", {Date.getDate.stamp.asString}, {txtv.string});
 					// saving filepaths and selection list into file
 					bufferDict.add((str).asSymbol -> 

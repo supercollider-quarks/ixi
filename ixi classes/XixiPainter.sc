@@ -37,7 +37,8 @@ XixiPainter {
 		
 		keytracker = SCUserView(win, Rect(-10, -10, 2000, 2000))
 			.canFocus_(true)
-			.keyDownFunc_({ |me, key, modifiers, unicode |
+//			.keyDownFunc_({ |me, key, modifiers, unicode |
+			.keyDownAction_({ |me, key, modifiers, unicode |
 				keyDownAction.value(key, modifiers, unicode);
 			})
 			.keyUpAction_({ |me, key, modifiers, unicode |
@@ -46,7 +47,7 @@ XixiPainter {
 
 		drawer = SCUserView(win, Rect(bounds.left, bounds.top, bounds.width, bounds.height))
 			.canFocus_(false)
-			.mouseBeginTrackFunc_({|me, x, y, mod|
+			.mouseDownAction_({|me, x, y, mod|
 				if(mod == 262401, { // right mouse down
 				}, {// else
 				
@@ -61,7 +62,7 @@ XixiPainter {
 				};
 				this.refresh;
 			})
-			.mouseTrackFunc_({|me, x, y, mod|
+			.mouseMoveAction_({|me, x, y, mod|
 				drawList.do({ |object|
 					object.mouseTrack(x, y);
 				});
@@ -72,7 +73,7 @@ XixiPainter {
 					object.mouseOver(x, y);
 				})
 			})
-			.mouseEndTrackFunc_({|me, x, y, mod|
+			.mouseUpAction_({|me, x, y, mod|
 				drawList.do({ |object|
 					object.mouseUp(x, y);
 				})

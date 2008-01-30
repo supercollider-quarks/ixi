@@ -86,7 +86,8 @@ XiiPlayer {
 			.states_([["f",Color.black, Color.clear]])
 			.font_(Font("Helvetica", 9))
 			.action_({ arg butt;
-				("open "++(String.scDir++"/sounds/ixiquarks")).unixCmd			});
+				"open sounds/ixiquarks/".unixCmd;
+			});
 				
 		openButton = SCButton(win, Rect(170, 130, 40, 18))
 			.states_([["Open",Color.black, Color.clear]])
@@ -124,6 +125,7 @@ XiiPlayer {
 						a = SoundFile.new;
 						a.openRead(soundfile);
 						chNum = a.numChannels;
+						[\chNum, chNum].postln;
 						dur = (a.numFrames/s.sampleRate); // get the duration - add / chNum
 						a.close;											buffer = Buffer.cueSoundFile(s, soundfile, 0, chNum);
 						// play it

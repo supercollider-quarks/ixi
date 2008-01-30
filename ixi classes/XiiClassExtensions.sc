@@ -45,6 +45,35 @@
 	}
 }
 
++ SCSlider {
+			
+	incrementCtrl { ^this.valueAction = this.value + 0.001 }
+	decrementCtrl { ^this.valueAction = this.value - 0.001 }
+	
+	defaultKeyDownAction { arg char, modifiers, unicode,keycode;
+		// standard keydown
+		if (char == $r, { this.valueAction = 1.0.rand; ^this });
+		if (char == $n, { this.valueAction = 0.0; ^this });
+		if (char == $x, { this.valueAction = 1.0; ^this });
+		if (char == $c, { this.valueAction = 0.5; ^this });
+		if (char == $], { this.increment; ^this });
+		if (char == $[, { this.decrement; ^this });
+		if(modifiers == 8651009, { // check if Ctrl is down first
+			if (unicode == 16rF700, { this.incrementCtrl; ^this });
+			if (unicode == 16rF703, { this.incrementCtrl; ^this });
+			if (unicode == 16rF701, { this.decrementCtrl; ^this });
+			if (unicode == 16rF702, { this.decrementCtrl; ^this });
+		}, { // if not, then normal
+			if (unicode == 16rF700, { this.increment; ^this });
+			if (unicode == 16rF703, { this.increment; ^this });
+			if (unicode == 16rF701, { this.decrement; ^this });
+			if (unicode == 16rF702, { this.decrement; ^this });
+		});
+		^nil		// bubble if it's an invalid key
+	}
+
+}
+
 /*
 (
 // e = Env.new([0, 1, 0.3, 0.8, 0], [1, 3, 1, 4],'linear').plot;
