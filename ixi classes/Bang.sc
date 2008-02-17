@@ -28,7 +28,8 @@ Bang {
 		
 		mouseTracker = SCUserView(win, Rect(bounds.left+1, bounds.top+1, bounds.width, bounds.height))
 			.canFocus_(false)
-			.mouseBeginTrackFunc_({|me, x, y, mod|
+			.relativeOrigin_(false)
+			.mouseDownAction_({|me, x, y, mod|
 					if(mod == 262401, { // right mouse down
 //						rightDownAction.value(chosennode.nodeloc);
 					}, {
@@ -37,13 +38,13 @@ Bang {
 						me.refresh;
 					});
 			})
-			.mouseEndTrackFunc_({|me, x, y, mod|
+			.mouseUpAction_({|me, x, y, mod|
 				state = false;
 				upAction.value(state);
 				me.refresh;
 			})
 			
-			.keyDownFunc_({ |me, key, modifiers, unicode |
+			.keyDownAction_({ |me, key, modifiers, unicode |
 //				keyDownAction.value(key, modifiers, unicode);
 //				this.refresh;
 			})

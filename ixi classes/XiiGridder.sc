@@ -72,12 +72,12 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 		pitchRatioArray = this.makeRatioTuning(12, transposition).reverse;
 		
 		scaleDict = if(Object.readArchive("preferences/gridderScales.ixi") == nil, {
-					().add(12 -> XiiMusicTheory.scales);
+					().add(12 -> XiiTheory.scales);
 					}, {
 					 Object.readArchive("preferences/gridderScales.ixi");
 					});
 
-		scalelib = XiiMusicTheory.scales;
+		scalelib = XiiTheory.scales;
 		scalenames = Array.fill(scalelib.size, {arg i; scalelib[i][0]});
 		this.setPlayFunc_(1);
 		

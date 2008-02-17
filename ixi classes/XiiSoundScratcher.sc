@@ -87,7 +87,6 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 		soundfile = SoundFile.new;
 		soundfile.openRead("sounds/a11wlk01.wav");
 
-		[\boundsWIDTH, bounds.width].postln;
 		sndfileview = SCSoundFileView.new(win, Rect(120, 5, bounds.width-120, bounds.height-10))
 			.soundfile_(soundfile)
 			.read(0, soundfile.numFrames)
@@ -227,6 +226,27 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 			});
 						
 		win.view.keyDownAction_({arg this, char, modifiers, unicode; 
+			var point, zvol, a;
+			if(synthesisStylePop.value == 7, { // keyboard grains mode
+				if(pointlist == List[], {
+					point = Point(122+(680.rand), 320.rand);
+					zvol = 1;
+				}, {
+					point = pointlist[a = pointlist.size.rand];
+					zvol = if(wacomFlag, {pointsizelist[a]}, {1}); // full vol on mouse
+				});
+				if(myTempBuffer.isNil.not, {
+				Synth.grain(\xiiGrain, 
+					[\bufnum, myTempBuffer.bufnum,
+					\outbus, outbus,
+					\pos, ((point.x-122)/680) * myTempBuffer.numFrames, 
+					\dur, graindur,
+					\vol, [0,1,\amp, 0.00001].asSpec.map(zvol) * globalvol,
+					\rate, 1.5-(point.y/320),
+					\envType, grainEnvType
+				]);
+				});
+			}, { // all other modes
 			if(char.asString == "c", {
 				if(synthesisStylePop.value == 4, {this.clear(true)}, {this.clear(false)});
 				if(grainCircles, {	
@@ -275,6 +295,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 				});
 				if (char.asString == "w", { wanderCircleRadius = wanderCircleRadius + 0.1 });
 			});
+			});
 		});
 			
 		win.drawHook_({
@@ -306,6 +327,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 			if(grainCircles, {
 				if(synthesisStylePop.value == 5, { // grainCircles
 					Color.red(alpha:0.5).set;
+					Pen.width = 1;
 					Pen.strokeOval(tempRect);
 					circleList.do({arg rectNpressure;
 						Color.red(alpha:(rectNpressure[1]*1.3)*0.7).set;
@@ -315,6 +337,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 					});
 				}, {
 					Color.red(alpha:0.5).set;
+					Pen.width = 1;
 					Pen.strokeRect(tempRect);
 					circleList.do({arg rectNpressure;
 						Color.red(alpha:(rectNpressure[1]*1.3)*0.7).set;
@@ -436,7 +459,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 
 		synthesisStylePop = SCPopUpMenu(win, Rect(10, 54, 100, 16)) // 550
 				.font_(Font("Helvetica", 9))
-				.items_(["warp", "scratch", "random grains", "linear grains", "worm", "grainCircles", "grainSquares"])
+				.items_(["warp", "scratch", "random grains", "linear grains", "worm", "grainCircles", "grainSquares", "keyboard grains"])
 				.background_(Color.white)
 				.action_({ arg popup;
 					params[0] = popup.value;
@@ -482,6 +505,10 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 							grainCircles = true;
 							circleList = List.new;
 							this.clear;
+						},
+						7, { // keyboard grains
+							recPathFlag = false;
+							grainFlag = true;
 						}
 					);
 					this.refresh;

@@ -1,5 +1,6 @@
 // XiiQuarks dependencies:
 // - midiname (wslib)
+// - SNBox
 
 // IMPORTANT IN THIS CLASS:
 // XQ.globalWidgetList
@@ -50,13 +51,19 @@
 // NEW IN VERSION 5:
 // new instrument: Sounddrops
 // new tool: Theory (scales and chords)
-
-
+// styles options in WaveScope
+// keyboard grains mode in SoundScratcher instrument (both with drawn grains and without)
+// Added a Function:record method. Now you can do {SinOsc.ar(222)}.record(3) // 3 sec file
 
 // TODO: make Spectral plugins
 // TODO: Test the Warp1MC Ugens that take and output multichannel (see mail sept 10, 2007)
 // TODO: Make interface to bufferPool so that one can put it into a var like b and live-code
 // TODO: Make a mixer channel gui
+
+/*
+Explore:
+"open /Users/thm21/quaziir/texts\ \[phd\]/PhD\ thesis/Rob\ Saunders\ Thesis/curiosity/index.html".unixCmd;
+*/
 
 /*
 a = XQ.globalWidgetList[0].xiigui.getState
@@ -87,8 +94,7 @@ XiiQuarks {
 		
 		settingRegister = XiiSettings.new; // activate the settings registry
 
-		GUI.cocoa;
-		//Server.default = Server.local; // EXPERIMENTAL !!!!
+		//GUI.cocoa;
 		
 		XQ.new; // A class containing all the settings and environment maintenance
 		
@@ -106,12 +112,12 @@ XiiQuarks {
 
 		//////////////////////////////////////////////
 
-		XiiLoadSynthDefs.new(Server.default);
+		XiiSynthDefs.new(Server.default);
 	
 		name = " ixi quarks";
 		point = XiiWindowLocation.new(name);
 		
-		win = SCWindow(name, Rect(point.x, point.y, 275, 212), resizable:false).front;
+		win = SCWindow(name, Rect(point.x, point.y, 275, 224), resizable:false).front;
 		
 		comingFromFieldFlag = false;
 		settingName = "preset_0";
@@ -119,7 +125,7 @@ XiiQuarks {
 		quarks = [ 
 			["AudioIn", "Recorder", "Player", "BufferPool", "PoolManager", 
 			"FreqScope", "WaveScope", "EQMeter", "MixerNode", 
-			"ChannelSplitter", "Amplifier", "TrigRecorder", "Theory"],
+			"ChannelSplitter", "Amplifier", "TrigRecorder", "MusicTheory"],
 	
 			["SoundScratcher", "StratoSampler", "Sounddrops", "Mushrooms", "Predators", 
 			"Gridder", "PolyMachine", "GrainBox", "BufferPlayer", "ScaleSynth"], 
@@ -149,7 +155,7 @@ XiiQuarks {
 		channels = 2;
 		effect = "AudioIn";
 
-		typesview = SCListView(win,Rect(10,10, 120, 96))
+		typesview = SCListView(win,Rect(10,10, 120, 108))
 			.items_(types)
 			.hiliteColor_(XiiColors.darkgreen) //Color.new255(155, 205, 155)
 			.background_(XiiColors.listbackground)
@@ -164,13 +170,13 @@ XiiQuarks {
 				txtv.focus(true);
 			});
 			
-		storedSettingsPop = SCPopUpMenu(win, Rect(10, 116, 78, 16)) // 550
+		storedSettingsPop = SCPopUpMenu(win, Rect(10, 128, 78, 16)) // 550
 			.font_(Font("Helvetica", 9))
 			.canFocus_(false)
 			.items_(settingRegister.getSettingsList.sort)
 			.background_(Color.white);
 
-		loadSettingButt = SCButton(win, Rect(95, 116, 35, 17))
+		loadSettingButt = SCButton(win, Rect(95, 128, 35, 17))
 			.states_([["load", Color.black, Color.clear]])
 			.font_(Font("Helvetica", 9))
 			.canFocus_(false)
@@ -178,7 +184,7 @@ XiiQuarks {
 				settingRegister.loadSetting(storedSettingsPop.items[storedSettingsPop.value]);
 			});
 
-		settingNameView = SCTextView.new(win, Rect(10, 139, 78, 14))
+		settingNameView = SCTextView.new(win, Rect(10, 151, 78, 14))
 			.font_(Font("Helvetica", 9))
 			.string_(settingName = PathName(settingName).nextName)
 			.keyDownAction_({arg view, key, mod, unicode; 
@@ -188,7 +194,7 @@ XiiQuarks {
 				});
 			});
 		
-		storeSettingButt = SCButton(win, Rect(95, 138, 35, 17))
+		storeSettingButt = SCButton(win, Rect(95, 150, 35, 17))
 			.states_([["store", Color.black, Color.clear]])
 			.font_(Font("Helvetica", 9))
 			.canFocus_(false)
@@ -212,7 +218,7 @@ XiiQuarks {
 				settingNameView.string_(settingName);
 			});
 
-		deleteSettingButt = SCButton(win, Rect(95, 160, 35, 17))
+		deleteSettingButt = SCButton(win, Rect(95, 172, 35, 17))
 			.states_([["delete", Color.black, Color.clear]])
 			.font_(Font("Helvetica", 9))
 			.canFocus_(false)
@@ -221,7 +227,7 @@ XiiQuarks {
 				storedSettingsPop.items_(settingRegister.getSettingsList);
 			});
 
-		clearScreenButt = SCButton(win, Rect(95, 182, 35, 17))
+		clearScreenButt = SCButton(win, Rect(95, 194, 35, 17))
 			.states_([["clear", Color.black, Color.clear]])
 			.font_(Font("Helvetica", 9))
 			.canFocus_(false)
@@ -301,7 +307,6 @@ XiiQuarks {
 					{
 					wcnt = SCWindow.allWindows.size;
 					if(XQ.globalWidgetList.size > 0, {
-						"in here".postln;
 						chosenWidget = val % wcnt;
 						SCWindow.allWindows.at(chosenWidget).front;
 						XQ.globalWidgetList.do({arg widget, i;
@@ -311,7 +316,6 @@ XiiQuarks {
 								});
 							});
 						});
-						"and where is the bug?".postln;
 					});
 					}.defer;
 				},{
@@ -338,7 +342,7 @@ XiiQuarks {
 		win.drawHook = {
 			XiiColors.ixiorange.set;
 			Pen.width = 3;
-			Pen.translate(30,170);
+			Pen.translate(30,182);
 			Pen.scale(0.6,0.6);
 			Pen.moveTo(1@7);
 			ixilogo.do({arg point;

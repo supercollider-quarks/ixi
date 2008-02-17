@@ -46,14 +46,15 @@ XiiWaveScope {
 	makeBounds { arg point, size=212; ^Rect(point.x, point.y, size, size) }
 	
 	makeWindow { arg wind, setting;
-		var view, cmdPeriodFunc, name, point;
+		var view, cmdPeriodFunc, name, point, style;
 		
 		view = wind.view;
 		win = wind;
 		
 		xiigui = nil; // not using window server class here
-		params = if(setting.isNil, {[0,1]}, {setting[2]});
-
+		params = if(setting.isNil, {[0,1,0]}, {setting[2]});
+		
+		style = params[2];
 //		if(view.isNil) {
 //			"view is NIL".postln;
 //			win = SCWindow(name, this.makeBounds(point));
@@ -66,6 +67,7 @@ XiiWaveScope {
 		n = SCScope(view, Rect(view.bounds.left+20, 5, view.bounds.width - 20, view.bounds.height - 40));
 		n.background = Color.green(0.1);
 		n.resize = 5;
+		n.style = style;
 		view.keyDownAction = { arg view, char, modifiers, unicode, keycode; 
 			this.keyDown(char, modifiers, unicode, keycode) 
 		};
@@ -73,12 +75,12 @@ XiiWaveScope {
 		zx = n.xZoom.log2;
 		zy = n.yZoom.log2;
 							
-		SCStaticText(view, Rect(20, 18, 30, 18))
+		SCStaticText(view, Rect(20, 18, 27, 18))
 			.string_("inbus :")
 			.resize_(9)
 			.font_(Font("Helvetica", 9));
 			
-		SCPopUpMenu(view, Rect(50, 15, 40, 18))
+		SCPopUpMenu(view, Rect(38, 15, 30, 18))
 			.items_(XiiACDropDownChannels.getMonoChnList)
 			.value_(params[0])
 			.font_(Font("Helvetica", 9))
@@ -90,12 +92,12 @@ XiiWaveScope {
 				this.index = ch.value;
 			});
 			
-		SCStaticText(view, Rect(110, 18, 40, 18))
+		SCStaticText(view, Rect(100, 18, 33, 18))
 			.string_("chNum :")
 			.resize_(9)
 			.font_(Font("Helvetica", 9));
 			
-		SCPopUpMenu(view, Rect(145, 15, 40, 18))
+		SCPopUpMenu(view, Rect(135, 15, 30, 18))
 			.items_([ "1", "2" ,"3", "4", "5", "6", "7", "8", "9", "10", "11", 
 					"12", "13", "14", "15", "16"])
 			.value_(params[1])
@@ -106,8 +108,23 @@ XiiWaveScope {
 			.action_({ arg ch; 
 				this.numChannels = (ch.value+1).asInteger;
 			});
+		SCStaticText(view, Rect(155, 18, 27, 18))
+			.string_("style :")
+			.resize_(9)
+			.font_(Font("Helvetica", 9));
+			
+		SCPopUpMenu(view, Rect(155, 15, 30, 18))
+			.items_([ "0", "1" ,"2"])
+			.value_(style)
+			.font_(Font("Helvetica", 9))
+			.background_(Color.white)
+			.canFocus_(false)
+			.resize_(9)
+			.action_({ arg ch; 
+				n.style = ch.value.asInteger;
+			});
 
-		onOffButt = SCButton(view, Rect(200, 15, 40, 16))
+		onOffButt = SCButton(view, Rect(195, 15, 30, 16))
 			.states_([["On", Color.black, Color.clear], 
 			["Off", Color.black, Color.green(alpha:0.2)]]) 
 			.resize_(9)
@@ -122,12 +139,12 @@ XiiWaveScope {
 			.canFocus_(false);
 			
 		// this is just a spacer for the flowlayout
-		SCStaticText(view, Rect(300, 18, 30, 18))
-			.string_("     ")
+		SCStaticText(view, Rect(300, 18, 20, 18))
+			.string_("   ")
 			.resize_(9)
 			.font_(Font("Helvetica", 9));
 			
-		SCStaticText(view, Rect(300, 18, 140, 18))
+		SCStaticText(view, Rect(300, 18, 100, 18))
 			.string_("use arrows to zoom")
 			.resize_(9)
 			.font_(Font("Helvetica", 9));
@@ -246,7 +263,7 @@ XiiWaveScope {
 	
 	zoom_ { arg val; this.xZoom_(val ? 1) }
 
-	style_ { arg val; n.style = style = val }
+	style_ { arg val; n.style = val; style = val; }
 	
 	updateColors {
 		n.waveColors = Array.fill(numChannels, { Color.green }); //rgb(255, 218, 000) 

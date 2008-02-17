@@ -11,7 +11,7 @@ XiiBufferPool {
 		var soundFileWindowsList, ram, ramview, fileramview;
 		var cmdPeriodFunc;
 		var txtv, ram, loadBufTask;
-		var ampslider, ampAnalyserSynth, responder, vuview, amp;
+		var ampslider, ampAnalyserSynth, responder, vuview, amp, ampAnalFunc;
 		
 	*new { arg server, channels, setting=nil, poolname;
 		^super.new.initXiiBufferPool(server, channels, setting, poolname);
@@ -25,6 +25,7 @@ XiiBufferPool {
 		var soundfile, player, buffer, task, volSlider, openButton, volume;
 		var folderSounds, addedSoundNames, sounds, soundNames;
 		var soundFileWindowsList, stereomonoview;
+		var recBussesPop;
 		
 		s = server;
 		
@@ -162,10 +163,12 @@ XiiBufferPool {
 			.canFocus_(false)
 			.action_({ arg butt;
 				if(butt.value == 1, {
-					"vuu meter on".postln;
 					win.bounds_(Rect(win.bounds.left, win.bounds.top-90, 222, 285));
-					ampAnalyserSynth = Synth(\xiiVuMeter, 
+					ampAnalFunc = { // this is called on CmdPeriod so the vuview will work
+						ampAnalyserSynth = Synth(\xiiVuMeter, 
 									[\inbus, inbus, \amp, amp], addAction:\addToTail);
+					};
+					ampAnalFunc.value;
 					responder = OSCresponderNode(s.addr,'/tr',{ arg time, responder, msg;
 						if (msg[1] == ampAnalyserSynth.nodeID, {
 							{ 
@@ -183,24 +186,38 @@ XiiBufferPool {
 				});	
 			});	
 
+		// THE RECORDER FUNCTIONALITY
+		
 		stereoButt = OSCIIRadioButton(win, Rect(10,205,14,14), "stereo")
 						.value_(1)
 						.font_(Font("Helvetica", 9))
 						.action_({ arg butt;
-								if(butt.value == 1, {
+							if(butt.value == 1, {
 								numChannels = 2;
-								monoButt.value_(0);
-								});
+								recBussesPop.items_(XiiACDropDownChannels.getStereoChnList);
+								recBussesPop.value_(inbus/2);
+							}, {
+								numChannels = 1;
+								recBussesPop.items_(XiiACDropDownChannels.getMonoChnList);
+								recBussesPop.value_(inbus);
+							});
+							monoButt.switchState;
 						});
 
 		monoButt = OSCIIRadioButton(win, Rect(100,205,14,14), "mono ")
 						.value_(0)
 						.font_(Font("Helvetica", 9))
 						.action_({ arg butt;
-								if(butt.value == 1, {
+							if(butt.value == 1, {
 								numChannels = 1;
-								stereoButt.value_(0);
-								});
+								recBussesPop.items_(XiiACDropDownChannels.getMonoChnList);
+								recBussesPop.value_(inbus);
+							},{
+								numChannels = 2;
+								recBussesPop.items_(XiiACDropDownChannels.getStereoChnList);
+								recBussesPop.value_(inbus/2);
+							});
+							stereoButt.switchState;
 						});
 
 		recordingName = SCTextView(win, Rect(10, 225, 140, 16))
@@ -268,7 +285,8 @@ XiiBufferPool {
 
 		// the vuuuuu meter
 		vuview = XiiVuView(win, Rect(162, 205, 46, 37))
-				.canFocus_(false);
+				.canFocus_(false)
+				.relativeOrigin_(false);
 
 		ampslider = OSCIISlider.new(win, Rect(162, 250, 46, 10), "vol", 0, 1, 1, 0.001, \amp)
 			.font_(Font("Helvetica", 9))
@@ -279,14 +297,14 @@ XiiBufferPool {
 			});
 
 		// record busses
-		SCPopUpMenu(win, Rect(10, 250, 44, 16))
+		recBussesPop = SCPopUpMenu(win, Rect(10, 250, 44, 16))
 			.items_(XiiACDropDownChannels.getStereoChnList)
 			.value_(0)
 			.font_(Font("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.action_({ arg ch;
-				inbus = ch.value * 2;
+				inbus = if(numChannels == 2, {ch.value * 2}, {ch.value});
 				ampAnalyserSynth.set(\inbus, inbus);
 				if(recButton.value == 1, { r.inbus_(inbus);});
 			});
@@ -305,7 +323,7 @@ XiiBufferPool {
 			});
 		});
 
-		cmdPeriodFunc = { recButton.valueAction_(0);};
+		cmdPeriodFunc = { recButton.valueAction_(0); {ampAnalFunc.value}.defer(0.1)};
 		CmdPeriod.add(cmdPeriodFunc);
 
 		win.front;

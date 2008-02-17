@@ -1,6 +1,3 @@
-// TODO: Add envelope for samples
-// TODO: add pitchratio calculations for samples
-// update buffer menues on new menus loaded
 
 XiiSounddrops {
 
@@ -430,6 +427,7 @@ volMsl = SCMultiSliderView(win, Rect(120, 210, 680, 22))
 		.action_({ arg item;
 			gBufferPoolNum = item.value;
 			ldSndsGBufferList.value(selbPool.items[item.value]);
+			//soundFuncArray.do({|dict| dict.buffer = sndNameList.size.rand }); // assign random buf
 		});
 
 	bufferPop = SCPopUpMenu(win, Rect(10, 27, 100, 16)) // 550
@@ -455,6 +453,8 @@ volMsl = SCMultiSliderView(win, Rect(120, 210, 680, 22))
 				XQ.globalBufferDict.at(poolName)[0].do({arg buffer;
 					sndNameList = sndNameList.add(buffer.path.basename);
 					bufferList.add(buffer.bufnum);
+					// assign random buffer to each drop
+					soundFuncArray.do({|dict| dict.buffer = sndNameList.size.rand });
 				 });
 				 bufferPop.items_(sndNameList);
 			}, {
@@ -856,13 +856,13 @@ speedSl = OSCIISlider(win, Rect(10, 190, 100, 8), "- speed", 2, 16, params[7], 0
 			.font_(Font("Helvetica", 9)).string_("scales :"); 
 
 		SCPopUpMenu(win, Rect(50, 15, 90, 16))
-			.items_(Array.fill(XiiMusicTheory.scales.size, {arg i; XiiMusicTheory.scales[i][0]}))
+			.items_(Array.fill(XiiTheory.scales.size, {arg i; XiiTheory.scales[i][0]}))
 			.value_(0)
 			.font_(Font("Helvetica", 9))
 			.background_(Color.white)
 			.action_({ arg ch;
 				scale = true;
-				notes = XiiMusicTheory.scales[ch.value][1];
+				notes = XiiTheory.scales[ch.value][1];
 				keyboard.showScale(notes, fundamental, Color.new255(103, 148, 103));
 			});
 
@@ -870,13 +870,13 @@ speedSl = OSCIISlider(win, Rect(10, 190, 100, 8), "- speed", 2, 16, params[7], 0
 			.font_(Font("Helvetica", 9)).string_("chords :"); 
 
 		SCPopUpMenu(win, Rect(50, 35, 90, 16))
-			.items_(Array.fill(XiiMusicTheory.chords.size, {arg i; XiiMusicTheory.chords[i][0]}))
+			.items_(Array.fill(XiiTheory.chords.size, {arg i; XiiTheory.chords[i][0]}))
 			.value_(0)
 			.font_(Font("Helvetica", 9))
 			.background_(Color.white)
 			.action_({ arg ch;
 				scale = true;
-				notes = XiiMusicTheory.chords[ch.value][1];
+				notes = XiiTheory.chords[ch.value][1];
 				keyboard.showScale(notes, fundamental, Color.new255(103, 148, 103));
 			});
 
@@ -920,17 +920,19 @@ speedSl = OSCIISlider(win, Rect(10, 190, 100, 8), "- speed", 2, 16, params[7], 0
 					selEnd = selStart + XQ.globalBufferDict.at(poolName)[1][buffer][1];
 
 					if(myBuffer.numChannels == 1, {
-						Synth(\xiiPrey1x2, [	\outbus, outbus,
+						Synth(\xiiSounddrops1x2, [	\outbus, outbus,
 											\bufnum, myBuffer.bufnum, 
 											\startPos, selStart, 
 											\endPos, selEnd,
+											\amp, amp,
 											\vol, globalvol
 						])
 					},{
-						Synth(\xiiPrey2x2, [	\outbus, outbus,
+						Synth(\xiiSounddrops2x2, [	\outbus, outbus,
 											\bufnum, myBuffer.bufnum, 
 											\startPos, selStart, 
 											\endPos, selEnd,
+											\amp, amp,
 											\vol, globalvol
 						])
 					});

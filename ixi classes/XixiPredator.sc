@@ -88,6 +88,7 @@ XixiPredator {
 	    	     ^{ var rot;
 				Pen.use({
 					Color.black.set;
+					Pen.width = 1;
 					Pen.translate(point.x, point.y);
 					Pen.moveTo(0@0);
 					

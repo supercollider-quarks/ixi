@@ -1,4 +1,22 @@
 
++ Function {
+	record {arg time, bus, channels=1;
+		var foundWidget = false;
+		
+		XQ.globalWidgetList.do({|widget| 
+			if(widget.isKindOf(XiiRecorder), {
+				"i've got a widget".postln;
+				foundWidget = true;
+				widget.record(time, bus);
+			})
+		});
+		if(foundWidget == false, {
+			XQ.globalWidgetList.add(XiiRecorder.new(Server.default, channels).record(time, bus));
+		});
+		this.play;
+	}
+}
+
 + SimpleNumber {
 	
 	// checking if a MIDI note is microtone

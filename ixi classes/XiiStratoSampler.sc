@@ -237,7 +237,7 @@ writeBuffer = {
 				if(widget.isKindOf(XiiGridder), {widget.updatePoolMenu;});
 				if(widget.isKindOf(XiiSoundScratcher), {widget.updatePoolMenu;});
 				if(widget.isKindOf(XiiMushrooms), {widget.updatePoolMenu;});
-				if(widget.isKindOf(XiiRaindrops), {widget.updatePoolMenu;});
+				if(widget.isKindOf(XiiSounddrops), {widget.updatePoolMenu;});
 				}.defer;
 			});
 		});

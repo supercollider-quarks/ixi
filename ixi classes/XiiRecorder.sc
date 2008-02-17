@@ -4,6 +4,9 @@ XiiRecorder {
 	var <>win, params;
 	
 	var numChannels;
+	var recButton; // to allow for outside start of record
+	var inbus, recBussesPop, ampAnalyserSynth;
+	
 	*new { arg server, channels, setting = nil;
 		^super.new.initXiiRecorder(server, channels, setting);
 		}
@@ -11,10 +14,10 @@ XiiRecorder {
 	initXiiRecorder {arg server, channels, setting;
 		var bgColor, foreColor, spec, outbus;
 		var s, name, point;
-		var txtv, recButton, r, filename, timeText, secTask, inbus;
+		var txtv, r, filename, timeText, secTask;
 		var stereoButt, monoButt, cmdPeriodFunc;
-		var vuview, ampslider, ampAnalyserSynth, responder;
-		var amp, recBussesPop;
+		var vuview, ampslider, responder;
+		var amp, ampAnalFunc;
 		
 		numChannels = channels;
 		filename = "";
@@ -23,8 +26,8 @@ XiiRecorder {
 
 		xiigui = nil; // not using window server class here
 		point = if(setting.isNil, {XiiWindowLocation.new(name)}, {setting[1]});
-		params = if(setting.isNil, {[1,0,0,1]}, {setting[2]});
-		
+		params = if(setting.isNil, {[numChannels-1,(numChannels-2).abs,0,1]}, {setting[2]});
+		[\params, params].postln;
 		bgColor = Color.new255(155, 205, 155);
 		foreColor = Color.new255(103, 148, 103);
 		inbus = params[2];
@@ -39,9 +42,13 @@ XiiRecorder {
 				}.defer;
 			});
 		}).add;
-		ampAnalyserSynth = Synth(\xiiVuMeter, 
-			[\inbus, inbus, \amp, amp], addAction:\addToTail);
-
+		
+		ampAnalFunc = { // this is called on CmdPeriod so the vuview will work
+			ampAnalyserSynth = Synth(\xiiVuMeter, 	
+					[\inbus, inbus, \amp, amp], addAction:\addToTail);
+		};
+		ampAnalFunc.value;
+		
 		win = SCWindow.new(name, Rect(point.x, point.y, 222, 80), resizable:false);
 					
 		stereoButt = OSCIIRadioButton(win, Rect(10,5,14,14), "stereo")
@@ -50,10 +57,17 @@ XiiRecorder {
 						.action_({ arg butt;
 								if(butt.value == 1, {
 									numChannels = 2;
-									monoButt.value_(0);
+									//monoButt.valueAction_(0);
 									params[1] = 0;
-								recBussesPop.items_(XiiACDropDownChannels.getStereoChnList);
+									recBussesPop.items_(XiiACDropDownChannels.getStereoChnList);
+									recBussesPop.value_(inbus/2);
+								}, {
+									params[0] = 1;
+									numChannels = 1;
+									recBussesPop.items_(XiiACDropDownChannels.getMonoChnList);
+									recBussesPop.value_(inbus);
 								});
+								monoButt.switchState;
 								params[0] = butt.value;
 						});
 
@@ -63,10 +77,17 @@ XiiRecorder {
 						.action_({ arg butt;
 								if(butt.value == 1, {
 									numChannels = 1;
-									stereoButt.value_(0);
+									//stereoButt.valueAction_(0);
 									params[0] = 0;
-								recBussesPop.items_(XiiACDropDownChannels.getMonoChnList);
+									recBussesPop.items_(XiiACDropDownChannels.getMonoChnList);
+									recBussesPop.value_(inbus);
+								},{
+									params[0] = 1;
+									numChannels = 2;
+									recBussesPop.items_(XiiACDropDownChannels.getStereoChnList);
+									recBussesPop.value_(inbus/2);
 								});
+								stereoButt.switchState;
 								params[1] = butt.value;
 						});
 
@@ -124,16 +145,15 @@ XiiRecorder {
 			
 		// the vuuuuu meter
 		vuview = XiiVuView(win, Rect(162, 5, 46, 37))
-				.canFocus_(false);
+				.canFocus_(false)
+				.relativeOrigin_(false);
 
 		ampslider = OSCIISlider.new(win, Rect(162, 50, 46, 10), "vol", 0, 1, params[3], 0.001, \amp)
 			.font_(Font("Helvetica", 9))
 			.action_({arg sl;
-				if(recButton.value == 1, {
-					amp = sl.value;
-					r.setAmp_(amp);
-					ampAnalyserSynth.set(\amp, amp);
-				});
+				amp = sl.value;
+				ampAnalyserSynth.set(\amp, amp);
+				if(recButton.value == 1, { r.setAmp_(amp) });
 				params[3] = sl.value;
 			});
 			
@@ -149,10 +169,9 @@ XiiRecorder {
 				{timeText.string_(minstring++":"++secstring)}.defer;
 				1.wait;
 			});
-
 		});
 		
-		cmdPeriodFunc = { recButton.valueAction_(0);};
+		cmdPeriodFunc = { recButton.valueAction_(0); {ampAnalFunc.value}.defer(0.1)};
 		CmdPeriod.add(cmdPeriodFunc);
 
 		win.front;
@@ -174,6 +193,16 @@ XiiRecorder {
 		var point;		
 		point = Point(win.bounds.left, win.bounds.top);
 		^[numChannels, point, params];
+	}
+	
+	record {arg time, bus;
+		recButton.valueAction_(1);
+		if( time.isNil.not, { AppClock.sched(time, { recButton.valueAction_(0); nil}) });
+		if( bus.isNil.not, { 
+			inbus = bus; 
+			recBussesPop.value_(inbus/numChannels);
+			ampAnalyserSynth.set(\inbus, inbus);
+		 });
 	}
 }
 
