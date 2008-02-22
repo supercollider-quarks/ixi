@@ -110,11 +110,11 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 						midiKeyboard = MIDIKeyboard.new(win, Rect(120, 500, 460, 50), 7, 36)
 						.keyDownAction_({arg note; 
 							freqField.string_("freq : "+note.midicps.round(0.0001).asString);
-							noteField.string_("note : "+note.midinote);
+							noteField.string_("note : "+note.midinotename);
 						})
 						.keyTrackAction_({arg note; 
 							freqField.string_("freq : "+note.midicps.round(0.0001).asString);
-							noteField.string_("note : "+note.midinote);
+							noteField.string_("note : "+note.midinotename);
 						});
 					}, {
 						win.bounds_(Rect(win.bounds.left, win.bounds.top+65, 615, 500));

@@ -133,7 +133,7 @@ backGRView = SCUserView(win, Rect(120, 5, 680, 200))
 							});
 						});
 						Pen.stroke;
-						draw = false;
+						//draw = false; // no need for this because of change = false
 					});
 					change = false;
 				});
@@ -357,8 +357,8 @@ volMsl = SCMultiSliderView(win, Rect(120, 210, 680, 22))
 		},{
 			if(generatedfromslider.not, { scaleButt.remove });
 			microtone2Darray = Array.fill(7, {|i|
-								Array.fill(resolution, {|j| ((36+(i*12)).midicps)*2.pow(j/res) });
-							}).reverse;
+						Array.fill(resolution, {|j| ((fundamental+(i*12)).midicps)*2.pow(j/res) });
+					}).reverse;
 			keyboard = Grid.new(win, Rect(200, 266, 599, 66), columns: res, rows: 7, border:true)
 						.setBackgrColor_(Color.white)
 						.nodeDownAction_({arg nl; // nodeloc 
@@ -570,6 +570,8 @@ volMsl = SCMultiSliderView(win, Rect(120, 210, 680, 22))
 					dropsSl.value_(dropcount);
 					speedSl.value_(speed.reciprocal);
 					outbusPop.value_(outbus/2);
+					[\draw, draw].postln;
+					[\drawbinary, draw.binaryValue].postln;
 					drawButt.value_(draw.binaryValue);
 					generateNumBoxArray.(dropcount);
 					bufferPop.value_(soundFuncArray[msl.index].buffer); // set the sound and buffer to the selected drop
@@ -610,6 +612,7 @@ volMsl = SCMultiSliderView(win, Rect(120, 210, 680, 22))
 					outbus.copy,
 					draw.copy
 				];
+				[\paramsdraw, params[9]].postln;
 				stateDict.add(("state "++stateNum.asString).asSymbol -> params.copy);
 				soundFuncArray = soundFuncArray.deepCopy; // make a new stamp of sndfarray
 			});
@@ -673,6 +676,7 @@ speedSl = OSCIISlider(win, Rect(10, 190, 100, 8), "- speed", 2, 16, params[7], 0
 			.canFocus_(false)
 			.action_({arg butt;
 				slValues = Array.fill(dropcount, {1.0});
+				{ msl.value_(slValues) }.defer;
 			});
 
 		randButt = SCButton(win, Rect(60, 218, 47, 18))
@@ -683,6 +687,7 @@ speedSl = OSCIISlider(win, Rect(10, 190, 100, 8), "- speed", 2, 16, params[7], 0
 				slValues = Array.fill(dropcount, {|i| 
 							1.0.rand.round(stepsValues[i].reciprocal) // so it lands in place
 						});
+				{ msl.value_(slValues) }.defer;
 			});
 
 		SCButton(win, Rect(10, 238, 47, 18))
@@ -693,6 +698,13 @@ speedSl = OSCIISlider(win, Rect(10, 190, 100, 8), "- speed", 2, 16, params[7], 0
 				slValues = Array.fill(dropcount, {1.0});
 				stepsValues = Array.fill(dropcount, {stepsSl.value});
 				generateNumBoxArray.(dropcount);
+				if(drawButt.value == 1, { // if drawing, then draw
+					drawer.clearDrawing;
+					draw = true;
+					change = true;
+					drawer.refresh;
+				});
+				{ msl.value_(slValues) }.defer;
 			});
 
 		SCButton(win, Rect(60, 238, 47, 18))
@@ -709,6 +721,7 @@ speedSl = OSCIISlider(win, Rect(10, 190, 100, 8), "- speed", 2, 16, params[7], 0
 					change = true;
 					drawer.refresh;
 				});
+				{ msl.value_(slValues) }.defer;
 			});
 
 	drawButt = OSCIIRadioButton(win, Rect(10, 266, 14, 14), "draw")

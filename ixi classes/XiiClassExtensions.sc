@@ -28,6 +28,26 @@
 		if(this.cpsmidi.frac < tolerance, {^false}, {^true});
 	}
 
+	midinotename { arg sign;
+		// appropriated from wouter's method, since it's not a quark...
+		var out;
+		if(sign.isNil) {sign = $n};
+		if(sign.class == Symbol) {sign = sign.asString};
+		if(sign.class == String) {sign = sign[0]};
+		out = IdentityDictionary[
+		$# -> ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"],
+		$b -> ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"],
+		$n -> ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"]
+		].at(sign)[this.round(1.0) % 12] ++ ((this.round(1.0) / 12).floor - 2).asInt;
+		^out;
+	}
+
+}
+
++ Array {
+	midinotename { arg sign;
+		^this.collect(_.midiname(sign));
+	}
 }
 
 + Point {
