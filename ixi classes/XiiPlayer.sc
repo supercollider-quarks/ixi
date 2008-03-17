@@ -17,7 +17,9 @@ XiiPlayer {
 		
 		addedSounds = []; // Cocoa dialog will fill this.
 		addedSoundNames = [];
-		folderSounds = Cocoa.getPathsInDirectory("sounds/ixiquarks"); // the default sounds folder
+//		folderSounds = Cocoa.getPathsInDirectory("sounds/ixiquarks"); // the default sounds folder
+		folderSounds = "sounds/ixiquarks/*".pathMatch; // the default sounds folder
+		folderSounds = folderSounds.collect({|path| path.basename});
 		if(folderSounds[0]==".DS_Store", {folderSounds.removeAt(0)}); // get rid of this shit
 		soundNames = folderSounds.copy;
 		soundNames.do({arg item, i; soundNames[i] = soundNames[i].splitext[0]; });
@@ -41,12 +43,12 @@ XiiPlayer {
 		foreColor = Color.new255(103, 148, 103);
 		outbus = 0;
 		
-		win = SCWindow.new(name, Rect(point.x, point.y, 222, 195), false);
+		win = GUI.window.new(name, Rect(point.x, point.y, 222, 195), false);
 
-		timeText = SCStaticText(win, Rect(60, 130, 40, 18))
+		timeText = GUI.staticText.new(win, Rect(60, 130, 40, 18))
 					.string_("00:00");
 					
-		txtv = SCListView(win, Rect(10,10, 200, 110))
+		txtv = GUI.listView.new(win, Rect(10,10, 200, 110))
 			.items_(soundNames)
 			.background_(Color.new255(155, 205, 155, 60))
 			.hiliteColor_(Color.new255(103, 148, 103)) //Color.new255(155, 205, 155)
@@ -55,11 +57,11 @@ XiiPlayer {
 				soundfile = sounds[sbs.value];
 			});
 
-		SCPopUpMenu(win, Rect(10, 130, 44, 16))
+		GUI.popUpMenu.new(win, Rect(10, 130, 44, 16))
 			.items_(XiiACDropDownChannels.getStereoChnList)
 			.value_(params[0])
 			.background_(Color.white)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.canFocus_(false)
 			.action_({ arg ch;
 				outbus = ch.value * 2;
@@ -67,44 +69,44 @@ XiiPlayer {
 				params[0] = ch.value;
 			});
 
-		refreshButton = SCButton(win, Rect(96, 130, 45, 18))
+		refreshButton = GUI.button.new(win, Rect(96, 130, 45, 18))
 			.states_([["Refresh",Color.black, Color.clear]])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({ 
-				folderSounds = Cocoa.getPathsInDirectory("sounds/ixiquarks");
-				if(folderSounds[0]==".DS_Store", {folderSounds.removeAt(0)});
+				//folderSounds = Cocoa.getPathsInDirectory("sounds/ixiquarks");
+				folderSounds = "sounds/ixiquarks/*".pathMatch; // the default sounds folder
+				sounds = folderSounds ++ addedSounds;
 				
+				folderSounds = folderSounds.collect({|path| path.basename});
+				if(folderSounds[0]==".DS_Store", {folderSounds.removeAt(0)});
 				soundNames = folderSounds.copy ++ addedSoundNames;
 				// take the file extension away
-				soundNames.do({arg item, i; soundNames[i] = soundNames[i].splitext[0]; });
-				folderSounds.do({arg item, i; folderSounds[i] = "sounds/ixiquarks/"++item; });
-				sounds = folderSounds ++ addedSounds;
+				soundNames = soundNames.collect({arg snd; snd.splitext[0]; });
 				txtv.items_(soundNames);
 			});	
 			
-		openFolderButton = SCButton(win, Rect(147, 130, 18, 18))
+		openFolderButton = GUI.button.new(win, Rect(147, 130, 18, 18))
 			.states_([["f",Color.black, Color.clear]])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({ arg butt;
 				"open sounds/ixiquarks/".unixCmd;
 			});
 				
-		openButton = SCButton(win, Rect(170, 130, 40, 18))
+		openButton = GUI.button.new(win, Rect(170, 130, 40, 18))
 			.states_([["Open",Color.black, Color.clear]])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({ arg butt;
-						CocoaDialog.getPaths({ arg paths;
+						GUI.dialog.getPaths({ arg paths;
 
 							paths.do({ arg p;
 								addedSounds = addedSounds.add(p);
 								addedSoundNames = addedSoundNames.add(p.basename);
 							});
 							
-							folderSounds = Cocoa.getPathsInDirectory("sounds/ixiquarks");
+							//folderSounds = Cocoa.getPathsInDirectory("sounds/ixiquarks");
+							folderSounds = "sounds/ixiquarks/*".pathMatch;
 							if(folderSounds[0]==".DS_Store", {folderSounds.removeAt(0)});
-							soundNames = folderSounds.copy ++ addedSoundNames;
-							soundNames.do({arg item, i; soundNames[i] = soundNames[i].splitext[0]; });
-							folderSounds.do({arg item, i; folderSounds[i] = "sounds/ixiquarks/"++item; });
+							folderSounds = folderSounds.collect({|path| path.basename});
 							sounds = folderSounds ++ addedSounds;
 							txtv.items_(soundNames);
 							if(sounds.size == 1, {
@@ -115,9 +117,9 @@ XiiPlayer {
 						});
 					});
 				
-		playButton = SCButton(win, Rect(160, 158, 50, 18))
+		playButton = GUI.button.new(win, Rect(160, 158, 50, 18))
 			.states_([["Play",Color.black, Color.clear], ["Stop",Color.black,Color.green(alpha:0.2)]])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({ arg butt; var a, chNum, dur, filepath, pFunc;
 				if(txtv.items.size > 0, {
 					if(butt.value == 1, {
@@ -125,7 +127,7 @@ XiiPlayer {
 						a = SoundFile.new;
 						a.openRead(soundfile);
 						chNum = a.numChannels;
-						[\chNum, chNum].postln;
+						//[\chNum, chNum].postln;
 						dur = (a.numFrames/s.sampleRate); // get the duration - add / chNum
 						a.close;											buffer = Buffer.cueSoundFile(s, soundfile, 0, chNum);
 						// play it
@@ -158,7 +160,7 @@ XiiPlayer {
 			});	
 
 		volSlider = OSCIISlider.new(win, Rect(10, 160, 140, 10), "- vol", 0, 1, params[1], 0.001, \amp)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; 
 						volume = sl.value; 
 						if(player != nil, {player.set(\vol, sl.value)});

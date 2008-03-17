@@ -91,11 +91,11 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 	Out.ar(outbus, Pan2.ar(sine, pan));
 }).play(Server.default)}.asCompileString;
 
-		win = SCWindow("Gridder", Rect(point.x, point.y, 615, 500), resizable:false);
+		win = GUI.window.new("Gridder", Rect(point.x, point.y, 615, 500), resizable:false);
 		
-		viewKeybButt = SCButton(win, Rect(590, 476, 16, 16))
+		viewKeybButt = GUI.button.new(win, Rect(590, 476, 16, 16))
 				.canFocus_(false)
-				.font_(Font("Helvetica", 9))
+				.font_(GUI.font.new("Helvetica", 9))
 				.states_([["k", Color.black, Color.clear], 
 						["k", Color.black, Color.new255(103, 148, 103, 190)]])
 				.action_({arg butt;
@@ -103,10 +103,10 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 						win.bounds_(Rect(win.bounds.left, win.bounds.top-65, 615, 565));
 						win.refresh;
 						keyboardVisible = true;
-						freqField = SCStaticText(win, Rect(20, 510, 100, 14)).string_("")
-									.font_(Font("Helvetica", 9));
-						noteField= SCStaticText(win, Rect(20, 530, 100, 14)).string_("")
-									.font_(Font("Helvetica", 9));
+						freqField = GUI.staticText.new(win, Rect(20, 510, 100, 14)).string_("")
+									.font_(GUI.font.new("Helvetica", 9));
+						noteField= GUI.staticText.new(win, Rect(20, 530, 100, 14)).string_("")
+									.font_(GUI.font.new("Helvetica", 9));
 						midiKeyboard = MIDIKeyboard.new(win, Rect(120, 500, 460, 50), 7, 36)
 						.keyDownAction_({arg note; 
 							freqField.string_("freq : "+note.midicps.round(0.0001).asString);
@@ -127,8 +127,8 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 
 				});
 		
-		selbPool = SCPopUpMenu(win, Rect(10, 10, 100, 16))
-			.font_(Font("Helvetica", 9))
+		selbPool = GUI.popUpMenu.new(win, Rect(10, 10, 100, 16))
+			.font_(GUI.font.new("Helvetica", 9))
 			.items_(if(XQ.globalBufferDict.keys.asArray == [], {["no pool"]}, {XQ.globalBufferDict.keys.asArray}))
 			.value_(0)
 			.background_(Color.white)
@@ -137,8 +137,8 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 				ldSndsGBufferList.value(selbPool.items[item.value]);
 			});
 
-		bufferPop = SCPopUpMenu(win, Rect(10, 32, 100, 16)) // 550
-				.font_(Font("Helvetica", 9))
+		bufferPop = GUI.popUpMenu.new(win, Rect(10, 32, 100, 16)) // 550
+				.font_(GUI.font.new("Helvetica", 9))
 				.items_(["no buffer 1", "no buffer 2"])
 				.background_(Color.new255(255, 255, 255))
 				.action_({ arg popup;
@@ -171,8 +171,8 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 		
 		ldSndsGBufferList.value(selbPool.items[0].asSymbol);
 
-		soundFuncPop = SCPopUpMenu(win, Rect(10, 54, 100, 16))
-				.font_(Font("Helvetica", 9))
+		soundFuncPop = GUI.popUpMenu.new(win, Rect(10, 54, 100, 16))
+				.font_(GUI.font.new("Helvetica", 9))
 				.items_(["sample", "sine", "bells", "sines", "synth1", "ks_string", 
 				"ixi_string", "impulse", "ringz", "klanks", "scode", "audiostream"])
 				.background_(Color.new255(255, 255, 255))
@@ -188,8 +188,8 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 					params[0] = popup.value;
 				});
 		
-		scalePop = SCPopUpMenu(win, Rect(10, 76, 100, 16))
-				.font_(Font("Helvetica", 9))
+		scalePop = GUI.popUpMenu.new(win, Rect(10, 76, 100, 16))
+				.font_(GUI.font.new("Helvetica", 9))
 				.items_(scalenames)
 				.background_(Color.new255(255, 255, 255))
 				.action_({ arg popup; var sclArray;
@@ -214,13 +214,13 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 					params[1] = popup.value;
 				});
 		
-		scaleNameField = SCTextView(win, Rect(10, 98, 66, 12))
-				.font_(Font("Helvetica", 9))
+		scaleNameField = GUI.textView.new(win, Rect(10, 98, 66, 12))
+				.font_(GUI.font.new("Helvetica", 9))
 				.string_("");
 
-		saveScaleButt = SCButton(win, Rect(80, 98, 28, 14))
+		saveScaleButt = GUI.button.new(win, Rect(80, 98, 28, 14))
 				.canFocus_(false)
-				.font_(Font("Helvetica", 9))
+				.font_(GUI.font.new("Helvetica", 9))
 				.states_([["save", Color.black, Color.clear]])
 				.action_({arg butt;
 					scalelib = scalelib.add([	scaleNameField.string, // name of setting
@@ -234,24 +234,24 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 					
 				});
 
-		clearGridButt = SCButton(win, Rect(10, 125, 47, 16))
+		clearGridButt = GUI.button.new(win, Rect(10, 125, 47, 16))
 			.canFocus_(false)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.states_([["clear", Color.black, Color.clear]])
 			.action_({arg butt;
 				grid.clearGrid; xgrid.clearGrid; ygrid.clearGrid;
 			});
 
-		fillGridButt = SCButton(win, Rect(60, 125, 47, 16))
+		fillGridButt = GUI.button.new(win, Rect(60, 125, 47, 16))
 			.canFocus_(false)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.states_([["fill", Color.black, Color.clear]])
 			.action_({arg butt;
 				grid.fillGrid; xgrid.fillGrid; ygrid.fillGrid;
 			});
 
 		resolutionSlider = OSCIISlider.new(win, Rect(10, 150, 100, 8), "- resolution", 5, 48, resolution, 1)
-						.font_(Font("Helvetica", 9))						.action_({arg sl;
+						.font_(GUI.font.new("Helvetica", 9))						.action_({arg sl;
 							resolution = sl.value;
 							startButt.valueAction_(0); // stop the actors and turn button off
 							grid.remove; xgrid.remove; ygrid.remove;
@@ -280,20 +280,20 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 						});
 						
 		maxFreqSl = OSCIISlider.new(win, Rect(10, 180, 100, 8), "- max freq", 400, 8000, 4000, 1)
-						.font_(Font("Helvetica", 9))						.action_({arg sl; 
+						.font_(GUI.font.new("Helvetica", 9))						.action_({arg sl; 
 							maxFreq = sl.value;
 							params[3] = sl.value;
 						});
 
 		transposeSl = OSCIISlider.new(win, Rect(10, 210, 70, 8), "- transp", 0.25, 4, 1, 0.1)
-						.font_(Font("Helvetica", 9))						.action_({arg sl; 
+						.font_(GUI.font.new("Helvetica", 9))						.action_({arg sl; 
 							transposition = sl.value;
 							params[4] = sl.value;
 						});
 
-		setTuningButt = SCButton(win, Rect(83, 210, 28, 14))
+		setTuningButt = GUI.button.new(win, Rect(83, 210, 28, 14))
 				.canFocus_(false)
-				.font_(Font("Helvetica", 9))
+				.font_(GUI.font.new("Helvetica", 9))
 				.states_([["set", Color.black, Color.clear]])
 				.action_({arg butt;
 					tuningArray = this.makeTuning(resolution, transposition, maxFreq).reverse;
@@ -302,7 +302,7 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 				
 		actorRButtArray = Array.fill(4, {arg i;
 			OSCIIRadioButton(win, Rect(10+(i*25), 245, 12, 12), (i+1).asString)
-				.font_(Font("Helvetica", 9))
+				.font_(GUI.font.new("Helvetica", 9))
 				.value_(0)
 				.color_(actorColors[i])
 				.canFocus_(true)
@@ -321,8 +321,8 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 			});
 			
 		selActorRButtArray = Array.fill(4, {arg i;
-			SCButton(win, Rect(10+(i*25), 260, 12, 12))
-				.font_(Font("Helvetica", 9))
+			GUI.button.new(win, Rect(10+(i*25), 260, 12, 12))
+				.font_(GUI.font.new("Helvetica", 9))
 				.value_(0)
 				.states_([["",Color.clear,  Color.clear],["", Color.clear,  actorColors[i]]])
 				.canFocus_(false)
@@ -336,19 +336,19 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 			});
 
 		actorTempoSl = OSCIISlider.new(win, Rect(10, 280, 100, 8), "- tempo", 60, 480, 120, 1)
-						.font_(Font("Helvetica", 9))						.action_({arg sl; 
+						.font_(GUI.font.new("Helvetica", 9))						.action_({arg sl; 
 							timerArray[selectedActor] = 60/sl.value;
 							params[5] = sl.value;
 						});
 						
 		actorStepSizeSl = OSCIISlider.new(win, Rect(10, 310, 100, 8), "- step size", 1, 4, 1, 1)
-						.font_(Font("Helvetica", 9))						.action_({arg sl; 
+						.font_(GUI.font.new("Helvetica", 9))						.action_({arg sl; 
 							stepSizeArray[selectedActor] = sl.value;
 							params[6] = sl.value;
 						});
 
 		breedFlagButt = OSCIIRadioButton(win, Rect(10, 340, 14, 14), "actor breed")
-				.font_(Font("Helvetica", 9))
+				.font_(GUI.font.new("Helvetica", 9))
 				.value_(0)
 				.action_({arg butt;
 					if(butt.value == 1, {
@@ -358,16 +358,16 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 					});
 				});
 
-		SCStaticText(win, Rect(10, 358, 65, 18))
+		GUI.staticText.new(win, Rect(10, 358, 65, 18))
 			.string_("selected node :")
-			.font_(Font("Helvetica", 9));
+			.font_(GUI.font.new("Helvetica", 9));
 
-		selectedNodeField = SCStaticText(win, Rect(80, 358, 60, 18))
+		selectedNodeField = GUI.staticText.new(win, Rect(80, 358, 60, 18))
 			.string_(selectedNode.asString)
-			.font_(Font("Helvetica", 9));
+			.font_(GUI.font.new("Helvetica", 9));
 
 		playModeButt = OSCIIRadioButton(win, Rect(10, 380, 14, 14), "play mode")
-				.font_(Font("Helvetica", 9))
+				.font_(GUI.font.new("Helvetica", 9))
 				.value_(0)
 				.action_({arg butt;
 					if(butt.value == 1, {
@@ -379,7 +379,7 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 				});
 				
 		playScaleOnlyModeButt = OSCIIRadioButton(win, Rect(10, 400, 14, 14), "scale only")
-				.font_(Font("Helvetica", 9))
+				.font_(GUI.font.new("Helvetica", 9))
 				.value_(0)
 				.action_({arg butt;
 					if(butt.value == 1, {
@@ -391,13 +391,13 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 				});
 
 		volumeSlider = OSCIISlider.new(win, Rect(10, 420, 100, 8), "- vol", 0, 1.0, 1, 0.01, \amp)
-					.font_(Font("Helvetica", 9))
+					.font_(GUI.font.new("Helvetica", 9))
 					.action_({arg sl; 
 						globalvol = sl.value;
 						params[9] = sl.value;
 					});
 						
-		outbusPoP = SCPopUpMenu(win, Rect(10, 448, 50, 16))			.font_(Font("Helvetica", 9))
+		outbusPoP = GUI.popUpMenu.new(win, Rect(10, 448, 50, 16))			.font_(GUI.font.new("Helvetica", 9))
 			.items_(XiiACDropDownChannels.getStereoChnList)
 			.value_(0)
 			.background_(Color.white)
@@ -406,10 +406,10 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 				params[10] = ch.value;
 			});
 
-		startButt = SCButton(win, Rect(65, 447, 45, 18))
+		startButt = GUI.button.new(win, Rect(65, 447, 45, 18))
 			.states_([["start", Color.black, Color.clear],
 					["stop", Color.black, Color.green(alpha:0.2)]])
-			.font_(Font("Helvetica", 9))			
+			.font_(GUI.font.new("Helvetica", 9))			
 			.action_({arg butt;
 				if(butt.value == 1, {
 					actorTaskArray.do({arg task, i; 
@@ -626,12 +626,12 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 		
 		createCodeWin = {
 			var funcwin, func, subm, test, view;
-			funcwin = SCWindow("scode", Rect(600,700, 440, 200)).front;
+			funcwin = GUI.window.new("scode", Rect(600, 400, 440, 200)).front;
 			funcwin.alwaysOnTop = true;
 			
 			view = funcwin.view;
-			func = SCTextView(view, Rect(20, 10, 400, 140))
-					.font_(Font("Monaco", 9))
+			func = GUI.textView.new(view, Rect(20, 10, 400, 140))
+					.font_(GUI.font.new("Monaco", 9))
 					.resize_(5)
 					.focus(true)
 					.string_(
@@ -641,18 +641,18 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 							synthDefInUse
 						});
 					);
-			test = SCButton(view, Rect(280,160,50,18))
+			test = GUI.button.new(view, Rect(280,160,50,18))
 					.states_([["test",Color.black,Color.clear]])
 					.resize_(9)
-					.font_(Font("Helvetica", 9))
+					.font_(GUI.font.new("Helvetica", 9))
 					.action_({
 						func.string.interpret.value;
 					});
 					
-			subm = SCButton(view, Rect(340,160,50,18))
+			subm = GUI.button.new(view, Rect(340,160,50,18))
 					.states_([["submit",Color.black,Color.clear]])
 					.resize_(9)
-					.font_(Font("Helvetica", 9))
+					.font_(GUI.font.new("Helvetica", 9))
 					.action_({
 						func.string.interpret;
 						synthDefInUse = func.string;
@@ -662,26 +662,26 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 		
 		createAudioStreamBusWin = {
 			var win, envview, timesl, setButt;
-			win = SCWindow("audiostream inbus", Rect(200, 450, 250, 100), resizable:false).front;
+			win = GUI.window.new("audiostream inbus", Rect(200, 450, 250, 100), resizable:false).front;
 			win.alwaysOnTop = true;
 
-			SCStaticText(win, Rect(20, 55, 20, 16))
-				.font_(Font("Helvetica", 9)).string_("in"); 
+			GUI.staticText.new(win, Rect(20, 55, 20, 16))
+				.font_(GUI.font.new("Helvetica", 9)).string_("in"); 
 
-			SCPopUpMenu(win, Rect(35, 55, 50, 16))
+			GUI.popUpMenu.new(win, Rect(35, 55, 50, 16))
 				.items_(XiiACDropDownChannels.getStereoChnList)
 				.value_(10)
-				.font_(Font("Helvetica", 9))
+				.font_(GUI.font.new("Helvetica", 9))
 				.background_(Color.white)
 				.canFocus_(false)
 				.action_({ arg ch; var inbus;
 					inbus = ch.value * 2;
 				});
 
-			setButt = SCButton.new(win, Rect(120, 55, 60, 16))
+			setButt = GUI.button.new(win, Rect(120, 55, 60, 16))
 					.states_([["set inbus", Color.black, Color.clear]])
 					.focus(true)
-					.font_(Font("Helvetica", 9))
+					.font_(GUI.font.new("Helvetica", 9))
 					.action_({
 						win.close;
 					});

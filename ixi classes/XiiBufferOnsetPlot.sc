@@ -97,10 +97,10 @@ XiiBufferOnsetPlot {
 			chanArray[j] = val;
 		});
 		
-		win = argwin ? SCWindow("ixi buffer plot", Rect(bounds.left, bounds.height, 			bounds.width+20, bounds.height+20), resizable: false);
+		win = argwin ? GUI.window.new("ixi buffer plot", Rect(bounds.left, bounds.height, 			bounds.width+20, bounds.height+20), resizable: false);
 		numChannels.do({ |i|
 			chanPlotter.add(
-				SCMultiSliderView(win, 
+				GUI.multiSliderView.new(win, 
 					Rect(bounds.left, bounds.top + ((bounds.height/numChannels)*i),
 											 bounds.width, bounds.height/numChannels))
 				.readOnly_(true)
@@ -175,13 +175,13 @@ XiiBufferOnsetPlot {
 	drawOnsets {
 		win.drawHook_({
 			onsetsList.do({arg point, i; 
-				Color.red.alpha_(0.2).set;
-				Pen.fillOval( Rect(point.x-3.5, point.y-3.5, 8, 8));
-				Color.black.alpha_(0.6).set;
-				Pen.strokeOval( Rect(point.x-3.5, point.y-3.5, 8, 8));
-				Color.black.alpha_(0.5).set;
-				Pen.line(Point((point.x).round(1)+0.5, bounds.height+4), Point((point.x).round(1)+0.5, point.y+5.0));
-				Pen.stroke;
+				GUI.pen.color = Color.red.alpha_(0.2);
+				GUI.pen.fillOval( Rect(point.x-3.5, point.y-3.5, 8, 8));
+				GUI.pen.color = Color.black.alpha_(0.6);
+				GUI.pen.strokeOval( Rect(point.x-3.5, point.y-3.5, 8, 8));
+				GUI.pen.color = Color.black.alpha_(0.5);
+				GUI.pen.line(Point((point.x).round(1)+0.5, bounds.height+4), Point((point.x).round(1)+0.5, point.y+5.0));
+				GUI.pen.stroke;
 			});
 		});
 		win.refresh;
@@ -190,15 +190,15 @@ XiiBufferOnsetPlot {
 	drawFFTMushrooms {arg fftOnsets;
 		win.drawHook_({
 			fftOnsets.do({arg point, i; 
-				Color.red.alpha_(0.2).set;
-				Pen.addAnnularWedge(point, 3, 9, pi, pi);
-				Pen.fill;
-				Color.black.alpha_(0.6).set;
-				Pen.addAnnularWedge(point, 3, 9, pi, pi);
-				Pen.stroke;
-				Color.black.alpha_(0.5).set;
-				Pen.line(Point((point.x).round(1)+0.5, bounds.height+4), Point((point.x).round(1)+0.5, point.y));
-				Pen.stroke;
+				GUI.pen.color = Color.red.alpha_(0.2);
+				GUI.pen.addAnnularWedge(point, 3, 9, pi, pi);
+				GUI.pen.fill;
+				GUI.pen.color = Color.black.alpha_(0.6);
+				GUI.pen.addAnnularWedge(point, 3, 9, pi, pi);
+				GUI.pen.stroke;
+				GUI.pen.color = Color.black.alpha_(0.5);
+				GUI.pen.line(Point((point.x).round(1)+0.5, bounds.height+4), Point((point.x).round(1)+0.5, point.y));
+				GUI.pen.stroke;
 			});
 		});
 		win.refresh;

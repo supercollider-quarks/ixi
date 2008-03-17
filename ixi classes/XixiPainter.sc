@@ -1,5 +1,6 @@
+
 XixiPainter {
-	var drawer, keytracker;
+	var drawer;
 	var win, bounds;
 	var keyDownAction, keyUpAction;
 	var backgrDrawFunc;
@@ -34,19 +35,11 @@ XixiPainter {
 		running = false;
 		
 		background = Color.white;
-		
-		keytracker = SCUserView(win, Rect(-10, -10, 2000, 2000))
-			.canFocus_(true)
-//			.keyDownFunc_({ |me, key, modifiers, unicode |
-			.keyDownAction_({ |me, key, modifiers, unicode |
-				keyDownAction.value(key, modifiers, unicode);
-			})
-			.keyUpAction_({ |me, key, modifiers, unicode |
-				keyUpAction.value(key, modifiers, unicode);
-			});
 
-		drawer = SCUserView(win, Rect(bounds.left, bounds.top, bounds.width, bounds.height))
-			.canFocus_(false)
+
+		drawer = GUI.userView.new(win, Rect(bounds.left, bounds.top, bounds.width, bounds.height))
+			.canFocus_(true)
+			.focusColor_(Color.new(0,0,0,0))
 			.mouseDownAction_({|me, x, y, mod|
 				if(mod == 262401, { // right mouse down
 				}, {// else
@@ -73,6 +66,12 @@ XixiPainter {
 					object.mouseOver(x, y);
 				})
 			})
+			.keyDownAction_({ |me, key, modifiers, unicode |
+				keyDownAction.value(key, modifiers, unicode);
+			})
+			.keyUpAction_({ |me, key, modifiers, unicode |
+				keyUpAction.value(key, modifiers, unicode);
+			})
 			.mouseUpAction_({|me, x, y, mod|
 				drawList.do({ |object|
 					object.mouseUp(x, y);
@@ -80,16 +79,15 @@ XixiPainter {
 			});
 			
 			win.drawHook_({	
-				background.set; // background color
-				Pen.fillRect(bounds); // background fill
-				Color.black.set; // set color back to black
+				GUI.pen.color = background; // background color
+				GUI.pen.fillRect(bounds); // background fill
+				GUI.pen.color = Color.black;
 				drawList.do({ |object|
 					object.draw.value;
 				});	
-				Color.black.set;
-				Pen.strokeRect(bounds); // background frame
+				GUI.pen.color = Color.black;
+				GUI.pen.strokeRect(bounds); // background frame
 			});
-	keytracker.focus(true);
 	}
 	
 	clearSpace {
@@ -173,7 +171,6 @@ XixiPainter {
 	}
 	
 	remove {
-		keytracker.remove;
 		drawer.remove;
 	}
 }

@@ -34,16 +34,16 @@ XiiAudioIn {
 		foreColor = XiiColors.darkgreen;
 		outbus = params[4];
 		
-		win = SCWindow.new(name, Rect(point.x, point.y, 222, 106), resizable:false);
+		win = GUI.window.new(name, Rect(point.x, point.y, 222, 106), resizable:false);
 				
 		spec = ControlSpec(0, 1.0, \amp); // for amplitude in rec slider
 		
-		inmeterl = SCRangeSlider(win, Rect(10, 10, 20, 80));
+		inmeterl = GUI.rangeSlider.new(win, Rect(10, 10, 20, 80));
 		inmeterl.background_(bgColor).knobColor_(foreColor);
 		inmeterl.lo_(0).hi_(0.05);
 		inmeterl.canFocus_(false);
 		
-		leftVol = SCSlider(win, Rect(40, 10, 10, 80))
+		leftVol = GUI.slider.new(win, Rect(40, 10, 10, 80))
 					.canFocus_(false)
 					.background_(bgColor).knobColor_(foreColor)
 					.value_(params[0])
@@ -52,12 +52,12 @@ XiiAudioIn {
 						params[0] = sl.value;
 					});
 		
-		inmeterr = SCRangeSlider(win, Rect(60, 10, 20, 80));
+		inmeterr = GUI.rangeSlider.new(win, Rect(60, 10, 20, 80));
 		inmeterr.background_(bgColor).knobColor_(foreColor);
 		inmeterr.lo_(0).hi_(0.05);
 		inmeterr.canFocus_(false);
 		
-		rightVol = SCSlider(win, Rect(90, 10, 10, 80))
+		rightVol = GUI.slider.new(win, Rect(90, 10, 10, 80))
 					.canFocus_(false)
 					.background_(bgColor).knobColor_(foreColor)
 					.value_(params[1])
@@ -76,19 +76,19 @@ XiiAudioIn {
 		}).add;
 			
 		panLslider = OSCIISlider.new(win, Rect(110, 10, 100, 10), "- L pan", -1, 1, -1, 0.01)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.value_(params[2])
 			.action_({arg sl; audioInSynth.set(\panL, sl.value); params[2] = sl.value;});
 		panRslider = OSCIISlider.new(win, Rect(110, 40, 100, 10), "- R pan", -1, 1, 1, 0.01)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.value_(params[3])		
 			.action_({arg sl; audioInSynth.set(\panR, sl.value); params[3] = sl.value;});
 		
-		SCPopUpMenu(win,Rect(110, 75, 50, 16))
+		GUI.popUpMenu.new(win,Rect(110, 75, 50, 16))
 			.items_(XiiACDropDownChannels.getStereoChnList)
 			.value_(outbus/2) // because of stereo
 			.background_(Color.white)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.canFocus_(false)
 			.action_({ arg ch;
 				outbus = ch.value * 2;
@@ -96,12 +96,12 @@ XiiAudioIn {
 				params[4] = outbus;
 			});
 			
-		onOffButt = SCButton(win,Rect(170, 75, 36, 16))
+		onOffButt = GUI.button.new(win,Rect(170, 75, 36, 16))
 			.states_([
 					["on",Color.black, Color.clear],
 					["off",Color.black,bgColor]
 				])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({ arg butt;
 				if(butt.value == 1, {
 					audioInSynth = Synth(\xiiAudioIn, [\out, outbus, 

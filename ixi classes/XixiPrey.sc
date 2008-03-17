@@ -95,24 +95,24 @@ XixiPrey {
 	
 	draw {
 		^{
-			Pen.use({
-				Color.black.set;
-				Pen.width = 1;
-				Pen.translate(point.x, point.y);
-				Pen.moveTo(0@0);
+			GUI.pen.use({
+				GUI.pen.color = Color.black;
+				GUI.pen.width = 1;
+				GUI.pen.translate(point.x, point.y);
+				GUI.pen.moveTo(0@0);
 				if(selected, {
-					Color.new(0,0,0,0.3).set;
-					Pen.strokeOval(Rect(-10, -10, 20, 20));
-					Color.black.set;
+					GUI.pen.color = Color.new(0,0,0,0.3);
+					GUI.pen.strokeOval(Rect(-10, -10, 20, 20));
+					GUI.pen.color = Color.black;
 				});
-				Pen.rotate(rot);
-		     	Pen.line(0@0, 12@3);
-		     	Pen.line(0@0, 12@ -3);
-		     	Pen.stroke;
-		     	fillcolor.set;
-		    		Pen.fillOval(Rect(-5, -5, 10, 10));
-		     	Color.black.set;
-		     	Pen.strokeOval(Rect(-5, -5, 10, 10));
+				GUI.pen.rotate(rot);
+		     	GUI.pen.line(0@0, 12@3);
+		     	GUI.pen.line(0@0, 12@ -3);
+		     	GUI.pen.stroke;
+		     	GUI.pen.color = fillcolor;
+		    		GUI.pen.fillOval(Rect(-5, -5, 10, 10));
+		     	GUI.pen.color = Color.black;
+		     	GUI.pen.strokeOval(Rect(-5, -5, 10, 10));
 			});
     		}
 	}

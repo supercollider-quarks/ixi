@@ -5,7 +5,7 @@ XiiTheory {
 		.ionian_([2,2,1,2,2,2,1])
 		.augmented_([3,1,2,1,3,1]); // etc.
 		
-		//^super.new;
+		//^super.new; // needed for methods below
 	}
 
 // need to fill in the scales

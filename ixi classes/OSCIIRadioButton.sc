@@ -17,7 +17,7 @@ OSCIIRadioButton {
 		fillcolor = Color.new255(103, 148, 103);
 		buttrect = bounds;
 	
-		button = SCButton(w, buttrect)
+		button = GUI.button.new(w, buttrect)
 					.states_([["", Color.clear, Color.clear],
 					   ["", Color.clear,  fillcolor]])
 					.canFocus_(false)
@@ -30,12 +30,12 @@ OSCIIRadioButton {
 							string.size * 5, // size of each letter around 5 pixels?
 							16);
 							
-		stringview = SCStaticText(w, stringbounds)
+		stringview = GUI.staticText.new(w, stringbounds)
 					.string_(string);
 		
 		// toggle radio when clicked on string
-		invButton = SCTabletView(w, stringbounds);
-		invButton.background = Color.new(11,11,11,0);
+		invButton = GUI.userView.new(w, stringbounds);
+		invButton.background = Color.new255(11,11,11,0);
 		invButton.canFocus = false;
 		invButton.mouseDownAction = { arg  view,x,y;
 				//button.valueAction_(1);
@@ -121,7 +121,7 @@ OSCIIRadioButtonX {
 					.string_(string);
 		
 		// toggle radio when clicked on string
-		invButton = SCTabletView(w, stringbounds);
+		invButton = GUI.userView.new(w, stringbounds);
 		invButton.background = Color.new(11,11,11,0);
 		invButton.canFocus = false;
 		invButton.mouseDownAction = { arg  view,x,y;

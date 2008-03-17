@@ -1,5 +1,5 @@
 
-// WARNING: THIS CODE IS 4-5 YEARS OLD! IT IS A PATCH CONVERTED INTO A CLASS. BAD CODING AHEAD!
+// WARNING: THIS CODE IS MANY YEARS OLD! IT IS A PATCH CONVERTED INTO A CLASS. BAD CODING AHEAD!
 // Oh Dios!
 
 XiiGrainBox {
@@ -51,21 +51,21 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 ];
 
 xiigui = nil;
-point = if(setting.isNil, {Point(320, 730)}, {setting[1]});
+point = if(setting.isNil, {Point(100, 130)}, {setting[1]});
 params = if(setting.isNil, {[1, [0,0]]}, {setting[2]});
 outbusarray = params[1];
 
-win = SCWindow.new("   grainBox", Rect(point.x, point.y, 756, 300), resizable:false);
+win = GUI.window.new("   grainBox", Rect(point.x, point.y, 756, 300), resizable:false);
 win.drawHook = {
-	Color.new255(255, 100, 0).set;
-	Pen.width = 3;
-	Pen.translate(45,210);
-	Pen.scale(0.4,0.4);
-	Pen.moveTo(1@7);
+	GUI.pen.color = Color.new255(255, 100, 0);
+	GUI.pen.width = 3;
+	GUI.pen.translate(45,210);
+	GUI.pen.scale(0.4,0.4);
+	GUI.pen.moveTo(1@7);
 	p.do({arg point;
-		Pen.lineTo(point+0.5);
+		GUI.pen.lineTo(point+0.5);
 	});
-	Pen.stroke
+	GUI.pen.stroke
 };
 //win.refresh;
 
@@ -90,7 +90,7 @@ channels.do({arg i; var sampleInSec, r, c; // LOOP
 
 // ===================== ENVELOPE VIEW CODE ==============================
 envViewList.add(
-envView = SCEnvelopeView(win, Rect(125+(i*316), 5, 300, 250))
+envView = GUI.envelopeView.new(win, Rect(125+(i*316), 5, 300, 250))
 			.thumbSize_(8.0)
 			.fillColor_(Color.clear)
 			.background_(Color.new255(255, 255, 255, 155))
@@ -295,8 +295,8 @@ envView.select(-1);
 
 // ================================ END OF ENVELOPE VIEW CODE ======================
 
-fileListPopup.add(SCPopUpMenu(win,Rect(190+(i*316), 264, 140, 18))
-			.font_(Font("Helvetica", 9))
+fileListPopup.add(GUI.popUpMenu.new(win,Rect(190+(i*316), 264, 140, 18))
+			.font_(GUI.font.new("Helvetica", 9))
 			.items_(sndNameList)
 			.background_(Color.new255(255, 255, 255))
 			.value_(i)
@@ -329,8 +329,8 @@ fileListPopup.add(SCPopUpMenu(win,Rect(190+(i*316), 264, 140, 18))
 				});
 		);
 
-popupOutBus = SCPopUpMenu(win,Rect(127+(i*316), 264,50,18))
-				.font_(Font("Helvetica", 9))
+popupOutBus = GUI.popUpMenu.new(win,Rect(127+(i*316), 264,50,18))
+				.font_(GUI.font.new("Helvetica", 9))
 				.items_(XiiACDropDownChannels.getStereoChnList)
 				.background_(Color.new255(255, 255, 255))
 				.value_(outbusarray[i])
@@ -345,8 +345,8 @@ popupOutBus = SCPopUpMenu(win,Rect(127+(i*316), 264,50,18))
 // ============================ END OF CHANNEL FUNC ==================================
 
 
-selbPool = SCPopUpMenu(win, Rect(10, 5, 102, 16))
-	.font_(Font("Helvetica", 9))
+selbPool = GUI.popUpMenu.new(win, Rect(10, 5, 102, 16))
+	.font_(GUI.font.new("Helvetica", 9))
 	.items_(if(XQ.globalBufferDict.keys.asArray == [], {["no pool"]}, {XQ.globalBufferDict.keys.asArray}))
 	.value_(0)
 	.background_(Color.white)
@@ -365,9 +365,9 @@ selbPool = SCPopUpMenu(win, Rect(10, 5, 102, 16))
 
 // -----------------------------------------------
 
-startStopButt = SCButton(win,Rect(10, 30, 102, 18))
+startStopButt = GUI.button.new(win,Rect(10, 30, 102, 18))
 			.states_([["start",Color.black,Color.clear],["stop",Color.black,Color.green(alpha:0.2)]])
-			.font_(Font("Helvetica", 9))			
+			.font_(GUI.font.new("Helvetica", 9))			
 			.action_({arg butt; var dictArray;
 				dictArray = [paraDict1, paraDict2];
 				fileListPopup.do({arg popup; popup.action.value(popup.value)}); // load monobuf
@@ -407,19 +407,19 @@ startStopButt = SCButton(win,Rect(10, 30, 102, 18))
 				params[0] = sl.value;
 			});
 		
-		SCStaticText(win, Rect(10, 104, 230, 15)).string_("x = ");
-		SCStaticText(win, Rect(10, 130, 230, 15)).string_("y = ");
-		xfield = 	SCTextField(win,Rect(32,104,78,18));
-					xfield.font_(Font("Helvetica", 10));
+		GUI.staticText.new(win, Rect(10, 104, 230, 15)).string_("x = ");
+		GUI.staticText.new(win, Rect(10, 130, 230, 15)).string_("y = ");
+		xfield = 	GUI.textField.new(win,Rect(32,104,78,18));
+					xfield.font_(GUI.font.new("Monaco", 9));
 					xfield.setProperty(\align,\center);
-		yfield = 	SCTextField(win,Rect(32,130,78,18));
-					yfield.font_(Font("Helvetica", 10));
+		yfield = 	GUI.textField.new(win,Rect(32,130,78,18));
+					yfield.font_(GUI.font.new("Monaco", 9));
 					yfield.setProperty(\align,\center);
 		
 		
-		infoButt = SCButton(win,Rect(10, 156, 102, 18))
+		infoButt = GUI.button.new(win,Rect(10, 156, 102, 18))
 					.states_([["colour info"]])
-					.font_(Font("Helvetica", 9))
+					.font_(GUI.font.new("Helvetica", 9))
 					.background_(Color.new255(160, 170, 255, 100))
 					.action_({this.infoFunc});
 		
@@ -497,7 +497,7 @@ startStopButt = SCButton(win,Rect(10, 30, 102, 18))
 		["x = allpass delay time","y = allpass decay time"],
 		];
 		r = Routine.new({
-		w = SCWindow.new("   colour info", Rect(250, 730, 280, 380));
+		w = GUI.window.new("   colour info", Rect(250, 100, 280, 380));
 		w.alpha = 0.2;
 		w.front;
 		10.do({arg i;	
@@ -508,10 +508,10 @@ startStopButt = SCButton(win,Rect(10, 30, 102, 18))
 		});
 		AppClock.play(r);
 		10.do({arg i;		
-			b = 	SCTextField(w,Rect(20,20+(i*40),30,30));
-			b.setProperty(\boxColor,colList.at(i));
-			SCStaticText(w, Rect(60, 18+(i*40), 230, 15)).string_(stringList[i][0]);
-			SCStaticText(w, Rect(60, 34+(i*40), 230, 15)).string_(stringList[i][1]);
+			b = 	GUI.textField.new(w,Rect(20,20+(i*40),30,30));
+			b.setProperty(\boxColor, colList.at(i));
+			GUI.staticText.new(w, Rect(60, 18+(i*40), 230, 15)).string_(stringList[i][0]);
+			GUI.staticText.new(w, Rect(60, 34+(i*40), 230, 15)).string_(stringList[i][1]);
 			});
 	}
 	

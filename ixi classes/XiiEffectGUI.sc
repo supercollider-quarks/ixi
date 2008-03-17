@@ -39,16 +39,17 @@ XiiEffectGUI {
 					
 		point = if(setting.isNil.not, {setting[4]}, {XiiWindowLocation.new(name)});
 		
-		win = SCWindow(name, 
+		win = GUI.window.new(name, 
 				Rect(point.x, point.y, 310, (param[0].size * 20) + 50), 
 				resizable:false); 
 		win.view.decorator = lay = FlowLayout(win.view.bounds, 5@5, 5@5); 
 
-		SCStaticText(win, 12 @ 15).font_(Font("Helvetica", 9)).string_("in").align_(\right); 
-		SCPopUpMenu(win, 40 @ 15)
+		GUI.staticText.new(win, 12 @ 15).font_(GUI.font.new("Helvetica", 9))
+			.string_("in").align_(\right); 
+		GUI.popUpMenu.new(win, 40 @ 15)
 			.items_(if(channels==1, {monoChList},{stereoChList}))
 			.value_(inbus/ch) 
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.action_({ arg ch;
@@ -56,11 +57,12 @@ XiiEffectGUI {
 				if (fxOn, { synth.set(\inbus, inbus) });
 			});
 
-		SCStaticText(win, 14 @ 15).font_(Font("Helvetica", 9)).string_("out").align_(\right); 
-		SCPopUpMenu(win, 40 @ 15)
+		GUI.staticText.new(win, 14 @ 15).font_(GUI.font.new("Helvetica", 9))
+			.string_("out").align_(\right); 
+		GUI.popUpMenu.new(win, 40 @ 15)
 			.items_(if(channels==1, {monoChList},{stereoChList}))
 			.value_(outbus/ch)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.action_({ arg ch;
@@ -68,15 +70,17 @@ XiiEffectGUI {
 				if (fxOn, { synth.set(\outbus, outbus) });
 			});
 			
-		SCStaticText(win, 15 @ 15).font_(Font("Helvetica", 9)).string_("Tgt").align_(\right); 
-		SCNumberBox(win, 25 @ 15).font_(Font("Helvetica", 9)).value_(tgt).action_({|v| 
+		GUI.staticText.new(win, 15 @ 15).font_(GUI.font.new("Helvetica", 9))
+			.string_("Tgt").align_(\right); 
+		GUI.numberBox.new(win, 25 @ 15).font_(GUI.font.new("Helvetica", 9))
+			.value_(tgt).action_({|v| 
 		   v.value = 0.max(v.value); 
 		   tgt = v.value.asInteger; 
 		   moveSynth.value; 
 		}); 
 		
-		SCPopUpMenu(win, 60@15) 
-		   .font_(Font("Helvetica", 9)) 
+		GUI.popUpMenu.new(win, 60@15) 
+		   .font_(GUI.font.new("Helvetica", 9)) 
 		   .items_(["addToHead", "addToTail", "addAfter", "addBefore"]) 
 		   .value_(1) 
 		   .action_({|v| 
@@ -84,8 +88,8 @@ XiiEffectGUI {
 		      moveSynth.value; 
 		   }); 
 		    
-		SCButton(win,12@15) 
-		   .font_(Font("Helvetica", 9)) 
+		GUI.button.new(win,12@15) 
+		   .font_(GUI.font.new("Helvetica", 9)) 
 		   .states_([["#"]]) 
 		   .action_({|v| 
 		         synthParams = Array.new; 
@@ -97,8 +101,8 @@ XiiEffectGUI {
 		            ", target: " ++ tgt ++ ", addAction: \\" ++ addAct ++ ")").postln; 
 		   }); 
 		
-		onOffButt = SCButton(win, 30@15) 
-		   .font_(Font("Helvetica", 9)) 
+		onOffButt = GUI.button.new(win, 30@15) 
+		   .font_(GUI.font.new("Helvetica", 9)) 
 		   .states_([["On", Color.black, Color.clear], 
 					["Off", Color.black, Color.green(alpha:0.2)]]) 
 		   .action_({|v| 
@@ -121,8 +125,8 @@ XiiEffectGUI {
 		param[0].size.do({|i| 
 		   slider[i] = EZSlider(win, 288@15, param[0][i], param[2][i], 
 									labelWidth: 50, numberWidth: 40); 
-		   slider[i].labelView.font_(Font("Helvetica", 9)); 
-		   slider[i].numberView.font_(Font("Helvetica", 9)); 
+		   slider[i].labelView.font_(GUI.font.new("Helvetica", 9)); 
+		   slider[i].numberView.font_(GUI.font.new("Helvetica", 9)); 
 		   slider[i].sliderView.background_(Gradient(Color.new255(103, 148, 103, 0), 
 		      Color.new255(103, 148, 103, 200), \h, 31)); 
 		   slider[i].action = {|v| 
@@ -140,9 +144,10 @@ XiiEffectGUI {
 			});
 		});
 
-		SCStaticText(win,50 @ 15).font_(Font("Helvetica", 9)).align_(\right).string_("nodeID"); 
-		nodeLabel = SCStaticText(win,50 @ 15)
-				.font_(Font("Helvetica", 9))
+		GUI.staticText.new(win,50 @ 15).font_(GUI.font.new("Helvetica", 9))
+			.align_(\right).string_("nodeID"); 
+		nodeLabel = GUI.staticText.new(win,50 @ 15)
+				.font_(GUI.font.new("Helvetica", 9))
 				.align_(\left).string_("none"); 
 		moveSynth = { 
 		   if ( fxOn, { 

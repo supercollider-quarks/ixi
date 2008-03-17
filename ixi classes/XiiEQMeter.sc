@@ -34,8 +34,8 @@ XiiEQMeter {
 		inbus = params[0]*2;
 		cutfreqs = [20, 25, 32.5, 44, 54, 65, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000, 20000];
 		
-		win = SCWindow(name, Rect(point.x, point.y, 520, 243), resizable:false);
-		multislider = SCMultiSliderView(win, Rect(10, 5, 496, 200))
+		win = GUI.window.new(name, Rect(point.x, point.y, 520, 243), resizable:false);
+		multislider = GUI.multiSliderView.new(win, Rect(10, 5, 496, 200))
 						.value_(0.dup(size))
 						.size_(size)
 						.isFilled_(true)
@@ -64,14 +64,14 @@ XiiEQMeter {
 		}).load(s);
 
 		// INBUS
-		SCStaticText(win, Rect(12, 210, 50, 18))
+		GUI.staticText.new(win, Rect(12, 210, 50, 18))
 			.string_("inbus")
-			.font_(Font("Helvetica", 9));
+			.font_(GUI.font.new("Helvetica", 9));
 
-		SCPopUpMenu(win, Rect(40, 212, 40, 14))
+		GUI.popUpMenu.new(win, Rect(40, 212, 40, 14))
 			.items_(XiiACDropDownChannels.getStereoChnList)
 			.value_(params[0])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.action_({ arg ch;
@@ -81,14 +81,14 @@ XiiEQMeter {
 			});
 
 		// DRAW STYLE
-		SCStaticText(win, Rect(92, 210, 70, 18))
+		GUI.staticText.new(win, Rect(92, 210, 70, 18))
 			.string_("bands")
-			.font_(Font("Helvetica", 9));
+			.font_(GUI.font.new("Helvetica", 9));
 
-		SCPopUpMenu(win, Rect(123, 212, 65, 14))
+		GUI.popUpMenu.new(win, Rect(123, 212, 65, 14))
 			.items_(["filled", "unfilled", "lines"])
 			.value_(params[1])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.action_({ arg ch;
@@ -124,12 +124,12 @@ XiiEQMeter {
 						};
 
 		// COLORS
-		SCStaticText(win, Rect(200, 210, 50, 18))
+		GUI.staticText.new(win, Rect(200, 210, 50, 18))
 			.string_("colors")
-			.font_(Font("Helvetica", 9));
+			.font_(GUI.font.new("Helvetica", 9));
 
 		strokeRButt = OSCIIRadioButton(win, Rect(230, 209, 12, 12), "stroke")
-						.font_(Font("Helvetica", 9))
+						.font_(GUI.font.new("Helvetica", 9))
 						.value_(params[2])
 						.action_({ arg butt;
 							fillRButt.switchState;
@@ -139,7 +139,7 @@ XiiEQMeter {
 						});
 
 		fillRButt = OSCIIRadioButton(win, Rect(230, 222, 12, 12), "fill")
-						.font_(Font("Helvetica", 9))
+						.font_(GUI.font.new("Helvetica", 9))
 						.value_(params[3])
 						.action_({ arg butt;
 							strokeRButt.switchState;
@@ -148,11 +148,11 @@ XiiEQMeter {
 							params[2] = strokeRButt.value;
 						});
 
-		SCPopUpMenu(win, Rect(285, 212, 60, 14))
+		GUI.popUpMenu.new(win, Rect(285, 212, 60, 14))
 			.items_(["green", "black", "pink", "indian red", "light golen", 
 					"steel blue", "navajo white", "aqua marine", "bisque", "salmon"])
 			.value_(params[4])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.action_({ arg ch; var color;
@@ -166,20 +166,20 @@ XiiEQMeter {
 				});
 			});
 
-		SCStaticText(win, Rect(360, 210, 60, 18))
+		GUI.staticText.new(win, Rect(360, 210, 60, 18))
 			.string_("band freq :")
-			.font_(Font("Helvetica", 9));
+			.font_(GUI.font.new("Helvetica", 9));
 
-		freqText = SCStaticText(win, Rect(405, 210, 60, 18))
+		freqText = GUI.staticText.new(win, Rect(405, 210, 60, 18))
 			.string_("25")
-			.font_(Font("Helvetica", 9));
+			.font_(GUI.font.new("Helvetica", 9));
 
-		speedButt = SCButton(win, Rect(430, 212, 36, 16))
+		speedButt = GUI.button.new(win, Rect(430, 212, 36, 16))
 			.states_([
 					["fast",Color.black, Color.clear],
 					["slow",Color.black, Color.green(alpha:0.2)]
 				])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.canFocus_(false)
 			.value_(params[6])
 			.action_({ arg butt;
@@ -187,12 +187,12 @@ XiiEQMeter {
 				params[6] = butt.value;
 			});
 			
-		onOffButt = SCButton(win, Rect(470, 212, 36, 16))
+		onOffButt = GUI.button.new(win, Rect(470, 212, 36, 16))
 			.states_([
 					["on",Color.black, Color.clear],
 					["off",Color.black, Color.green(alpha:0.2)]
 				])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({ arg butt;
 				if(butt.value == 1, {this.start}, {this.stop});
 			});

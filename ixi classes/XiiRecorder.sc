@@ -49,11 +49,11 @@ XiiRecorder {
 		};
 		ampAnalFunc.value;
 		
-		win = SCWindow.new(name, Rect(point.x, point.y, 222, 80), resizable:false);
+		win = GUI.window.new(name, Rect(point.x, point.y, 222, 80), resizable:false);
 					
 		stereoButt = OSCIIRadioButton(win, Rect(10,5,14,14), "stereo")
 						.value_(params[0])
-						.font_(Font("Helvetica", 9))
+						.font_(GUI.font.new("Helvetica", 9))
 						.action_({ arg butt;
 								if(butt.value == 1, {
 									numChannels = 2;
@@ -73,7 +73,7 @@ XiiRecorder {
 
 		monoButt = OSCIIRadioButton(win, Rect(100,5,14,14), "mono ")
 						.value_(params[1])
-						.font_(Font("Helvetica", 9))
+						.font_(GUI.font.new("Helvetica", 9))
 						.action_({ arg butt;
 								if(butt.value == 1, {
 									numChannels = 1;
@@ -91,20 +91,26 @@ XiiRecorder {
 								params[1] = butt.value;
 						});
 
-		txtv = SCTextView(win, Rect(10, 25, 140, 16))
+		txtv = GUI.textView.new(win, Rect(10, 25, 140, 16))
 				.hasVerticalScroller_(false)
 				.autohidesScrollers_(true)
 				.string_(filename);
 
-		recButton = SCButton(win, Rect(104, 50, 46, 16))
+		recButton = GUI.button.new(win, Rect(104, 50, 46, 16))
 			.states_([["Record",Color.black, Color.clear], 
 					["Stop",Color.red,Color.red(alpha:0.2)]])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({ arg butt;
 				if(s.serverRunning == true, { // if the server is running
 					if(butt.value == 1, {
-						filename = txtv.string;
-						if(filename == "", {filename = Date.getDate.stamp.asString});
+						filename = txtv.string.asString;
+						if(filename == "", {
+							if(GUI.id == \swing, { // probably windows
+								filename = "sound" ++ 100000.rand.asString;
+							}, { 
+								filename = "rec_" ++ Date.localtime.stamp++".aif";
+							});
+						});
 						txtv.string_(filename);
 						r = XiiRecord(s, inbus, numChannels);
 						r.start("sounds/ixiquarks/"++filename++".aif");
@@ -122,11 +128,11 @@ XiiRecorder {
 				});
 			});
 		
-		timeText = SCStaticText(win, Rect(64, 50, 40, 16))
+		timeText = GUI.staticText.new(win, Rect(64, 50, 40, 16))
 					.string_("00:00");
 
 		// record busses
-		recBussesPop = SCPopUpMenu(win, Rect(10, 50, 44, 16))
+		recBussesPop = GUI.popUpMenu.new(win, Rect(10, 50, 44, 16))
 			.items_(	if(numChannels == 2, {
 						XiiACDropDownChannels.getStereoChnList;
 					},{
@@ -134,7 +140,7 @@ XiiRecorder {
 					});
 			)
 			.value_(params[2])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.action_({ arg ch;
@@ -149,7 +155,7 @@ XiiRecorder {
 				.relativeOrigin_(false);
 
 		ampslider = OSCIISlider.new(win, Rect(162, 50, 46, 10), "vol", 0, 1, params[3], 0.001, \amp)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl;
 				amp = sl.value;
 				ampAnalyserSynth.set(\amp, amp);

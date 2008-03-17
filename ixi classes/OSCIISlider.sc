@@ -10,7 +10,7 @@ OSCIISlider {
 	initOSCIISlider { arg w, bounds, name, min=0.0, max=1.0, start=0.0, step=0.0, warp=\lin;
 		var namerect, numberrect, slidrect;
 		
-		font =Font("Helvetica", 12);
+		font = GUI.font.new("Helvetica", 12);
 		lastval= start;
 		spec = ControlSpec(min,max,warp,step,start);
 		
@@ -18,13 +18,13 @@ OSCIISlider {
 		numberrect= Rect(bounds.left+(bounds.width)-20,(bounds.height)+bounds.top,38,20);
 		slidrect= Rect(bounds.left,bounds.top,bounds.width,bounds.height);
 		
-		nameText = SCStaticText(w, namerect)
+		nameText = GUI.staticText.new(w, namerect)
 			.font_(font)		
 			.string_(name);
-		valueText = SCStaticText(w, numberrect)
+		valueText = GUI.staticText.new(w, numberrect)
 					.string_(lastval)
 					.font_(font);
-		slider = SCSlider.new( w, slidrect);
+		slider = GUI.slider.new( w, slidrect);
 		
 		slider.background_(Color.new255(160, 170, 255, 100));
 		
@@ -135,7 +135,7 @@ OSCIISliderX {
 		
 		slider.action_({arg sl; var val; 
 					val = spec.map(sl.value);  
-					valueText.string_(val); 
+					valueText.string_(val.round(0.01)); 
 					lastval=val;
 					});
 				

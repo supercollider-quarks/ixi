@@ -18,7 +18,7 @@ Bang {
 		bounds = argbounds ? Rect(20, 20, 400, 200);
 		bounds = Rect(bounds.left + 0.5, bounds.top + 0.5, bounds.width, bounds.height);
 
-		win = w ? SCWindow("Bang", 
+		win = w ? GUI.window.new("Bang", 
 			Rect(10, 250, bounds.left + bounds.width + 40, bounds.top + bounds.height+30));
 		win.front;
 		background = Color.clear;
@@ -26,7 +26,7 @@ Bang {
 		fillmode = true;
 		state = false;
 		
-		mouseTracker = SCUserView(win, Rect(bounds.left+1, bounds.top+1, bounds.width, bounds.height))
+		mouseTracker = GUI.userView.new(win, Rect(bounds.left+1, bounds.top+1, bounds.width, bounds.height))
 			.canFocus_(false)
 			.relativeOrigin_(false)
 			.mouseDownAction_({|me, x, y, mod|
@@ -51,24 +51,24 @@ Bang {
 
 			.drawFunc_({
 			
-			Color.black.set;
-			Pen.width = 1;
-			background.set; // background color
-			Pen.fillRect(bounds); // background fill
+			GUI.pen.color = Color.black;
+			GUI.pen.width = 1;
+			GUI.pen.color = background; // background color
+			GUI.pen.fillRect(bounds); // background fill
 
 			backgrDrawFunc.value; // background draw function
 			
-			Color.black.set;
-			Pen.strokeRect(bounds); // stroke toggle rect
+			GUI.pen.color = Color.black;
+			GUI.pen.strokeRect(bounds); // stroke toggle rect
 			
 			if(state == true, {
-				fillcolor.set; // background color
-				Pen.fillOval(Rect(bounds.left+2, bounds.top+2, bounds.width-4, bounds.height-4));
-				Color.black.set;
-				Pen.strokeOval(Rect(bounds.left+2, bounds.top+2, bounds.width-4, bounds.height-4));
+				GUI.pen.color = fillcolor; // background color
+				GUI.pen.fillOval(Rect(bounds.left+2, bounds.top+2, bounds.width-4, bounds.height-4));
+				GUI.pen.color = Color.black;
+				GUI.pen.strokeOval(Rect(bounds.left+2, bounds.top+2, bounds.width-4, bounds.height-4));
 			});
 			
-			Pen.stroke;			
+			GUI.pen.stroke;			
 			});
 
 	}

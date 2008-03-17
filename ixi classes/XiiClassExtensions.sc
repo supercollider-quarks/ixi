@@ -45,8 +45,8 @@
 }
 
 + Array {
-	midinotename { arg sign;
-		^this.collect(_.midiname(sign));
+	midinotename { arg sign;     
+		^this.collect(_.midinotename(sign));
 	}
 }
 
@@ -110,6 +110,114 @@
 		^nil		// bubble if it's an invalid key
 	}
 
+}
+
+
++ ArrayedCollection {
+	
+	ixiplot { arg name, bounds, discrete=false, numChannels = 1, minval, maxval, parent, labels=true, filled=true, color=XiiColors.lightgreen, step=0.1;	
+	
+		var plotter, txt, chanArray, unlaced, val, window, thumbsize, zoom, width, 
+			layout, write=false, msresize, gui;
+			
+		gui = GUI.current;
+		
+		
+		bounds = bounds ?? { parent.notNil.if({
+				if(parent.respondsTo(\view)){
+					parent.view.bounds
+				}{
+					parent.bounds
+				}
+			}, {
+				Rect(200 ,140, 705, 410);
+ 			});
+ 		};
+			
+		width = bounds.width-8;
+		
+		name = name ? "plot";
+		
+		unlaced = this.unlace(numChannels);
+		minval = if(minval.isArray, {
+			minval.collect({|oneminval, index| oneminval ?? { unlaced[index].minItem } })
+		}, {
+			{minval ?? { this.minItem }}.dup(numChannels);
+		});
+		maxval = if(maxval.isArray, {
+			maxval.collect({|onemaxval, index| onemaxval ?? { unlaced[index].maxItem } })
+		}, {
+			{maxval ?? { this.maxItem }}.dup(numChannels);
+		});
+		
+		chanArray = Array.newClear(numChannels);
+		if( discrete, {
+			zoom = 1;
+			thumbsize = max(1.0, width / (this.size / numChannels));
+			unlaced.do({ |chan, j|
+				chanArray[j] = chan.linlin( minval[j], maxval[j], 0.0, 1.0 );
+			});
+		}, {
+			zoom = (width / (this.size / numChannels));
+			thumbsize = 1;
+			unlaced.do({ |chan, j|
+				val = Array.newClear(width);
+				width.do { arg i;
+					var x;
+					x = chan.blendAt(i / zoom);
+					val[i] = x.linlin(minval[j], maxval[j], 0.0, 1.0);
+				};
+				chanArray[j] = val;
+			});
+		});
+		window = parent ?? { gui.window.new( name, bounds )};
+
+		layout = gui.vLayoutView.new( window, parent.notNil.if({
+			Rect(bounds.left+4, bounds.top+4, bounds.width-10, bounds.height-10);
+		}, {
+			Rect(4, 4, bounds.width - 10, bounds.height - 10); 
+		})).resize_(5);
+		
+		if(labels){
+			txt = gui.staticText.new(layout, Rect( 8, 0, width, 18))
+					.string_(" values: " ++ this.asString);
+		};
+
+		numChannels.do({ |i|
+			plotter = gui.multiSliderView.new(layout, Rect(0, 0, 
+					layout.bounds.width, layout.bounds.height - if(labels, {26}, {0}))) // compensate for the text
+				.readOnly_(false)
+				.drawLines_(discrete.not)
+				.drawRects_(discrete)
+				.isFilled_(filled)
+				.indexThumbSize_(thumbsize) 
+				.valueThumbSize_(1)
+				.step_(step)
+				.background_(Color.white)
+				.colors_(Color.black, color)
+				.action_({|v| 
+					var curval;
+					curval = v.currentvalue.linlin(0.0, 1.0, minval[i], maxval[i]);
+					
+					if(labels){
+						txt.string_("index: " ++ (v.index / zoom).roundUp(0.01).asString ++ 
+						", values: " ++ this);
+					};
+					if(write) { this[(v.index / zoom).asInteger * numChannels + i ]  = curval };
+				})
+				.keyDownAction_({ |v, char|
+					if(char === $l) { write = write.not; v.readOnly = write.not;  };
+				})
+				.value_(chanArray[i])
+				.elasticMode_(1);
+			(numChannels > 1).if({ // check if there is more then 1 channel
+				plotter.resize_(5);
+			});
+		});
+		
+		^window.tryPerform(\front) ?? { window }
+		
+	}
 }
 
 /*

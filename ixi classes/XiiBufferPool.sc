@@ -54,42 +54,42 @@ XiiBufferPool {
 		foreColor = Color.new255(103, 148, 103);
 		outbus = 0;
 		
-		win = SCWindow.new(name, Rect(point.x, point.y, 220, 195), resizable:false);
+		win = GUI.window.new(name, Rect(point.x, point.y, 220, 195), resizable:false);
 
-		SCStaticText(win, Rect(10, 0, 40, 12))
-			.font_(Font("Helvetica", 9))
+		GUI.staticText.new(win, Rect(10, 0, 40, 12))
+			.font_(GUI.font.new("Helvetica", 9))
 			.string_("ram use:");
 
-		ramview = SCStaticText(win, Rect(50, 0, 28, 12))
-			.font_(Font("Helvetica", 9))
+		ramview = GUI.staticText.new(win, Rect(50, 0, 28, 12))
+			.font_(GUI.font.new("Helvetica", 9))
 			.string_("0");
 
-		SCStaticText(win, Rect(90, 0, 40, 12))
-			.font_(Font("Helvetica", 9))
+		GUI.staticText.new(win, Rect(90, 0, 40, 12))
+			.font_(GUI.font.new("Helvetica", 9))
 			.string_("file size:");
 
-		fileramview = SCStaticText(win, Rect(130, 0, 28, 12))
-			.font_(Font("Helvetica", 9))
+		fileramview = GUI.staticText.new(win, Rect(130, 0, 28, 12))
+			.font_(GUI.font.new("Helvetica", 9))
 			.string_("0");
 
-		stereomonoview = SCStaticText(win, Rect(180, 0, 40, 12))
-			.font_(Font("Helvetica", 9))
+		stereomonoview = GUI.staticText.new(win, Rect(180, 0, 40, 12))
+			.font_(GUI.font.new("Helvetica", 9))
 			.string_("");
 
-		txtv = SCListView(win, Rect(10,15, 200, 145))
+		txtv = GUI.listView.new(win, Rect(10,15, 200, 145))
 			.items_(bufferListNames)
 			.background_(Color.new255(155, 205, 155, 60))
 			.hiliteColor_(Color.new255(103, 148, 103)) //Color.new255(155, 205, 155)
 			.selectedStringColor_(Color.black)
 			.enterKeyAction_({|sbs|
+				var viewer;
 				if(txtv.items.size > 0, {
-					soundFileWindowsList.add(
-						XiiSoundFileView.new(
+					viewer = XiiSoundFileView.new(
 							bufferList[sbs.value].path, 
 							bufferList[sbs.value].bufnum,
 							sbs.value, name, 
 							bufferListSelections[sbs.value]);
-					);
+					soundFileWindowsList.add(viewer);
 				});
 			})
 			.action_({ arg sbs; var f, filesize;
@@ -103,9 +103,9 @@ XiiBufferPool {
 				});
 			});
 
-		saveButt = SCButton(win, Rect(31, 167, 40, 18))
+		saveButt = GUI.button.new(win, Rect(31, 167, 40, 18))
 			.states_([["save",Color.black, Color.clear]])
-			.font_(Font("Helvetica", 9))			
+			.font_(GUI.font.new("Helvetica", 9))			
 			.canFocus_(false)
 			.action_({ 
 				XQ.globalWidgetList.add(
@@ -115,9 +115,9 @@ XiiBufferPool {
 				);
 			});	
 
-		fileButt = SCButton(win, Rect(74, 167, 40, 18))
+		fileButt = GUI.button.new(win, Rect(74, 167, 40, 18))
 			.states_([["free",Color.black, Color.clear]])
-			.font_(Font("Helvetica", 9))			
+			.font_(GUI.font.new("Helvetica", 9))			
 			.canFocus_(false)
 			.action_({ arg butt; var a, chNum, dur, filepath, pFunc;
 				soundFileWindowsList.do(_.close);
@@ -130,36 +130,35 @@ XiiBufferPool {
 				XQ.globalBufferDict.add(name.asSymbol -> 0);
 			});	
 				
-		folderButt = SCButton(win, Rect(117, 167, 55, 18))
+		folderButt = GUI.button.new(win, Rect(117, 167, 55, 18))
 			.states_([["add file(s)",Color.black, Color.clear]])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.focus(true)			
 			.action_({ arg butt;
-				CocoaDialog.getPaths({arg paths;
+				GUI.dialog.getPaths({arg paths;
 					this.loadBuffers(paths);
 				});
 			});	
 			
-		viewButt = SCButton(win, Rect(175, 167, 34, 18))
+		viewButt = GUI.button.new(win, Rect(175, 167, 34, 18))
 			.states_([["view",Color.black, Color.clear]])
-			.font_(Font("Helvetica", 9))		
+			.font_(GUI.font.new("Helvetica", 9))		
 			.canFocus_(false)
 			.action_({ arg butt;
+				var viewer;
 				if(txtv.items.size > 0, {
-					soundFileWindowsList.add(
-						XiiSoundFileView.new(
-								bufferList[txtv.value].path, 
-								bufferList[txtv.value].bufnum,
-								txtv.value,  // the number of the buffer in the list
-								name,
-								bufferListSelections[txtv.value]);
-						);
+					viewer = XiiSoundFileView.new(
+							bufferList[txtv.value].path, 
+							bufferList[txtv.value].bufnum,
+							txtv.value, name, 
+							bufferListSelections[txtv.value]);
+					soundFileWindowsList.add(viewer);
 				});
 			});	
 
-		preRecButt = SCButton(win, Rect(10, 167, 18, 18))
+		preRecButt = GUI.button.new(win, Rect(10, 167, 18, 18))
 			.states_([["R",Color.black, Color.clear], ["r",Color.black, Color.clear]])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.canFocus_(false)
 			.action_({ arg butt;
 				if(butt.value == 1, {
@@ -190,7 +189,7 @@ XiiBufferPool {
 		
 		stereoButt = OSCIIRadioButton(win, Rect(10,205,14,14), "stereo")
 						.value_(1)
-						.font_(Font("Helvetica", 9))
+						.font_(GUI.font.new("Helvetica", 9))
 						.action_({ arg butt;
 							if(butt.value == 1, {
 								numChannels = 2;
@@ -206,7 +205,7 @@ XiiBufferPool {
 
 		monoButt = OSCIIRadioButton(win, Rect(100,205,14,14), "mono ")
 						.value_(0)
-						.font_(Font("Helvetica", 9))
+						.font_(GUI.font.new("Helvetica", 9))
 						.action_({ arg butt;
 							if(butt.value == 1, {
 								numChannels = 1;
@@ -220,14 +219,14 @@ XiiBufferPool {
 							stereoButt.switchState;
 						});
 
-		recordingName = SCTextView(win, Rect(10, 225, 140, 16))
+		recordingName = GUI.textView.new(win, Rect(10, 225, 140, 16))
 				.hasVerticalScroller_(false)
 				.autohidesScrollers_(true)
 				.string_(filename);
 
-		recButton = SCButton(win, Rect(104, 250, 46, 16))
+		recButton = GUI.button.new(win, Rect(104, 250, 46, 16))
 			.states_([["Record",Color.black, Color.clear], ["Stop",Color.red,Color.red(alpha:0.2)]])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.canFocus_(false)
 			.action_({ arg butt; var file, f, filesize, buffer;
 				if(s.serverRunning == true, { // if the server is running
@@ -280,7 +279,7 @@ XiiBufferPool {
 				});
 			});	
 		
-		timeText = SCStaticText(win, Rect(64, 250, 40, 16))
+		timeText = GUI.staticText.new(win, Rect(64, 250, 40, 16))
 					.string_("00:00");
 
 		// the vuuuuu meter
@@ -289,7 +288,7 @@ XiiBufferPool {
 				.relativeOrigin_(false);
 
 		ampslider = OSCIISlider.new(win, Rect(162, 250, 46, 10), "vol", 0, 1, 1, 0.001, \amp)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; 
 				amp = sl.value;
 				ampAnalyserSynth.set(\amp, amp);
@@ -297,10 +296,10 @@ XiiBufferPool {
 			});
 
 		// record busses
-		recBussesPop = SCPopUpMenu(win, Rect(10, 250, 44, 16))
+		recBussesPop = GUI.popUpMenu.new(win, Rect(10, 250, 44, 16))
 			.items_(XiiACDropDownChannels.getStereoChnList)
 			.value_(0)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.action_({ arg ch;

@@ -20,15 +20,23 @@ XiiSettings {
 		var setting, file;
 		"*********** STORE PRESET ******************".postln;
 		setting = List.new; // not using dict because of name
+		[\widlist, XQ.globalWidgetList].postln;
 		XQ.globalWidgetList.do({arg widget, i;
 			if(widget.xiigui.isNil, { // if widget does not have a GUI abstraction
-				setting.add([widget.asString.replace("a ",\), widget.getState]);
+				if(widget.asString[0] == $a, {
+					setting.add([widget.asString.replace("a ",\), widget.getState]);
+				},{
+					setting.add([widget.asString.replace("class ",\), widget.getState]);
+				});
 			}, {
 				setting.add([widget.asString.replace("a ",\), widget.xiigui.getState]);
 			});
 		});
+		\deb1.postln;
 		settingsDict.add(settingName.asSymbol -> setting);
+		\deb2.postln;
 		settingsDict.writeArchive("preferences/presets.ixi");
+		\deb3.postln;
 	}	
 	
 	getSetting { arg name;

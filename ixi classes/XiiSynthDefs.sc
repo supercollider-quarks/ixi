@@ -479,5 +479,27 @@ XiiSynthDefs {
 		});
 
 
+		// -------------- quanoon makamat -----------------
+		
+		SynthDef(\xiiQuanoon, {arg outbus=0, freq=440, pan=0, amp=1, dur=4;
+			var pluck, period, string;
+			pluck = PinkNoise.ar(Decay.kr(Impulse.kr(0.005), 0.05));
+			period = freq.reciprocal;
+			string = CombL.ar(pluck, period, period, dur);
+			string = LeakDC.ar(LPF.ar(Pan2.ar(string, pan), 12000)) * amp;
+			DetectSilence.ar(string, doneAction:2);
+			Out.ar(outbus, string)
+		}).load(s);
+
+		// 110 Hz is the lowest frequency possible in this synthdef.
+		// 2793 Hz is the highest frequency
+		SynthDef(\xiiPluck, {arg outbus=0, t_trig=1, freq=440, pan=0, amp=1, dur=4;
+			var pluck, period, string;
+			pluck = Pluck.ar(WhiteNoise.ar(1), t_trig, 1/110, 1/freq, dur, coef:0); // ((freq/2793)-1).abs
+			DetectSilence.ar(pluck, doneAction:2);
+			Out.ar(outbus, pluck)
+		}).load(s);
+
+
 	}
 }	

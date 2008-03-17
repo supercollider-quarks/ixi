@@ -42,7 +42,7 @@ xiigui = nil;
 point = if(setting.isNil, {Point(310, 250)}, {setting[1]});
 params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]});
 
-		win = SCWindow("SoundScratcher", 
+		win = GUI.window.new("SoundScratcher", 
 				Rect(point.x, point.y, bounds.width+20, bounds.height+10), resizable:false);
 		pointcolor = Color.new255(200,50,40);
 		strokecolor = Color.black;
@@ -87,7 +87,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 		soundfile = SoundFile.new;
 		soundfile.openRead("sounds/a11wlk01.wav");
 
-		sndfileview = SCSoundFileView.new(win, Rect(120, 5, bounds.width-120, bounds.height-10))
+		sndfileview = GUI.soundFileView.new(win, Rect(120, 5, bounds.width-120, bounds.height-10))
 			.soundfile_(soundfile)
 			.read(0, soundfile.numFrames)
 			.elasticMode_(true)
@@ -102,7 +102,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 		
 		soundfile.close;
 
-		tabletView = SCTabletView(win, Rect(120, 5, bounds.width-120, bounds.height-10))
+		tabletView = GUI.tabletView.new(win, Rect(120, 5, bounds.width-120, bounds.height-10))
 			.canFocus_(false)
 			.mouseDownAction_({arg view,x,y,pressure;
 				//gPressure = pressure; // TESTING
@@ -302,20 +302,20 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 			pointcolor.set;
 			// scratching or warping
 			if(drawLineFlag && grainFlag.not, {
-				try{Pen.moveTo(pointlist[0])};
+				try{GUI.pen.moveTo(pointlist[0])};
 				(pointlist.size-1).do({arg i; var width;
 					width = (pointsize-1)*pointsizelist[i];
-					Color.new(pointcolor.red*pointsizelist[i], 0, 0).set;
-					Pen.width = width;
-					Pen.line(pointlist[i], pointlist[i+1]);
-					Pen.stroke;
+					GUI.pen.color = Color.new(pointcolor.red*pointsizelist[i], 0, 0);
+					GUI.pen.width = width;
+					GUI.pen.line(pointlist[i], pointlist[i+1]);
+					GUI.pen.stroke;
 				});
 			});
 			// granular synthesis
 			if(grainFlag, {
 				pointlist.do({arg point, i; 
-					Color.new(pointcolor.red*pointsizelist[i], 0, 0).set;
-					Pen.fillOval(
+					GUI.pen.color = Color.new(pointcolor.red*pointsizelist[i], 0, 0);
+					GUI.pen.fillOval(
 						Rect(point.x-((pointsize*pointsizelist[i])/2)-0.5, 
 							point.y-((pointsize*pointsizelist[i])/2)-0.5, 
 							(pointsize*pointsizelist[i])+1, 
@@ -326,31 +326,31 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 			// grain circles using TGrains
 			if(grainCircles, {
 				if(synthesisStylePop.value == 5, { // grainCircles
-					Color.red(alpha:0.5).set;
-					Pen.width = 1;
-					Pen.strokeOval(tempRect);
+					GUI.pen.color = Color.red(alpha:0.5);
+					GUI.pen.width = 1;
+					GUI.pen.strokeOval(tempRect);
 					circleList.do({arg rectNpressure;
-						Color.red(alpha:(rectNpressure[1]*1.3)*0.7).set;
-						Pen.strokeOval(rectNpressure[0]);
-						Color.red(alpha:(rectNpressure[1])*0.7).set;
-						Pen.fillOval(rectNpressure[0]);
+						GUI.pen.color = Color.red(alpha:(rectNpressure[1]*1.3)*0.7);
+						GUI.pen.strokeOval(rectNpressure[0]);
+						GUI.pen.color = Color.red(alpha:(rectNpressure[1])*0.7);
+						GUI.pen.fillOval(rectNpressure[0]);
 					});
 				}, {
-					Color.red(alpha:0.5).set;
-					Pen.width = 1;
-					Pen.strokeRect(tempRect);
+					GUI.pen.color = Color.red(alpha:0.5);
+					GUI.pen.width = 1;
+					GUI.pen.strokeRect(tempRect);
 					circleList.do({arg rectNpressure;
-						Color.red(alpha:(rectNpressure[1]*1.3)*0.7).set;
-						Pen.strokeRect(rectNpressure[0]);
-						Color.red(alpha:(rectNpressure[1])*0.7).set;
-						Pen.fillRect(rectNpressure[0]);
+						GUI.pen.color = Color.red(alpha:(rectNpressure[1]*1.3)*0.7);
+						GUI.pen.strokeRect(rectNpressure[0]);
+						GUI.pen.color = Color.red(alpha:(rectNpressure[1])*0.7);
+						GUI.pen.fillRect(rectNpressure[0]);
 					});
 				});
 			});
 		});
 	
-		selbPool = SCPopUpMenu(win, Rect(10, 10, 100, 16))
-			.font_(Font("Helvetica", 9))
+		selbPool = GUI.popUpMenu.new(win, Rect(10, 10, 100, 16))
+			.font_(GUI.font.new("Helvetica", 9))
 			.items_(if(XQ.globalBufferDict.keys.asArray == [], {["no pool"]}, {XQ.globalBufferDict.keys.asArray.sort}))
 			.value_(0)
 			.background_(Color.white)
@@ -378,8 +378,8 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 				});
 			});
 
-		bufferPop = SCPopUpMenu(win, Rect(10, 32, 100, 16)) // 550
-				.font_(Font("Helvetica", 9))
+		bufferPop = GUI.popUpMenu.new(win, Rect(10, 32, 100, 16)) // 550
+				.font_(GUI.font.new("Helvetica", 9))
 				.items_(["no buffer"])
 				.background_(Color.white)
 				.action_({ arg popup; 
@@ -457,8 +457,8 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 		
 		ldSndsGBufferList.value(selbPool.items[0].asSymbol);
 
-		synthesisStylePop = SCPopUpMenu(win, Rect(10, 54, 100, 16)) // 550
-				.font_(Font("Helvetica", 9))
+		synthesisStylePop = GUI.popUpMenu.new(win, Rect(10, 54, 100, 16)) // 550
+				.font_(GUI.font.new("Helvetica", 9))
 				.items_(["warp", "scratch", "random grains", "linear grains", "worm", "grainCircles", "grainSquares", "keyboard grains"])
 				.background_(Color.white)
 				.action_({ arg popup;
@@ -514,8 +514,8 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 					this.refresh;
 				});
 		
-		grainStatesPop = SCPopUpMenu(win, Rect(10, 76, 100, 16)) // 550
-				.font_(Font("Helvetica", 9))
+		grainStatesPop = GUI.popUpMenu.new(win, Rect(10, 76, 100, 16)) // 550
+				.font_(GUI.font.new("Helvetica", 9))
 				.items_(["grain states"])
 				.background_(Color.white)
 				.action_({ arg popup;
@@ -532,9 +532,9 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 					});
 				});
 
-		scrambleGrainListButt = SCButton(win, Rect(10, 98, 57, 16))
+		scrambleGrainListButt = GUI.button.new(win, Rect(10, 98, 57, 16))
 			.canFocus_(false)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.states_([["scramble", Color.black, Color.clear]])
 			.action_({arg butt; var randseed;
 				randseed = 100000.rand;
@@ -560,9 +560,9 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 				});
 			});
 
-		saveGrainListButt = SCButton(win, Rect(70, 98, 37, 16))
+		saveGrainListButt = GUI.button.new(win, Rect(70, 98, 37, 16))
 			.canFocus_(false)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.states_([["save", Color.black, Color.clear]])
 			.action_({arg butt;
 				grainList.add([pointlist.copy, pointsizelist.copy]);
@@ -571,16 +571,16 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 			});
 
 		drawRButt = OSCIIRadioButton(win, Rect(15, 120, 12, 12), "draw")
-						.font_(Font("Helvetica", 9))
+						.font_(GUI.font.new("Helvetica", 9))
 						.value_(1)
 						.action_({arg butt;
 							drawLineFlag = drawLineFlag.not;
 							params[1] = butt.value;
 						});
 
-		clearScreenButt = SCButton(win, Rect(70, 118, 37, 16))
+		clearScreenButt = GUI.button.new(win, Rect(70, 118, 37, 16))
 			.canFocus_(false)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.states_([["clear", Color.black, Color.clear]])
 			.action_({arg butt;
 				if(synthesisStylePop.value == 4, {this.clear(true)}, {this.clear(false)});
@@ -596,7 +596,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 			});
 
 		grainDurSl = OSCIISlider.new(win, Rect(10, 150, 100, 8), "- grain duration", 0.02, 0.5, 0.05, 0.001)
-						.font_(Font("Helvetica", 9))
+						.font_(GUI.font.new("Helvetica", 9))
 						.keyDownAction_({arg this, char, modifiers, unicode;
 					if (unicode == 16rF700, { grainDurSl.valueAction_((grainDurSl.value+0.001).round(0.001)) });
 					if (unicode == 16rF703, { grainDurSl.valueAction_((grainDurSl.value+0.001).round(0.001)) });
@@ -610,7 +610,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 						});
 
 		grainDensitySl = OSCIISlider.new(win, Rect(10, 180, 100, 8), "- grain density", 0.5, 50, 10, 0.01)
-						.font_(Font("Helvetica", 9))
+						.font_(GUI.font.new("Helvetica", 9))
 						.keyDownAction_({arg this, char, modifiers, unicode; 
 					if (unicode == 16rF700, { grainDensitySl.valueAction_((grainDensitySl.value+0.1).round(0.1)) });
 					if (unicode == 16rF703, { grainDensitySl.valueAction_((grainDensitySl.value+0.1).round(0.1)) });
@@ -627,12 +627,12 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 							params[3] = sl.value;
 						});
 
-		SCStaticText(win, Rect(11, 210, 35, 18))
+		GUI.staticText.new(win, Rect(11, 210, 35, 18))
 			.string_("env:")
-			.font_(Font("Helvetica", 9));
+			.font_(GUI.font.new("Helvetica", 9));
 
 		sineEnvRButt = OSCIIRadioButton(win, Rect(35, 211, 12, 12), "sine")
-						.font_(Font("Helvetica", 9))
+						.font_(GUI.font.new("Helvetica", 9))
 						.value_(1)
 						.action_({arg butt;
 							grainEnvType = 0;
@@ -641,16 +641,16 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 						});
 
 		percEnvRButt = OSCIIRadioButton(win, Rect(75, 211, 12, 12), "perc")
-						.font_(Font("Helvetica", 9))
+						.font_(GUI.font.new("Helvetica", 9))
 						.action_({arg butt;
 							grainEnvType = 1;
 							sineEnvRButt.switchState;
 							params[5] = butt.value;
 						});
 
-		recordPathButt = SCButton(win, Rect(10, 235, 100, 16))
+		recordPathButt = GUI.button.new(win, Rect(10, 235, 100, 16))
 			.canFocus_(true)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.states_([["prepare recording", Color.black, Color.clear],
 					["record", Color.black, Color.clear],
 					["recording", Color.black, Color.red(alpha:0.3)],
@@ -665,7 +665,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 			});
 
 		wacomRButt = OSCIIRadioButton(win, Rect(10, 263, 12, 12), "wacom ")
-						.font_(Font("Helvetica", 9))
+						.font_(GUI.font.new("Helvetica", 9))
 						.action_({ arg butt;
 							mouseRButt.switchState;
 							wacomFlag = true;
@@ -673,7 +673,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 							params[6] = butt.value;
 						});
 		mouseRButt = OSCIIRadioButton(win, Rect(66, 263, 12, 12), "mouse ")
-						.font_(Font("Helvetica", 9))
+						.font_(GUI.font.new("Helvetica", 9))
 						.value_(1)
 						.action_({arg butt;
 							wacomRButt.switchState;
@@ -683,23 +683,24 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 						});
 
 		globalVolSl = OSCIISlider.new(win, Rect(10, 287, 100, 8), "- global vol", 0, 1, 1, 0.01, \amp)
-						.font_(Font("Helvetica", 9))						.action_({arg sl; 
+						.font_(GUI.font.new("Helvetica", 9))						.action_({arg sl; 
 							globalvol = sl.value;
 							circleGroup.set(\globalvol, globalvol);
 							params[8] = sl.value;
 						});
 
-		SCStaticText(win, Rect(13, 315, 80, 20))
-			.font_(Font("Helvetica", 9))
+		GUI.staticText.new(win, Rect(13, 315, 80, 20))
+			.font_(GUI.font.new("Helvetica", 9))
 			.string_("outbus :");
 		
-		outBusPop = SCPopUpMenu(win, Rect(60, 318, 50, 16))
-				.font_(Font("Helvetica", 9))
+		outBusPop = GUI.popUpMenu.new(win, Rect(60, 318, 50, 16))
+				.font_(GUI.font.new("Helvetica", 9))
 				.items_(XiiACDropDownChannels.getStereoChnList)
 				.background_(Color.new255(255, 255, 255))
 				.action_({ arg popup;
 					outbus = popup.value * 2;
 					circleGroup.set(\outbus, outbus);
+					try{ synth.set(\outbus, outbus) };
 					params[9] = popup.value;
 				});
 		

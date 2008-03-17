@@ -55,26 +55,26 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 
 
 xiigui = nil;
-point = if(setting.isNil, {Point(260, 600)}, {setting[1]});
+point = if(setting.isNil, {Point(10, 100)}, {setting[1]});
 params = if(setting.isNil, {[1, 0, 0, 1]}, {setting[2]});
 
 windowSize = Rect(point.x, point.y, 1015, (tracks/8).round(1)*270);
 
-win = SCWindow.new("multibuffer player", windowSize, resizable:false);
+win = GUI.window.new("multibuffer player", windowSize, resizable:false);
 win.drawHook = {
-	Color.new255(255, 100, 0).set;
-	Pen.width = 3;
-	Pen.translate(48,48);
-	Pen.scale(0.4,0.4);
-	Pen.moveTo(1@7);
+	GUI.pen.color = Color.new255(255, 100, 0);
+	GUI.pen.width = 3;
+	GUI.pen.translate(48,48);
+	GUI.pen.scale(0.4,0.4);
+	GUI.pen.moveTo(1@7);
 	p.do({arg point;
-		Pen.lineTo(point+0.5);
+		GUI.pen.lineTo(point+0.5);
 	});
-	Pen.stroke
+	GUI.pen.stroke
 };
 
-selbPool = SCPopUpMenu(win, Rect(15, 5, 90, 16))
-	.font_(Font("Helvetica", 9))
+selbPool = GUI.popUpMenu.new(win, Rect(15, 5, 90, 16))
+	.font_(GUI.font.new("Helvetica", 9))
 	.items_(if(XQ.globalBufferDict.keys.asArray == [], {["no pool"]}, {XQ.globalBufferDict.keys.asArray.sort}))
 	.value_(0)
 	.background_(Color.white)
@@ -83,10 +83,10 @@ selbPool = SCPopUpMenu(win, Rect(15, 5, 90, 16))
 	});
 
 
-glStartButt = SCButton(win,Rect(15, 110, 41, 18));
+glStartButt = GUI.button.new(win,Rect(15, 110, 41, 18));
 glStartButt.states = [["start",Color.black, Color.clear]];
 glStartButt.canFocus_(false);
-glStartButt.font_(Font("Helvetica", 9));
+glStartButt.font_(GUI.font.new("Helvetica", 9));
 glStartButt.action = { arg butt;
 	startButtList.size.do({arg i; 
 		if(globalList[i] == 1, {
@@ -95,10 +95,10 @@ glStartButt.action = { arg butt;
 	});
 };
 
-glStopButt = SCButton(win,Rect(61, 110, 41, 18));
+glStopButt = GUI.button.new(win,Rect(61, 110, 41, 18));
 glStopButt.states = [["stop",Color.black, Color.clear]];
 glStopButt.canFocus_(false);
-glStopButt.font_(Font("Helvetica", 9));
+glStopButt.font_(GUI.font.new("Helvetica", 9));
 glStopButt.action = { arg butt;
 	startButtList.size.do({arg i; 
 		if(globalList[i] == 1, {
@@ -109,7 +109,7 @@ glStopButt.action = { arg butt;
 
 globalVolSlider = OSCIISlider.new(win, 
 		Rect(15, 165, 80, 10), "- vol", 0, 1.0, 0, 0.0001, \amp)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; 	
 					volSlList.size.do({arg i; 
 						if(globalList[i] == 1, {
@@ -120,7 +120,7 @@ globalVolSlider = OSCIISlider.new(win,
 	
 OSCIISlider.new(win, 
 		Rect(15, 195, 80, 10), "- pan", -1.0, 1.0, 0.0, 0.01)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; 
 					panSlList.size.do({arg i; 
 						if(globalList[i] == 1, {
@@ -130,7 +130,7 @@ OSCIISlider.new(win,
 				});
 OSCIISlider.new(win, 
 		Rect(15, 225, 80, 10), "- pitch", 0, 2.0, 1.0, 0.01)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; 	
 					pitchSlList.size.do({arg i; 
 						if(globalList[i] == 1, {
@@ -139,8 +139,8 @@ OSCIISlider.new(win,
 					});	
 				});
 				
-SCStaticText(win, Rect(5, 100, 105, 160))
-	.font_(Font("Helvetica", 16))
+GUI.staticText.new(win, Rect(5, 100, 105, 160))
+	.font_(GUI.font.new("Helvetica", 16))
 	.string_("")
 	.background_(Color.new255(255, 100, 0, 20));
 
@@ -166,28 +166,28 @@ tracks.do({ arg i;
 	if((i>0)and:{(i%8)==0}, {lowRow=lowRow+270; virIndex= virIndex-8});
 
 	sliderList.add( // the left volume signal
-		outmeterl = SCRangeSlider(win, Rect(120+(virIndex+i*rowspace), 5+lowRow, 20, 100));
+		outmeterl = GUI.rangeSlider.new(win, Rect(120+(virIndex+i*rowspace), 5+lowRow, 20, 100));
 		outmeterl.background_(Color.new255(155, 205, 155)).knobColor_(Color.new255(103, 148, 103));
 		outmeterl.lo_(0.0).hi_(0.01);
 		outmeterl.canFocus_(false);
 	);
 	sliderList.add( // the right volume signal
-		outmeterr = SCRangeSlider(win, Rect(142+(virIndex+i*rowspace), 5+lowRow, 20, 100));
+		outmeterr = GUI.rangeSlider.new(win, Rect(142+(virIndex+i*rowspace), 5+lowRow, 20, 100));
 		outmeterr.background_(Color.new255(155, 205, 155)).knobColor_(Color.new255(103, 148, 103));
 		outmeterr.lo_(0.0).hi_(0.01);
 		outmeterr.canFocus_(false);
 	);
 	
 	stMonoList.add(
-		SCStaticText(win, Rect(172+(virIndex+i*rowspace), 65+lowRow, 60, 16))
-			.font_(Font("Helvetica", 9))
+		GUI.staticText.new(win, Rect(172+(virIndex+i*rowspace), 65+lowRow, 60, 16))
+			.font_(GUI.font.new("Helvetica", 9))
 			.string_("oo");
 	);
 
-	SCStaticText(win, Rect(172+(virIndex+i*rowspace), 87+lowRow, 60, 16))
-		.font_(Font("Helvetica", 9))
+	GUI.staticText.new(win, Rect(172+(virIndex+i*rowspace), 87+lowRow, 60, 16))
+		.font_(GUI.font.new("Helvetica", 9))
 		.string_("global:");
-	glButt = SCButton(win,Rect(206+(virIndex+i*rowspace), 89+lowRow, 12, 12));
+	glButt = GUI.button.new(win,Rect(206+(virIndex+i*rowspace), 89+lowRow, 12, 12));
 	glButt.states = [	["",Color.black, Color.clear],
 					["",Color.black, Color.new255(155, 205, 155)]];
 	glButt.canFocus_(false);
@@ -195,9 +195,9 @@ tracks.do({ arg i;
 		globalList[i] = butt.value;
 };
 
-	ch = SCPopUpMenu(win,Rect(120+(virIndex+i*rowspace), 111+lowRow , 50, 16))			.items_(XiiACDropDownChannels.getStereoChnList)
+	ch = GUI.popUpMenu.new(win,Rect(120+(virIndex+i*rowspace), 111+lowRow , 50, 16))			.items_(XiiACDropDownChannels.getStereoChnList)
 			.value_(0)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.action_({ arg ch; var outbus;
 				outbus = ch.value * 2;
@@ -205,10 +205,10 @@ tracks.do({ arg i;
 				if(synthList[i] !=nil, { synthList[i].set(\out, outbus) });
 			});
 	
-startButtList.add(SCButton(win,Rect(177+(virIndex+i*rowspace), 110+lowRow, 41, 18))
+startButtList.add(GUI.button.new(win,Rect(177+(virIndex+i*rowspace), 110+lowRow, 41, 18))
 					.states_([	["play",Color.black, Color.clear],
 								["stop",Color.black, Color.new255(155, 205, 155)]])
-					.font_(Font("Helvetica", 9))
+					.font_(GUI.font.new("Helvetica", 9))
 					.action_({ arg butt; var startPos, endPos;
 					
 					if(butt.value == 1, {
@@ -253,10 +253,10 @@ startButtList.add(SCButton(win,Rect(177+(virIndex+i*rowspace), 110+lowRow, 41, 1
 		});
 	);
 
-sfdropDownList.add(SCPopUpMenu(win,Rect(120+(virIndex+i*rowspace), 135+lowRow , 100, 18))
+sfdropDownList.add(GUI.popUpMenu.new(win,Rect(120+(virIndex+i*rowspace), 135+lowRow , 100, 18))
 	.items_(sndfiles)
 	.value_(i)
-	.font_(Font("Helvetica", 9))
+	.font_(GUI.font.new("Helvetica", 9))
 	.background_(Color.white)
 	.action_({ arg sf; var startPos, endPos; 
 		stMonoList.at(i).string_(
@@ -271,7 +271,7 @@ sfdropDownList.add(SCPopUpMenu(win,Rect(120+(virIndex+i*rowspace), 135+lowRow , 
 
 volSlList.add(OSCIISlider.new(win, 
 		Rect(120+(virIndex+i*rowspace), 165+lowRow, 100, 10), "- vol", 0, 1.0, 0, 0.01, \amp)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; var globalActiveCounter = 0, volAll = 0;
 				if(synthList[i] !=nil, { synthList[i].set(\vol, sl.value) });
 				argList[i][0] = sl.value;
@@ -286,7 +286,7 @@ volSlList.add(OSCIISlider.new(win,
 		);
 panSlList.add(OSCIISlider.new(win, 
 		Rect(120+(virIndex+i*rowspace), 195+lowRow, 100, 10), "- pan", -1.0, 1.0, 0.0, 0.01)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; 	
 				if(synthList[i] !=nil, { synthList[i].set(\pan, sl.value) });
 				argList[i][1] = sl.value;
@@ -294,7 +294,7 @@ panSlList.add(OSCIISlider.new(win,
 		);
 pitchSlList.add(OSCIISlider.new(win, 
 		Rect(120+(virIndex+i*rowspace), 225+lowRow, 100, 10), "- pitch", 0, 2.0, 1.0, 0.01)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; 	
 				if(synthList[i] !=nil, { synthList[i].set(\pitch, sl.value) });
 				argList[i][2] = sl.value;
@@ -333,7 +333,7 @@ pitchSlList.add(OSCIISlider.new(win,
 		};
 		
 		drawRadioButt = OSCIIRadioButton(win, Rect(15,138,14,14), "draw")
-					.font_(Font("Helvetica", 9))
+					.font_(GUI.font.new("Helvetica", 9))
 					.value_(1)
 						.action_({arg val; if(val==1, {
 								createResponder.value;

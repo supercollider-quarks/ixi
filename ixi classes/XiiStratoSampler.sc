@@ -60,16 +60,16 @@ runningFlag = false;
 
 buffer = Buffer.alloc(s, 44100 * bufferSecs, 1); 
 
-win = SCWindow.new("StratoSampler", Rect(point.x, point.y, 820, 240));
+win = GUI.window.new("StratoSampler", Rect(point.x, point.y, 820, 240));
 
 bufPlot = XiiBufferPlot.new(buffer, win, Rect( 120, 5, 680, 220));
 
-SCStaticText(win, Rect(13, 5, 80, 20))
-	.font_(Font("Helvetica", 9))
+GUI.staticText.new(win, Rect(13, 5, 80, 20))
+	.font_(GUI.font.new("Helvetica", 9))
 	.string_("inbus :");
 
-inBusPop = SCPopUpMenu(win, Rect(60, 8, 50, 16))
-			.font_(Font("Helvetica", 9))
+inBusPop = GUI.popUpMenu.new(win, Rect(60, 8, 50, 16))
+			.font_(GUI.font.new("Helvetica", 9))
 			.items_(XiiACDropDownChannels.getStereoChnList)
 			.background_(Color.new255(255, 255, 255))
 			.value_(4)
@@ -83,7 +83,7 @@ inBusPop = SCPopUpMenu(win, Rect(60, 8, 50, 16))
 			});
 
 preLevelSl = OSCIISlider.new(win, Rect(10, 32, 100, 8), "- preLevel", 0.0, 1.0, params[1], 0.01)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; 
 				prelevel = sl.value;
 				recSynth.set(\prelevel, prelevel) ;
@@ -91,15 +91,15 @@ preLevelSl = OSCIISlider.new(win, Rect(10, 32, 100, 8), "- preLevel", 0.0, 1.0, 
 			});
 
 recLevelSl = OSCIISlider.new(win, Rect(10, 62, 100, 8), "- recLevel", 0.0, 1.0, params[2], 0.01)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; 
 				reclevel = sl.value;
 				recSynth.set(\reclevel, reclevel) ;
 				params[2] = sl.value;
 			});
 				
-bufLengthBox = SNBox.new(win, Rect(10, 90, 40, 16))
-			.font_(Font("Helvetica", 9))
+bufLengthBox = XiiSNBox.new(win, Rect(10, 90, 40, 16))
+			.font_(GUI.font.new("Helvetica", 9))
 			.step_(0.1)
 			.align_(\center)
 			.clipLo_(0.1)
@@ -107,9 +107,9 @@ bufLengthBox = SNBox.new(win, Rect(10, 90, 40, 16))
 			.value_(params[3]);
 
 				
-newClearBufButt = SCButton(win, Rect(60, 90, 50, 18))
+newClearBufButt = GUI.button.new(win, Rect(60, 90, 50, 18))
 		.states_([["new/clear", Color.black, Color.clear]])
-		.font_(Font("Helvetica", 9))			
+		.font_(GUI.font.new("Helvetica", 9))			
 		.action_({arg butt; var displayBufPlot, mySlot;
 			if(bufSec == bufLengthBox.value, {
 				fork{
@@ -157,8 +157,8 @@ newClearBufButt = SCButton(win, Rect(60, 90, 50, 18))
 			});
 		});
 
-bufNameView = SCTextView.new(win, Rect(10, 122, 63, 14))
-			.font_(Font("Helvetica", 9))
+bufNameView = GUI.textView.new(win, Rect(10, 122, 63, 14))
+			.font_(GUI.font.new("Helvetica", 9))
 			.string_("strato"++(this.findMySlot+1)++"_0")
 			.keyDownAction_({arg view, key, mod, unicode; 
 				if(unicode ==13, {
@@ -168,9 +168,9 @@ bufNameView = SCTextView.new(win, Rect(10, 122, 63, 14))
 			});
 
 				
-writeBufferButt = SCButton(win, Rect(80, 120, 30, 18))
+writeBufferButt = GUI.button.new(win, Rect(80, 120, 30, 18))
 		.states_([["write", Color.black, Color.clear]])
-		.font_(Font("Helvetica", 9))			
+		.font_(GUI.font.new("Helvetica", 9))			
 		.action_({arg butt; 
 			writeBuffer.value;
 		})
@@ -246,19 +246,19 @@ writeBuffer = {
 };
 
 volSl = OSCIISlider.new(win, Rect(10, 150, 100, 8), "- volume", 0, 1, params[4], 0.01, \amp)
-		.font_(Font("Helvetica", 9))		
+		.font_(GUI.font.new("Helvetica", 9))		
 		.action_({arg sl; 
 			amp = sl.value;
 			playSynth.set(\amp, amp);
 			params[4] = sl.value;
 		});
 
-SCStaticText(win, Rect(13, 178, 80, 20))
-		.font_(Font("Helvetica", 9))
+GUI.staticText.new(win, Rect(13, 178, 80, 20))
+		.font_(GUI.font.new("Helvetica", 9))
 		.string_("outbus :");
 
-outBusPop = SCPopUpMenu(win, Rect(60, 180, 50, 16))
-		.font_(Font("Helvetica", 9))
+outBusPop = GUI.popUpMenu.new(win, Rect(60, 180, 50, 16))
+		.font_(GUI.font.new("Helvetica", 9))
 		.items_(XiiACDropDownChannels.getStereoChnList)
 		.value_(params[5])
 		.background_(Color.new255(255, 255, 255))
@@ -269,7 +269,7 @@ outBusPop = SCPopUpMenu(win, Rect(60, 180, 50, 16))
 		});
 
 drawIndexButt = OSCIIRadioButton(win, Rect(10, 208, 12, 12), "draw")
-				.font_(Font("Helvetica", 9))
+				.font_(GUI.font.new("Helvetica", 9))
 				.value_(params[6])
 				.action_({arg butt;
 					if(butt.value == 1, {
@@ -284,10 +284,10 @@ drawIndexButt = OSCIIRadioButton(win, Rect(10, 208, 12, 12), "draw")
 					params[6] = butt.value; // settings
 				});
 
-startButt = SCButton(win, Rect(60, 205, 50, 18))
+startButt = GUI.button.new(win, Rect(60, 205, 50, 18))
 	.states_([["start", Color.black, Color.clear],
 			["stop", Color.black, Color.green(alpha:0.2)]])
-	.font_(Font("Helvetica", 9))			
+	.font_(GUI.font.new("Helvetica", 9))			
 	.action_({arg butt;
 		if(butt.value == 1, {
 			if(startingPlayFlag == false, {

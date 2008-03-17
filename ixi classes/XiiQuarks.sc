@@ -1,6 +1,3 @@
-// XiiQuarks dependencies:
-// - midiname (wslib)
-// - SNBox
 
 // IMPORTANT IN THIS CLASS:
 // XQ.globalWidgetList
@@ -51,28 +48,64 @@
 // NEW IN VERSION 5:
 // new instrument: Sounddrops
 // new tool: Theory (scales and chords)
+// new instrument : Quanoon
 // styles options in WaveScope
 // keyboard grains mode in SoundScratcher instrument (both with drawn grains and without)
 // Added a Function:record method. Now you can do {SinOsc.ar(222)}.record(3) // 3 sec file
+// Added outbus in the SoundFilePlayer widget of BufferPool.
+// Ported to SwingOSC
 
-// TODO: make Spectral plugins
-// TODO: Test the Warp1MC Ugens that take and output multichannel (see mail sept 10, 2007)
-// TODO: Make interface to bufferPool so that one can put it into a var like b and live-code
-// TODO: Make a mixer channel gui
 
 /*
-Explore:
-"open /Users/thm21/quaziir/texts\ \[phd\]/PhD\ thesis/Rob\ Saunders\ Thesis/curiosity/index.html".unixCmd;
+Port to SwingOSC issues:
+- No TabletView in SoundScratcher and ScaleSynth
+- Buggy XiiSNBox
+- UGens lacking : LoopBuf, Dan Stowell stuff.
 */
 
 /*
-a = XQ.globalWidgetList[0].xiigui.getState
-b = XiiDelay.new(s, 2, a);
-	getState {
-		^[channels, inbus, outbus, tgt, loc, param[3]];
-	}
-*/
 
+// HOW TO WORK WITH BUFFERPOOL IN YOUR OWN WORK....
+
+
+// first load some sounds into a bufferpool
+
+// then lets look at the global buffer dictionary of ixiQuarks:
+XQ.globalBufferDict
+
+// or if you have lots of pools:
+Post << XQ.globalBufferDict 
+
+// let's look at what pools we have open:
+XQ.globalBufferDict.keys
+
+// if you want to sort them (alphabetically) and put into an array:
+XQ.globalBufferDict.keys.asArray.sort
+
+// then if you know the name of your pool:
+a = XQ.globalBufferDict.at('bufferPool 1')
+
+// you then get 2 lists, one with the buffers and another with the selections
+// of the buffers. (selection start and selection length (in frames)).
+a[0] // the buffers
+a[1] // the selections
+
+// then you can do
+
+a[0][0] // the first sound in the buffer pool
+a[0][0].play 
+
+// or (if your buffer is a mono sound)
+(
+x = SynthDef("help-Buffer",{ arg out = 0, bufnum;
+	Out.ar( out,
+		PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum))
+	)
+}).play(s,[ \bufnum, a[0][0].bufnum ]);
+)
+
+
+*/
 
 XiiQuarks {	
 
@@ -83,11 +116,11 @@ XiiQuarks {
 	initXiiQuarks {
 	
 		var win, txtv, quarks, serv, channels;
-		var openButt, effectCodeString, monoButt, stereoButt, effect;
+		var openButt, widgetCodeString, monoButt, stereoButt, widget;
 		var name, point;
 		var midi, midiControllerNumbers, midiRotateWindowChannel, midiInPorts, midiOutPorts;
 		var openSndFolder;
-		var chosenWidget, effectnum, types, typesview, ixilogo;
+		var chosenWidget, widgetnum, types, typesview, ixilogo;
 		var settingRegister, settingNameView, storeSettingButt, comingFromFieldFlag, settingName;
 		var storedSettingsPop, loadSettingButt, deleteSettingButt, clearScreenButt;
 		var prefFile, preferences;
@@ -117,7 +150,7 @@ XiiQuarks {
 		name = " ixi quarks";
 		point = XiiWindowLocation.new(name);
 		
-		win = SCWindow(name, Rect(point.x, point.y, 275, 224), resizable:false).front;
+		win = GUI.window.new(name, Rect(point.x, point.y, 275, 224), resizable:false).front;
 		
 		comingFromFieldFlag = false;
 		settingName = "preset_0";
@@ -128,7 +161,7 @@ XiiQuarks {
 			"ChannelSplitter", "Amplifier", "TrigRecorder", "MusicTheory"],
 	
 			["SoundScratcher", "StratoSampler", "Sounddrops", "Mushrooms", "Predators", 
-			"Gridder", "PolyMachine", "GrainBox", "BufferPlayer", "ScaleSynth"], 
+			"Gridder", "PolyMachine", "GrainBox", "Quanoon", "BufferPlayer", "ScaleSynth"], 
 			
 			["Delay", "Freeverb", "AdCVerb", "Distortion", "ixiReverb", "Chorus",
 			"Octave", "CyberPunk", "Tremolo", "Equalizer", "CombVocoder", "RandomPanner", 
@@ -140,10 +173,12 @@ XiiQuarks {
 			["SpectralEQ", "MagClip", "MagSmear", "MagShift", "MagFreeze", 
 			"RectComb", "BinScramble", "BinShift"],
 			
-			["Noise", "Oscillators"]
+			["Noise", "Oscillators"],
+			
+			["spaceMachine", "timeMachine", "mindMachine", "iceMachine"]
 		];
 		
-		types = ["utilities", "instruments", "effects", "filters", "spectral", "other"];
+		types = ["utilities", "instruments", "effects", "filters", "spectral", "other", "machines"];
 		
 		ixilogo = [ // the ixi logo
 			Point(1,7), Point(8, 1), Point(15,1), Point(15,33),Point(24, 23), Point(15,14), 
@@ -153,9 +188,9 @@ XiiQuarks {
 			];
 
 		channels = 2;
-		effect = "AudioIn";
+		widget = "AudioIn";
 
-		typesview = SCListView(win,Rect(10,10, 120, 108))
+		typesview = GUI.listView.new(win,Rect(10,10, 120, 108))
 			.items_(types)
 			.hiliteColor_(XiiColors.darkgreen) //Color.new255(155, 205, 155)
 			.background_(XiiColors.listbackground)
@@ -163,29 +198,30 @@ XiiQuarks {
 			.action_({ arg sbs;
 				txtv.items_(quarks[sbs.value]);
 				txtv.value_(0);
-				effect = quarks[sbs.value][txtv.value];
+				widget = quarks[sbs.value][txtv.value];
 			})
 			.enterKeyAction_({|view|
 				txtv.value_(0);
 				txtv.focus(true);
 			});
-			
-		storedSettingsPop = SCPopUpMenu(win, Rect(10, 128, 78, 16)) // 550
-			.font_(Font("Helvetica", 9))
+		if(GUI.id == \cocoa, {	typesview.focusColor_(XiiColors.darkgreen.alpha_(0.9)) });
+
+		storedSettingsPop = GUI.popUpMenu.new(win, Rect(10, 128, 78, 16)) // 550
+			.font_(GUI.font.new("Helvetica", 9))
 			.canFocus_(false)
 			.items_(settingRegister.getSettingsList.sort)
 			.background_(Color.white);
 
-		loadSettingButt = SCButton(win, Rect(95, 128, 35, 17))
+		loadSettingButt = GUI.button.new(win, Rect(95, 128, 35, 17))
 			.states_([["load", Color.black, Color.clear]])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.canFocus_(false)
 			.action_({arg butt; 
 				settingRegister.loadSetting(storedSettingsPop.items[storedSettingsPop.value]);
 			});
 
-		settingNameView = SCTextView.new(win, Rect(10, 151, 78, 14))
-			.font_(Font("Helvetica", 9))
+		settingNameView = GUI.textView.new(win, Rect(10, 151, 78, 14))
+			.font_(GUI.font.new("Helvetica", 9))
 			.string_(settingName = PathName(settingName).nextName)
 			.keyDownAction_({arg view, key, mod, unicode; 
 				if(unicode ==13, {
@@ -194,9 +230,9 @@ XiiQuarks {
 				});
 			});
 		
-		storeSettingButt = SCButton(win, Rect(95, 150, 35, 17))
+		storeSettingButt = GUI.button.new(win, Rect(95, 150, 35, 17))
 			.states_([["store", Color.black, Color.clear]])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.canFocus_(false)
 			.action_({arg butt; 
 				settingName = PathName(settingNameView.string).nextName;
@@ -218,52 +254,53 @@ XiiQuarks {
 				settingNameView.string_(settingName);
 			});
 
-		deleteSettingButt = SCButton(win, Rect(95, 172, 35, 17))
+		deleteSettingButt = GUI.button.new(win, Rect(95, 172, 35, 17))
 			.states_([["delete", Color.black, Color.clear]])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.canFocus_(false)
 			.action_({arg butt; 
 				settingRegister.removeSetting(storedSettingsPop.items[storedSettingsPop.value]);
 				storedSettingsPop.items_(settingRegister.getSettingsList);
 			});
 
-		clearScreenButt = SCButton(win, Rect(95, 194, 35, 17))
+		clearScreenButt = GUI.button.new(win, Rect(95, 194, 35, 17))
 			.states_([["clear", Color.black, Color.clear]])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.canFocus_(false)
 			.action_({arg butt; 
 				settingRegister.clearixiQuarks;
 			});
 
-		txtv = SCListView(win,Rect(140,10, 120, 152))
+		txtv = GUI.listView.new(win,Rect(140,10, 120, 152))
 			.items_(quarks[0])
 			.hiliteColor_(XiiColors.darkgreen) //Color.new255(155, 205, 155)
 			.background_(XiiColors.listbackground)
 			.selectedStringColor_(Color.black)
 			.action_({ arg sbs;
 				("Xii"++quarks[typesview.value][sbs.value]).postln;
-				effect = quarks[typesview.value][sbs.value];
+				widget = quarks[typesview.value][sbs.value];
 			})
 			.enterKeyAction_({|view|
-				effect = quarks[typesview.value][view.value];
-				effectCodeString = "Xii"++effect++".new(Server.default,"++channels++")";
-				XQ.globalWidgetList.add(effectCodeString.interpret);
+				widget = quarks[typesview.value][view.value];
+				widgetCodeString = "Xii"++widget++".new(Server.default,"++channels++")";
+				XQ.globalWidgetList.add(widgetCodeString.interpret);
 			})
 			.keyDownAction_({arg view, char, modifiers, unicode;
 				if(unicode == 13, {
-					effect = quarks[typesview.value][view.value];
-					effectCodeString = "Xii"++effect++".new(Server.default,"++channels++")";
-					XQ.globalWidgetList.add(effectCodeString.interpret);
+					widget = quarks[typesview.value][view.value];
+					widgetCodeString = "Xii"++widget++".new(Server.default,"++channels++")";
+					XQ.globalWidgetList.add(widgetCodeString.interpret);
 				});
 				if (unicode == 16rF700, { txtv.valueAction = txtv.value - 1;  });
 				if (unicode == 16rF703, { txtv.valueAction = txtv.value + 1;  });
 				if (unicode == 16rF701, { txtv.valueAction = txtv.value + 1;  });
 				if (unicode == 16rF702, { typesview.focus(true);  });
 			});
-
-		stereoButt = OSCIIRadioButton(win, Rect(140, 172, 12, 12), "stereo")
+		if(GUI.id == \cocoa, {	txtv.focusColor_(XiiColors.darkgreen.alpha_(0.9)) });
+		
+		stereoButt = OSCIIRadioButton(win, Rect(140, 174, 12, 12), "stereo")
 					.value_(1)
-					.font_(Font("Helvetica", 9))
+					.font_(GUI.font.new("Helvetica", 9))
 					.action_({ arg butt;
 							if(butt.value == 1, {
 							channels = 2;
@@ -271,9 +308,9 @@ XiiQuarks {
 							});
 					});
 
-		monoButt = OSCIIRadioButton(win, Rect(140, 190, 12, 12), "mono ")
+		monoButt = OSCIIRadioButton(win, Rect(140, 192, 12, 12), "mono ")
 					.value_(0)
-					.font_(Font("Helvetica", 9))
+					.font_(GUI.font.new("Helvetica", 9))
 					.action_({ arg butt;
 							if(butt.value == 1, {
 								channels = 1;
@@ -281,21 +318,21 @@ XiiQuarks {
 							});	
 					});
 
-		openSndFolder = SCButton(win, Rect(195, 178, 13, 18))
+		openSndFolder = GUI.button.new(win, Rect(195, 184, 13, 18))
 				.states_([["f",Color.black,Color.clear]])
-				.font_(Font("Helvetica", 9))
+				.font_(GUI.font.new("Helvetica", 9))
 				.canFocus_(false)
 				.action_({ arg butt;
 					"open sounds/ixiquarks/".unixCmd
 				});
 								
-		openButt = SCButton(win, Rect(210, 178, 50, 18))
+		openButt = GUI.button.new(win, Rect(210, 184, 50, 18))
 				.states_([["Open",Color.black,Color.clear]])
-				.font_(Font("Helvetica", 9))
+				.font_(GUI.font.new("Helvetica", 9))
 				.canFocus_(false)
 				.action_({ arg butt;
-					effectCodeString = "Xii"++effect++".new(Server.default,"++channels++")";
-					XQ.globalWidgetList.add(effectCodeString.interpret);
+					widgetCodeString = "Xii"++widget++".new(Server.default,"++channels++")";
+					XQ.globalWidgetList.add(widgetCodeString.interpret);
 				});
 				
 		// MIDI control of sliders		
@@ -305,14 +342,14 @@ XiiQuarks {
 				var wcnt;					
 				if(num == midiRotateWindowChannel, {
 					{
-					wcnt = SCWindow.allWindows.size;
+					wcnt = GUI.window.allWindows.size;
 					if(XQ.globalWidgetList.size > 0, {
 						chosenWidget = val % wcnt;
-						SCWindow.allWindows.at(chosenWidget).front;
+						GUI.window.allWindows.at(chosenWidget).front;
 						XQ.globalWidgetList.do({arg widget, i;
 							if(widget.xiigui.isKindOf(XiiEffectGUI), {
-								if(SCWindow.allWindows.at(chosenWidget) === widget.xiigui.win, {
-									effectnum = i;
+								if(GUI.window.allWindows.at(chosenWidget) === widget.xiigui.win, {
+									widgetnum = i;
 								});
 							});
 						});
@@ -320,7 +357,7 @@ XiiQuarks {
 					}.defer;
 				},{
 				{
-				XQ.globalWidgetList[effectnum].xiigui.setSlider_(
+				XQ.globalWidgetList[widgetnum].xiigui.setSlider_(
 					midiControllerNumbers.detectIndex({arg i; i == num}), val/127);
 				}.defer;
 				});
@@ -340,15 +377,15 @@ XiiQuarks {
 		txtv.focus(true);
 		
 		win.drawHook = {
-			XiiColors.ixiorange.set;
-			Pen.width = 3;
-			Pen.translate(30,182);
-			Pen.scale(0.6,0.6);
-			Pen.moveTo(1@7);
+			GUI.pen.color = XiiColors.ixiorange;
+			GUI.pen.width = 3;
+			GUI.pen.translate(30,182);
+			GUI.pen.scale(0.6,0.6);
+			GUI.pen.moveTo(1@7);
 			ixilogo.do({arg point;
-				Pen.lineTo(point+0.5);
+				GUI.pen.lineTo(point+0.5);
 			});
-			Pen.stroke
+			GUI.pen.stroke;
 		};
 		win.refresh;
 	}

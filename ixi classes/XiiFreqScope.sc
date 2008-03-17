@@ -4,10 +4,14 @@ XiiFreqScope {
 	var <>xiigui, params;
 
 	*new { arg server, channels, setting = nil;
-		if(Server.default == Server.local, {
-			XiiAlert("The FreqScope works only on the internal server!");
-		},{
+		if(Server.default == GUI.stethoscope.defaultServer, {
 			^super.new.initFreqScope(setting);
+		},{
+			if(GUI.id == \cocoa, {
+				XiiAlert("The FreqScope works only on the internal server!");
+			},{
+				XiiAlert("The FreqScope works only on the local server!");
+			});
 		});
 	}
 	
@@ -31,7 +35,7 @@ XiiFreqScope {
 
 		rect = Rect(point.x, point.y, 511, height);
 		pad = [30, 38, 14, 10]; // l,r,t,b
-		font = Font("Helvetica", 9);
+		font = GUI.font.new("Helvetica", 9);
 		freqLabel = Array.newClear(12);
 		freqLabelDist = rect.width/(freqLabel.size-1);
 		dbLabel = Array.newClear(17);
@@ -64,25 +68,25 @@ XiiFreqScope {
 			});
 		};
 
-		win = SCWindow(name, rect.resizeBy(pad[0] + pad[1] + 18, pad[2] + pad[3] + 4), false);
+		win = GUI.window.new(name, rect.resizeBy(pad[0] + pad[1] + 18, pad[2] + pad[3] + 4), false);
 		
 		freqLabel.size.do({ arg i;
-			freqLabel[i] = SCStaticText(win, Rect(pad[0] - (freqLabelDist*0.5) + (i*freqLabelDist), pad[2] - 10, freqLabelDist, 10))
+			freqLabel[i] = GUI.staticText.new(win, Rect(pad[0] - (freqLabelDist*0.5) + (i*freqLabelDist), pad[2] - 10, freqLabelDist, 10))
 				.font_(font)
 				.align_(0)
 			;
-			SCStaticText(win, Rect(pad[0] + (i*freqLabelDist), pad[2], 1, rect.height))
+			GUI.staticText.new(win, Rect(pad[0] + (i*freqLabelDist), pad[2], 1, rect.height))
 				.string_("")
 				.background_(scopeColor.alpha_(0.25))
 			;
 		});
 		
 		dbLabel.size.do({ arg i;
-			dbLabel[i] = SCStaticText(win, Rect(0, pad[2] + (i*dbLabelDist), pad[0], 10))
+			dbLabel[i] = GUI.staticText.new(win, Rect(0, pad[2] + (i*dbLabelDist), pad[0], 10))
 				.font_(font)
 				.align_(1)
 			;
-			SCStaticText(win, Rect(pad[0], dbLabel[i].bounds.top, rect.width, 1))
+			GUI.staticText.new(win, Rect(pad[0], dbLabel[i].bounds.top, rect.width, 1))
 				.string_("")
 				.background_(scopeColor.alpha_(0.25))
 			;		
@@ -93,14 +97,14 @@ XiiFreqScope {
 		setFreqLabelVals.value(scope.freqMode, 2048);
 		setDBLabelVals.value(scope.dbRange);
 
-		SCStaticText(win, Rect(pad[0] + rect.width + 8, rect.height - 110, pad[1], 10))
+		GUI.staticText.new(win, Rect(pad[0] + rect.width + 8, rect.height - 110, pad[1], 10))
 			.string_("inbus")
 			.font_(font);
 
-		SCPopUpMenu(win, Rect(pad[0] + rect.width + 8, rect.height - 95, pad[1], 14))
+		GUI.popUpMenu.new(win, Rect(pad[0] + rect.width + 8, rect.height - 95, pad[1], 14))
 			.items_(XiiACDropDownChannels.getStereoChnList)
 			.value_(params[0])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.action_({ arg ch; var inbus;
@@ -109,13 +113,13 @@ XiiFreqScope {
 				params[0] = ch.value;
 			});
 
-		SCStaticText(win, Rect(pad[0] + rect.width + 8, rect.height - 75, pad[1], 10))
+		GUI.staticText.new(win, Rect(pad[0] + rect.width + 8, rect.height - 75, pad[1], 10))
 			.string_("FrqScl")
 			.font_(font);
 			
-		SCPopUpMenu(win, Rect(pad[0] + rect.width + 8, rect.height - 60, pad[1], 16))
+		GUI.popUpMenu.new(win, Rect(pad[0] + rect.width + 8, rect.height - 60, pad[1], 16))
 			.items_(["lin", "log"])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.value_(params[1])
 			.action_({ arg view;
@@ -126,13 +130,13 @@ XiiFreqScope {
 			.canFocus_(false)
 			.font_(font);
 		
-		SCStaticText(win, Rect(pad[0] + rect.width + 8, rect.height - 40, pad[1], 10))
+		GUI.staticText.new(win, Rect(pad[0] + rect.width + 8, rect.height - 40, pad[1], 10))
 			.string_("dbCut")
 			.font_(font);
 			
-		SCPopUpMenu(win, Rect(pad[0] + rect.width + 8, rect.height - 25, pad[1], 16))
+		GUI.popUpMenu.new(win, Rect(pad[0] + rect.width + 8, rect.height - 25, pad[1], 16))
 			.items_(Array.series(12, 12, 12).collect({ arg item; item.asString }))
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.action_({ arg view;
 				scope.dbRange_((view.value + 1) * 12);
@@ -143,7 +147,7 @@ XiiFreqScope {
 			.font_(font)
 			.value_(params[2]);
 			 
-		onOffButt = SCButton(win, Rect(pad[0] + rect.width + 8, rect.height-2, pad[1], 16))
+		onOffButt = GUI.button.new(win, Rect(pad[0] + rect.width + 8, rect.height-2, pad[1], 16))
 			.states_([["On", Color.black, Color.clear], ["Off", Color.black, Color.green(alpha:0.2)]]) 
 			.action_({ arg view;
 				if(view.value == 1, {
@@ -155,15 +159,17 @@ XiiFreqScope {
 			.font_(font)
 			.canFocus_(false);
 		
-		scope
+		// ugly code ahead warning!
+		scope.scope
 			.background_(bgColor)
 			.style_(1)
-			.waveColors_([scopeColor.alpha_(1)])
-			.inBus_(busNum)
-			.active_(false)
 			.canFocus_(false)
-		;
-		
+			.waveColors_([scopeColor.alpha_(1)]);
+			
+		scope
+			.inBus_(busNum);
+
+
 		cmdPeriodFunc = { onOffButt.valueAction_(0)};
 		CmdPeriod.add(cmdPeriodFunc);
 

@@ -54,7 +54,7 @@ synthRunningFlag = false;
 fftbuf = Buffer.alloc(s, 512);
 trackbuf = Buffer.alloc(s, 512);
 
-win = SCWindow.new("Mushrooms", Rect(point.x, point.y, 820, 320), resizable: false);
+win = GUI.window.new("Mushrooms", Rect(point.x, point.y, 820, 320), resizable: false);
 
 // just display a temp buf in the GUI so it's not empty
 {bufPlot = XiiBufferOnsetPlot.new(fftbuf, win, Rect( 120, 5, 680, 300))}.defer(1);
@@ -81,8 +81,8 @@ oscResponder =  OSCresponderNode(s.addr,'/tr',{ arg thistime, responder, msg;
 }).add;
 
 
-		selbPool = SCPopUpMenu(win, Rect(10, 10, 100, 16))
-			.font_(Font("Helvetica", 9))
+		selbPool = GUI.popUpMenu.new(win, Rect(10, 10, 100, 16))
+			.font_(GUI.font.new("Helvetica", 9))
 			.items_(if(XQ.globalBufferDict.keys.asArray == [], {["no pool"]}, {XQ.globalBufferDict.keys.asArray.sort}))
 			.value_(0)
 			.background_(Color.white)
@@ -90,8 +90,8 @@ oscResponder =  OSCresponderNode(s.addr,'/tr',{ arg thistime, responder, msg;
 				ldSndsGBufferList.value(selbPool.items[item.value]); // sending name of pool
 			});
 
-		bufferPop = SCPopUpMenu(win, Rect(10, 32, 100, 16)) // 550
-				.font_(Font("Helvetica", 9))
+		bufferPop = GUI.popUpMenu.new(win, Rect(10, 32, 100, 16)) // 550
+				.font_(GUI.font.new("Helvetica", 9))
 				.items_(["no buffer"])
 				.background_(Color.white)
 				.action_({ arg popup; 
@@ -144,8 +144,8 @@ oscResponder =  OSCresponderNode(s.addr,'/tr',{ arg thistime, responder, msg;
 		
 		ldSndsGBufferList.value(selbPool.items[0].asSymbol);
 
-		soundFuncPop = SCPopUpMenu(win, Rect(10, 54, 100, 16))
-				.font_(Font("Helvetica", 9))
+		soundFuncPop = GUI.popUpMenu.new(win, Rect(10, 54, 100, 16))
+				.font_(GUI.font.new("Helvetica", 9))
 				.items_(["sample", "sine", "bells", "sines", "synth1", "ks_string", 
 				"ixi_string", "impulse", "ringz", "klanks", "scode", "audiostream"])
 				.background_(Color.new255(255, 255, 255))
@@ -165,7 +165,7 @@ oscResponder =  OSCresponderNode(s.addr,'/tr',{ arg thistime, responder, msg;
 				});
 
 threshSl = OSCIISlider.new(win, Rect(10, 76, 100, 8), "- thresh", 0.0, 1.0, 0.25, 0.01)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; 
 				thresh = sl.value;
 				if(synthRunningFlag, { synth.set(\thresh, thresh) });
@@ -173,14 +173,14 @@ threshSl = OSCIISlider.new(win, Rect(10, 76, 100, 8), "- thresh", 0.0, 1.0, 0.25
 			});
 
 mingapSl = OSCIISlider.new(win, Rect(10, 102, 100, 8), "- minGap", 0.0, 10.0, 5.0, 1)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; 
 				mingap = sl.value;
 				params[2] = mingap;
 			});
 
 timeRadioButt = OSCIIRadioButton(win, Rect(10, 130, 11, 11), "Time")
-				.font_(Font("Helvetica", 9))
+				.font_(GUI.font.new("Helvetica", 9))
 				.value_(1)
 				.action_({arg butt;
 					if(butt.value == 1, {
@@ -193,7 +193,7 @@ timeRadioButt = OSCIIRadioButton(win, Rect(10, 130, 11, 11), "Time")
 				});
 
 fftRadioButt = OSCIIRadioButton(win, Rect(10, 145, 11, 11), "FFT")
-				.font_(Font("Helvetica", 9))
+				.font_(GUI.font.new("Helvetica", 9))
 				.value_(0)
 				.action_({arg butt;
 					if(butt.value == 1, {
@@ -205,9 +205,9 @@ fftRadioButt = OSCIIRadioButton(win, Rect(10, 145, 11, 11), "FFT")
 					params[4] = butt.value;
 				});
 
-analyseBufButt = SCButton(win, Rect(60, 130, 50, 18))
+analyseBufButt = GUI.button.new(win, Rect(60, 130, 50, 18))
 		.states_([["analyse", Color.black, Color.clear]])
-		.font_(Font("Helvetica", 9))			
+		.font_(GUI.font.new("Helvetica", 9))			
 		.action_({arg butt; var displayBufPlot;
 			startButt.valueAction_(0);
 			if(analysisType == \time, { // calculating Onsets from analysing Buffer Array
@@ -246,7 +246,7 @@ analyseBufButt = SCButton(win, Rect(60, 130, 50, 18))
 		});
 
 rateSl = OSCIISlider.new(win, Rect(10, 166, 100, 8), "- rate", -2, 2, 1, 0.01)
-		.font_(Font("Helvetica", 9))
+		.font_(GUI.font.new("Helvetica", 9))
 		.action_({arg sl; 
 			rate = sl.value;
 			if(synthRunningFlag, { synth.set(\rate, rate) });
@@ -254,7 +254,7 @@ rateSl = OSCIISlider.new(win, Rect(10, 166, 100, 8), "- rate", -2, 2, 1, 0.01)
 		});
 
 volSl = OSCIISlider.new(win, Rect(10, 192, 100, 8), "- volume", 0, 1, 1, 0.01, \amp)
-		.font_(Font("Helvetica", 9))
+		.font_(GUI.font.new("Helvetica", 9))
 		.action_({arg sl; 
 			amp = sl.value;
 			if(freqAnalysisFlag, { analysisSynth.set(\amp, amp) });
@@ -263,18 +263,18 @@ volSl = OSCIISlider.new(win, Rect(10, 192, 100, 8), "- volume", 0, 1, 1, 0.01, \
 		});
 
 onsetVolSl = OSCIISlider.new(win, Rect(10, 218, 100, 8), "- onsetvol", 0, 1, 1, 0.01, \amp)
-		.font_(Font("Helvetica", 9))
+		.font_(GUI.font.new("Helvetica", 9))
 		.action_({arg sl; 
 			funcamp = sl.value;  // the amplitude of the soundFunc synths
 			params[7] = funcamp;
 		});
 
-SCStaticText(win, Rect(13, 260, 80, 20))
-		.font_(Font("Helvetica", 9))
+GUI.staticText.new(win, Rect(13, 260, 80, 20))
+		.font_(GUI.font.new("Helvetica", 9))
 		.string_("outbus :");
 
-outBusPop = SCPopUpMenu(win, Rect(60, 260, 50, 16))
-		.font_(Font("Helvetica", 9))
+outBusPop = GUI.popUpMenu.new(win, Rect(60, 260, 50, 16))
+		.font_(GUI.font.new("Helvetica", 9))
 		.items_(XiiACDropDownChannels.getStereoChnList)
 		.background_(Color.new255(255, 255, 255))
 		.action_({ arg popup;
@@ -284,7 +284,7 @@ outBusPop = SCPopUpMenu(win, Rect(60, 260, 50, 16))
 		});
 
 drawIndexButt = OSCIIRadioButton(win, Rect(10, 288, 12, 12), "draw")
-				.font_(Font("Helvetica", 9))
+				.font_(GUI.font.new("Helvetica", 9))
 				.value_(1)
 				.action_({arg butt;
 					if(butt.value == 1, {
@@ -298,10 +298,10 @@ drawIndexButt = OSCIIRadioButton(win, Rect(10, 288, 12, 12), "draw")
 					params[9] = butt.value;
 				});
 
-startButt = SCButton(win, Rect(60, 284, 50, 18))
+startButt = GUI.button.new(win, Rect(60, 284, 50, 18))
 	.states_([["play", Color.black, Color.clear],
 			["stop", Color.black, Color.green(alpha:0.2)]])
-	.font_(Font("Helvetica", 9))			
+	.font_(GUI.font.new("Helvetica", 9))			
 	.action_({arg butt;		
 		if(butt.value == 1, {
 			startPlayFunc.value;
@@ -481,12 +481,12 @@ setPlayFunc.value(1);
 
 	createCodeWin = {
 		var funcwin, func, subm, test, view;
-		funcwin = SCWindow("scode", Rect(600,700, 440, 200)).front;
+		funcwin = GUI.window.new("scode", Rect(600,300, 440, 200)).front;
 		funcwin.alwaysOnTop = true;
 		
 		view = funcwin.view;
-		func = SCTextView(view, Rect(20, 10, 400, 140))
-				.font_(Font("Monaco", 9))
+		func = GUI.textView.new(view, Rect(20, 10, 400, 140))
+				.font_(GUI.font.new("Monaco", 9))
 				.resize_(5)
 				.focus(true)
 				.string_(
@@ -496,18 +496,18 @@ setPlayFunc.value(1);
 						synthDefInUse
 					});
 				);
-		test = SCButton(view, Rect(280,160,50,18))
+		test = GUI.button.new(view, Rect(280,160,50,18))
 				.states_([["test",Color.black,Color.clear]])
 				.resize_(9)
-				.font_(Font("Helvetica", 9))
+				.font_(GUI.font.new("Helvetica", 9))
 				.action_({
 					func.string.interpret.value;
 				});
 				
-		subm = SCButton(view, Rect(340,160,50,18))
+		subm = GUI.button.new(view, Rect(340,160,50,18))
 				.states_([["submit",Color.black,Color.clear]])
 				.resize_(9)
-				.font_(Font("Helvetica", 9))
+				.font_(GUI.font.new("Helvetica", 9))
 				.action_({
 					func.string.interpret;
 					synthDefInUse = func.string;
@@ -518,26 +518,26 @@ setPlayFunc.value(1);
 		
 		createAudioStreamBusWin = {
 			var win, envview, timesl, setButt;
-			win = SCWindow("audiostream inbus", Rect(200, 450, 250, 100), resizable:false).front;
+			win = GUI.window.new("audiostream inbus", Rect(200, 450, 250, 100), resizable:false).front;
 			win.alwaysOnTop = true;
 				
-			SCStaticText(win, Rect(20, 55, 20, 16))
-				.font_(Font("Helvetica", 9)).string_("in"); 
+			GUI.staticText.new(win, Rect(20, 55, 20, 16))
+				.font_(GUI.font.new("Helvetica", 9)).string_("in"); 
 
-			SCPopUpMenu(win, Rect(35, 55, 50, 16))
+			GUI.popUpMenu.new(win, Rect(35, 55, 50, 16))
 				.items_(XiiACDropDownChannels.getStereoChnList)
 				.value_(10)
-				.font_(Font("Helvetica", 9))
+				.font_(GUI.font.new("Helvetica", 9))
 				.background_(Color.white)
 				.canFocus_(false)
 				.action_({ arg ch; var inbus;
 					inbus = ch.value * 2;
 				});
 
-			setButt = SCButton.new(win, Rect(120, 55, 60, 16))
+			setButt = GUI.button.new(win, Rect(120, 55, 60, 16))
 					.states_([["set inbus", Color.black, Color.clear]])
 					.focus(true)
-					.font_(Font("Helvetica", 9))
+					.font_(GUI.font.new("Helvetica", 9))
 					.action_({
 						win.close;
 					});
@@ -545,11 +545,11 @@ setPlayFunc.value(1);
 
 		chooseBufferWin = {			
 			var win, selbPool, bufferPop, ldSndsGBufferList, setButt, poolName;
-			win = SCWindow("Choose Buffer", Rect(200, 450, 200, 66), resizable:false).front;
+			win = GUI.window.new("Choose Buffer", Rect(200, 450, 200, 66), resizable:false).front;
 			win.alwaysOnTop = true;
 
-		selbPool = SCPopUpMenu(win, Rect(10, 10, 100, 16))
-			.font_(Font("Helvetica", 9))
+		selbPool = GUI.popUpMenu.new(win, Rect(10, 10, 100, 16))
+			.font_(GUI.font.new("Helvetica", 9))
 			.items_(if(XQ.globalBufferDict.keys.asArray == [], 
 					{["no pool"]}, {XQ.globalBufferDict.keys.asArray.sort}))
 			.value_(0)
@@ -559,8 +559,8 @@ setPlayFunc.value(1);
 				bufferPop.valueAction_(0);
 			});
 
-		bufferPop = SCPopUpMenu(win, Rect(10, 32, 100, 16)) // 550
-				.font_(Font("Helvetica", 9))
+		bufferPop = GUI.popUpMenu.new(win, Rect(10, 32, 100, 16)) // 550
+				.font_(GUI.font.new("Helvetica", 9))
 				.items_(["no buffer"])
 				.background_(Color.white)
 				.action_({ arg popup; 						
@@ -593,10 +593,10 @@ setPlayFunc.value(1);
 		
 		ldSndsGBufferList.value(selbPool.items[0].asSymbol);
 
-		setButt = SCButton.new(win, Rect(120, 32, 60, 16))
+		setButt = GUI.button.new(win, Rect(120, 32, 60, 16))
 					.states_([["set buffer", Color.black, Color.clear]])
 					.focus(true)
-					.font_(Font("Helvetica", 9))
+					.font_(GUI.font.new("Helvetica", 9))
 					.action_({
 						win.close;
 					});

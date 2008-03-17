@@ -1,52 +1,97 @@
 // 06/2006 blackrain@realizedsound.net
 // made by master blackrain, modified by ixi for aesthetic and functional purposes
 
-XiiVuView : SCUserView  {
+
+XiiVuView {
+	var userview;
 	var <value=0;
 
-	*viewClass { ^SCUserView }
-	init { arg parent, bounds;
-		super.init(parent, bounds);
+	*new{ arg parent, bounds;
+		^super.new.initVuView(parent, bounds);
+	}
+
+	*viewClass { ^GUI.userView }
+	
+	initVuView { arg parent, bounds;
+		userview = GUI.userView.new(parent, bounds)
+			.drawFunc_({
+				GUI.pen.color = Color.black.alpha_(0.4);
+				GUI.pen.width = 1;
+				GUI.pen.strokeRect(Rect(bounds.left-0.5, 
+					bounds.top-0.5, bounds.width, bounds.height));
+		
+				// center
+				//Color.black.alpha_(0.2).set;
+				GUI.pen.color = XiiColors.darkgreen;
+				GUI.pen.addWedge(bounds.center.x @ (bounds.top + bounds.height - 1), 
+					bounds.height * 0.20, 0, -pi);
+				GUI.pen.perform(\fill);
+		
+				// scale
+				//Color.black.alpha_(0.2).set;
+				GUI.pen.color = XiiColors.darkgreen;
+				GUI.pen.addAnnularWedge(bounds.center.x @
+					(bounds.top + bounds.height - 1), 
+					bounds.height * 0.8, bounds.height * 0.95, -0.75pi, 0.5pi);
+				GUI.pen.perform(\fill);
+		
+				// dial
+				GUI.pen.color = Color.black(0.8, 0.8);
+				GUI.pen.width = 1;
+				GUI.pen.moveTo(bounds.center.x @ (bounds.top + bounds.height - 1));
+				GUI.pen.lineTo(Polar.new(bounds.height * 0.95, 
+					[-0.75pi, -0.25pi, \linear].asSpec.map(value)).asPoint +
+						(bounds.center.x @ (bounds.top + bounds.height)));
+				GUI.pen.stroke;
+			});
 	}	
+/*
+	
 	draw {
 		// frame
-		Color.black.alpha_(0.4).set;
-		Pen.width = 1;
-		Pen.strokeRect(Rect(this.bounds.left-0.5, 
+		
+		GUI.pen.color = Color.black.alpha_(0.4);
+		GUI.pen.width = 1;
+		GUI.pen.strokeRect(Rect(this.bounds.left-0.5, 
 			this.bounds.top-0.5, this.bounds.width, this.bounds.height));
 
 		// center
 		//Color.black.alpha_(0.2).set;
-		XiiColors.darkgreen.set;
-		Pen.addWedge(this.bounds.center.x @ (this.bounds.top + this.bounds.height - 1), 
+		GUI.pen.color = XiiColors.darkgreen;
+		GUI.pen.addWedge(this.bounds.center.x @ (this.bounds.top + this.bounds.height - 1), 
 			this.bounds.height * 0.20, 0, -pi);
-		Pen.perform(\fill);
+		GUI.pen.perform(\fill);
 
 		// scale
 		//Color.black.alpha_(0.2).set;
-		XiiColors.darkgreen.set;
-		Pen.addAnnularWedge(this.bounds.center.x @
+		GUI.pen.color = XiiColors.darkgreen;
+		GUI.pen.addAnnularWedge(this.bounds.center.x @
 			(this.bounds.top + this.bounds.height - 1), 
 			this.bounds.height * 0.8, this.bounds.height * 0.95, -0.75pi, 0.5pi);
-		Pen.perform(\fill);
+		GUI.pen.perform(\fill);
 
 		// dial
-		Color.black(0.8, 0.8).set;
-		Pen.width = 1;
-		Pen.moveTo(this.bounds.center.x @ (this.bounds.top + this.bounds.height - 1));
-		Pen.lineTo(Polar.new(this.bounds.height * 0.95, 
+		GUI.pen.color = Color.black(0.8, 0.8);
+		GUI.pen.width = 1;
+		GUI.pen.moveTo(this.bounds.center.x @ (this.bounds.top + this.bounds.height - 1));
+		GUI.pen.lineTo(Polar.new(this.bounds.height * 0.95, 
 			[-0.75pi, -0.25pi, \linear].asSpec.map(value)).asPoint +
 				(this.bounds.center.x @ (this.bounds.top + this.bounds.height)));
-		Pen.stroke;
+		GUI.pen.stroke;
 	}
+*/
 
 	value_ { arg val;
 		value = val;
-		this.refresh;
+		userview.refresh;
+	}
+	
+	relativeOrigin_ {arg bool;
+		userview.relativeOrigin_(bool)
 	}
 	
 	canFocus_ {arg bool;
-		super.canFocus_(bool);
+		userview.canFocus_(bool);
 	}
 	
 }

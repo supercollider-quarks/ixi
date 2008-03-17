@@ -13,20 +13,24 @@ XiiWaveScope {
 	
 	*new { arg server, numChannels = 2, setting = nil;
 		var win, name, point;
-		if(Server.default == Server.local, {
-			XiiAlert("The WaveScope works only on the internal server!");
-		},{
+		if(Server.default == GUI.stethoscope.defaultServer, {
 			name = "wavescope";
 			point = if(setting.isNil, {XiiWindowLocation.new(name)}, {setting[1]});
-			win = SCWindow.new(name, Rect(point.x, point.y, 400, 328));
+			win = GUI.window.new(name, Rect(point.x, point.y, 400, 328));
 			win.view.decorator = FlowLayout(Rect(6, 0, 400, 328));
 			win.front;
 			^super.new.initWaveScope(server, numChannels, setting, win:win);
+		},{
+			if(GUI.id == \cocoa, {
+				XiiAlert("The FreqScope works only on the internal server!");
+			},{
+				XiiAlert("The FreqScope works only on the local server!");
+			});
 		});
 	}
 
 	initWaveScope { arg server, numChannels = 2, setting, win;
-		if(server.inProcess.not, { " ixi wavescope works only with internal server".warn; ^nil });
+		// if(server.inProcess.not, { " ixi wavescope works only with internal server".warn; ^nil });
 		this.makeWindow(win, setting);
 		this.index_(0);
 		this.zoom_(10);
@@ -35,7 +39,7 @@ XiiWaveScope {
 	}
 	
 	*tileBounds {
-		var screenBounds = SCWindow.screenBounds;
+		var screenBounds = GUI.window.screenBounds;
 		var x = 544 + (ugenScopes.size * 222);
 		var right = x + 212;
 		var y = floor(right / screenBounds.width) * 242 + 10;
@@ -64,7 +68,7 @@ XiiWaveScope {
 //			//win.onClose = { this.free };
 //		};
 		
-		n = SCScope(view, Rect(view.bounds.left+20, 5, view.bounds.width - 20, view.bounds.height - 40));
+		n = GUI.scopeView.new(view, Rect(view.bounds.left+20, 5, view.bounds.width - 20, view.bounds.height - 40));
 		n.background = Color.green(0.1);
 		n.resize = 5;
 		n.style = style;
@@ -75,15 +79,15 @@ XiiWaveScope {
 		zx = n.xZoom.log2;
 		zy = n.yZoom.log2;
 							
-		SCStaticText(view, Rect(20, 18, 27, 18))
+		GUI.staticText.new(view, Rect(20, 18, 27, 18))
 			.string_("inbus :")
 			.resize_(9)
-			.font_(Font("Helvetica", 9));
+			.font_(GUI.font.new("Helvetica", 9));
 			
-		SCPopUpMenu(view, Rect(38, 15, 30, 18))
+		GUI.popUpMenu.new(view, Rect(38, 15, 30, 18))
 			.items_(XiiACDropDownChannels.getMonoChnList)
 			.value_(params[0])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.resize_(9)		
 			.canFocus_(false)
@@ -92,31 +96,31 @@ XiiWaveScope {
 				this.index = ch.value;
 			});
 			
-		SCStaticText(view, Rect(100, 18, 33, 18))
+		GUI.staticText.new(view, Rect(100, 18, 33, 18))
 			.string_("chNum :")
 			.resize_(9)
-			.font_(Font("Helvetica", 9));
+			.font_(GUI.font.new("Helvetica", 9));
 			
-		SCPopUpMenu(view, Rect(135, 15, 30, 18))
+		GUI.popUpMenu.new(view, Rect(135, 15, 30, 18))
 			.items_([ "1", "2" ,"3", "4", "5", "6", "7", "8", "9", "10", "11", 
 					"12", "13", "14", "15", "16"])
 			.value_(params[1])
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.resize_(9)
 			.action_({ arg ch; 
 				this.numChannels = (ch.value+1).asInteger;
 			});
-		SCStaticText(view, Rect(155, 18, 27, 18))
+		GUI.staticText.new(view, Rect(155, 18, 27, 18))
 			.string_("style :")
 			.resize_(9)
-			.font_(Font("Helvetica", 9));
+			.font_(GUI.font.new("Helvetica", 9));
 			
-		SCPopUpMenu(view, Rect(155, 15, 30, 18))
+		GUI.popUpMenu.new(view, Rect(155, 15, 30, 18))
 			.items_([ "0", "1" ,"2"])
 			.value_(style)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.resize_(9)
@@ -124,7 +128,7 @@ XiiWaveScope {
 				n.style = ch.value.asInteger;
 			});
 
-		onOffButt = SCButton(view, Rect(195, 15, 30, 16))
+		onOffButt = GUI.button.new(view, Rect(195, 15, 30, 16))
 			.states_([["On", Color.black, Color.clear], 
 			["Off", Color.black, Color.green(alpha:0.2)]]) 
 			.resize_(9)
@@ -135,19 +139,19 @@ XiiWaveScope {
 					this.stop;
 				});
 			})
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.canFocus_(false);
 			
 		// this is just a spacer for the flowlayout
-		SCStaticText(view, Rect(300, 18, 20, 18))
+		GUI.staticText.new(view, Rect(300, 18, 20, 18))
 			.string_("   ")
 			.resize_(9)
-			.font_(Font("Helvetica", 9));
+			.font_(GUI.font.new("Helvetica", 9));
 			
-		SCStaticText(view, Rect(300, 18, 100, 18))
+		GUI.staticText.new(view, Rect(300, 18, 100, 18))
 			.string_("use arrows to zoom")
 			.resize_(9)
-			.font_(Font("Helvetica", 9));
+			.font_(GUI.font.new("Helvetica", 9));
 
 		this.updateColors;
 		

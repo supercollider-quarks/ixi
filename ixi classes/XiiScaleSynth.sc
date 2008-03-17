@@ -14,8 +14,8 @@ XiiScaleSynth {
 		
 		server = argserver ? Server.default;
 		//  screen resolution
-		screenX = SCWindow.screenBounds.asArray[2]; 
-		screenY = SCWindow.screenBounds.asArray[3];
+		screenX = GUI.window.screenBounds.asArray[2]; 
+		screenY = GUI.window.screenBounds.asArray[3];
 		
 		// the initials transformations of the base scale.
 		trns1 = 5; // first row up from base scale (which is in C)
@@ -25,7 +25,7 @@ XiiScaleSynth {
 		tabletScreenY = screenY - 40; // give space for the control bar at the bottom
 		
 		// --------  GUI 
-		win = SCWindow(" - ", border: false);
+		win = GUI.window.new(" - ", border: false);
 		win.fullScreen;
 			boxColList = List.new;
 			17.do({arg j; var a;
@@ -46,17 +46,17 @@ XiiScaleSynth {
 		win.drawHook = { 
 			17.do({arg j;
 			15.do({ arg i;
-				Pen.use{
-					boxColList[j][i].set;
-					Pen.fillRect(Rect(3+(i*screenX/15), 2+(j*tabletScreenY/17), (screenX/15)-6, (tabletScreenY/17)-6));
-					Color.grey.set;
-					Pen.strokeRect(Rect(3+(i*screenX/15), 2+(j*tabletScreenY/17), (screenX/15)-6, (tabletScreenY/17)-6));
+				GUI.pen.use{
+					GUI.pen.color = boxColList[j][i];
+					GUI.pen.fillRect(Rect(3+(i*screenX/15), 2+(j*tabletScreenY/17), (screenX/15)-6, (tabletScreenY/17)-6));
+					GUI.pen.color = Color.grey;
+					GUI.pen.strokeRect(Rect(3+(i*screenX/15), 2+(j*tabletScreenY/17), (screenX/15)-6, (tabletScreenY/17)-6));
 					}
 				});
 			});
 		};
 		
-		tablet = SCTabletView(win,Rect(0, 0, screenX, tabletScreenY));
+		tablet = GUI.tabletView.new(win,Rect(0, 0, screenX, tabletScreenY));
 		tablet.background = Color.white;
 		tablet.mouseDownAction = { arg  view, x, y, pressure, tiltx, tilty, deviceID, buttonNumber;
 			synth.set(\vol, pressure);
@@ -84,7 +84,7 @@ XiiScaleSynth {
 			synth.set(\vol, 0);
 		};
 		
-		SCButton(win, Rect(6, screenY-34, 40, 20)).states_([["stop"]]).action_({
+		GUI.button.new(win, Rect(6, screenY-34, 40, 20)).states_([["stop"]]).action_({
 			var t;
 			win.close; 
 			scaleBuf.free; 
@@ -107,7 +107,7 @@ XiiScaleSynth {
 		OSCIISlider.new(win, Rect(660, screenY-34, 60, 10), "trans2", 0, 12, trns2, 1)
 			.action_({arg sl; trns2 = sl.value; drone.value(trns1, trns2);});
 		
-		outbusPoP = SCPopUpMenu(win, Rect(750, screenY-34, 50, 16))			.font_(Font("Helvetica", 9))
+		outbusPoP = GUI.popUpMenu.new(win, Rect(750, screenY-34, 50, 16))			.font_(GUI.font.new("Helvetica", 9))
 			.items_(XiiACDropDownChannels.getStereoChnList)
 			.value_(0)
 			.background_(Color.white)
@@ -123,7 +123,7 @@ XiiScaleSynth {
 		win.front;
 		
 		// --- scale stuff ---
-			scaleMenu = SCListView(win, Rect(500, screenY-34, 80, 30));
+			scaleMenu = GUI.listView.new(win, Rect(500, screenY-34, 80, 30));
 			scaleNames = ['ionian','dorian', 'phrygian', 'lydian', 'mixolydian', 'aeolian', 'locrian', 'default', 'bartok', 'todi', 'purvi', 'marva', 'bhairav', 'ahirbhairav', 'spanish'];
 			scales = Dictionary[	'ionian'		-> [0,2,4,5,7,9,11], 
 								'dorian' 		-> [0,2,3,5,7,9,10],

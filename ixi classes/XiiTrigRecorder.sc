@@ -45,7 +45,7 @@ XiiTrigRecorder {
 					Buffer.alloc(server, 65536, 1);		
 				});
 		
-		win = SCWindow("TrigRecorder", Rect(point.x, point.y, 242, 106), resizable:false);
+		win = GUI.window.new("TrigRecorder", Rect(point.x, point.y, 242, 106), resizable:false);
 
 		sensibang = Bang.new(win, Rect(10, 10, 50, 50))
 				.setBackground_(Color.white);
@@ -54,8 +54,8 @@ XiiTrigRecorder {
 				.setBackground_(Color.white)
 				.setFillColor_(Color.red(alpha:0.5));
 				
-		recButt = SCButton(win, Rect(79, 70, 42, 16))
-				.font_(Font("Helvetica", 9))
+		recButt = GUI.button.new(win, Rect(79, 70, 42, 16))
+				.font_(GUI.font.new("Helvetica", 9))
 				.states_([["activate",Color.black,Color.clear], 
 						["stop",Color.black,Color.green(alpha:0.2)]])
 				.action_({arg butt;
@@ -83,8 +83,8 @@ XiiTrigRecorder {
 					});
 				 });
 				 
-		outputFile = SCButton(win, Rect(49, 70, 26, 16))
-			.font_(Font("Helvetica", 9))
+		outputFile = GUI.button.new(win, Rect(49, 70, 26, 16))
+			.font_(GUI.font.new("Helvetica", 9))
 				.states_([["file",Color.black,Color.clear]])
 				.action_({arg butt;
 					CocoaDialog.savePanel({ arg path;
@@ -95,8 +95,8 @@ XiiTrigRecorder {
 					});
 				 });
 		
-		inBusPop = SCPopUpMenu(win, Rect(10, 70, 36, 16))
-				.font_(Font("Helvetica", 9))
+		inBusPop = GUI.popUpMenu.new(win, Rect(10, 70, 36, 16))
+				.font_(GUI.font.new("Helvetica", 9))
 				.items_(
 					if(channels==2, { 
 						XiiACDropDownChannels.getStereoChnList
@@ -113,7 +113,7 @@ XiiTrigRecorder {
 				.value_( inbus/channels );
 		
 		sensi = OSCIISlider.new(win, Rect(130, 10, 100, 10), "- sensitivity", 0.01, 1, params[1], 0.01, \amp)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; 
 				analyser.set(\sensitivity, sl.value);
 				sensitivity = sl.value;
@@ -121,7 +121,7 @@ XiiTrigRecorder {
 			});
 			
 		prerec = OSCIISlider.new(win, Rect(130, 40, 100, 10), "- prerec", 0, 2.0, params[2], 0.01)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; 
 				prerectime = sl.value;
 				analyser.set(\prerectime, sl.value);
@@ -129,7 +129,7 @@ XiiTrigRecorder {
 			});
 			
 		postrec = OSCIISlider.new(win, Rect(130, 70, 100, 10), "- postrec", 1, 10, params[3], 0.01)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; 
 				rectime = sl.value;
 				params[3] = rectime;

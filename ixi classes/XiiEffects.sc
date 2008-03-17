@@ -490,9 +490,9 @@ XiiEqualizer {
 		stereoChList = XiiACDropDownChannels.getStereoChnList;
 		monoChList = XiiACDropDownChannels.getMonoChnList;
 
-		win = SCWindow(name, Rect(point.x, point.y, 520, 243), resizable:false).front;
+		win = GUI.window.new(name, Rect(point.x, point.y, 520, 243), resizable:false).front;
 		
-		msl = SCMultiSliderView(win, Rect(mslwLeft, mslwTop, 496, 200))
+		msl = GUI.multiSliderView.new(win, Rect(mslwLeft, mslwTop, 496, 200))
 			.value_(params[0])
 			.isFilled_(false)
 			.strokeColor_(Color.new255(10, 55, 10))
@@ -507,16 +507,16 @@ XiiEqualizer {
 				bandSynthList[xb.index].set(\amp, xb.value.at(xb.index));
 			});
 
-		SCStaticText(win, Rect(365, 215, 60, 16))
-			.font_(Font("Helvetica", 9))
+		GUI.staticText.new(win, Rect(365, 215, 60, 16))
+			.font_(GUI.font.new("Helvetica", 9))
 			.string_("band freq:"); 
 		
-		cFreqWin = SCStaticText(win, Rect(410, 215, 60, 16))
-			.font_(Font("Helvetica", 9))
+		cFreqWin = GUI.staticText.new(win, Rect(410, 215, 60, 16))
+			.font_(GUI.font.new("Helvetica", 9))
 			.string_("0"); 
 		
 		OSCIISlider.new(win, Rect(445, 214, 60, 8), "- Q", 0.001, 1, params[3], 0.001)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.canFocus_(false)
 			.action_({arg sl; 
 					eqGroup.set(\rq, sl.value); 
@@ -527,12 +527,12 @@ XiiEqualizer {
 		win.view.decorator = lay = FlowLayout(win.view.bounds, 5@215, 5@215); 
 		
 		// inBus
-		SCStaticText(win, 30 @ 15).font_(Font("Helvetica", 9)).string_("inBus").align_(\right); 
+		GUI.staticText.new(win, 30 @ 15).font_(GUI.font.new("Helvetica", 9)).string_("inBus").align_(\right); 
 
-		SCPopUpMenu(win, 40 @ 15)
+		GUI.popUpMenu.new(win, 40 @ 15)
 			.items_(if(channels==1, {monoChList},{stereoChList}))
 			.value_(inbus/channels)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.action_({ arg ch;
@@ -542,12 +542,12 @@ XiiEqualizer {
 			});
 
 		// outBus
-		SCStaticText(win, 30 @ 15).font_(Font("Helvetica", 9)).string_("outBus").align_(\right); 
+		GUI.staticText.new(win, 30 @ 15).font_(GUI.font.new("Helvetica", 9)).string_("outBus").align_(\right); 
 		
-		SCPopUpMenu(win, 40 @ 15)
+		GUI.popUpMenu.new(win, 40 @ 15)
 			.items_(if(channels==1, {monoChList},{stereoChList}))
 			.value_(outbus/channels)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.action_({ arg ch;
@@ -557,15 +557,15 @@ XiiEqualizer {
 			});
 					
 		// Target
-		SCStaticText(win, 15 @ 15).font_(Font("Helvetica", 9)).string_("Tgt").align_(\right); 
-		SCNumberBox(win, 40 @ 15).font_(Font("Helvetica", 9)).value_(tgt).action_({|v| 
+		GUI.staticText.new(win, 15 @ 15).font_(GUI.font.new("Helvetica", 9)).string_("Tgt").align_(\right); 
+		GUI.numberBox.new(win, 40 @ 15).font_(GUI.font.new("Helvetica", 9)).value_(tgt).action_({|v| 
 		Ê Êv.value = 0.max(v.value); 
 		Ê Êtgt = v.value.asInteger; 
 		}); 
 		
 		// addAction
-		SCPopUpMenu(win, 60@15) 
-		Ê Ê.font_(Font("Helvetica", 9)) 
+		GUI.popUpMenu.new(win, 60@15) 
+		Ê Ê.font_(GUI.font.new("Helvetica", 9)) 
 		Ê Ê.items_(["addToHead", "addToTail", "addAfter", "addBefore"]) 
 		Ê Ê.value_(1) 
 		Ê Ê.action_({|v| 
@@ -573,13 +573,13 @@ XiiEqualizer {
 		Ê Ê}); 
 		
 		// Print
-		SCButton(win,18@15) 
-		Ê Ê.font_(Font("Helvetica", 9)) 
+		GUI.button.new(win,18@15) 
+		Ê Ê.font_(GUI.font.new("Helvetica", 9)) 
 		Ê Ê.states_([["#"]]) ;
 
 		// on off
-		onOffButt = SCButton(win, 40@15) 
-		Ê Ê.font_(Font("Helvetica", 9)) 
+		onOffButt = GUI.button.new(win, 40@15) 
+		Ê Ê.font_(GUI.font.new("Helvetica", 9)) 
 		Ê Ê.states_([["On", Color.black, Color.clear],
 					["Off", Color.black, Color.green(alpha:0.2)]]) 
 		Ê Ê.action_({|v| 
@@ -615,15 +615,15 @@ XiiEqualizer {
 		
 		// drawing the line
 		win.drawHook = {
-				Color.new255(0, 100, 0, 100).set;
+				GUI.pen.color = Color.new255(0, 100, 0, 100);
 				31.do({arg i;
-					Pen.moveTo(mslwLeft+ 6+ (i*16) @ (mslwTop));
-					Pen.lineTo(mslwLeft+ 6+ (i*16) @ (mslwTop+200));
-					Pen.stroke
+					GUI.pen.moveTo(mslwLeft+ 6+ (i*16) @ (mslwTop));
+					GUI.pen.lineTo(mslwLeft+ 6+ (i*16) @ (mslwTop+200));
+					GUI.pen.stroke
 				});
-				Pen.moveTo(mslwLeft @ (mslwTop+100));
-				Pen.lineTo(mslwLeft+496 @ (mslwTop+100));
-				Pen.stroke;
+				GUI.pen.moveTo(mslwLeft @ (mslwTop+100));
+				GUI.pen.lineTo(mslwLeft+496 @ (mslwTop+100));
+				GUI.pen.stroke;
 			};
 			
 		cmdPeriodFunc = { onOffButt.valueAction_(0);};
@@ -1475,15 +1475,15 @@ XiiEqualizer {
 			});
 
 		SCStaticText(win, Rect(365, 215, 60, 16))
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.string_("band freq:"); 
 		
 		cFreqWin = SCStaticText(win, Rect(410, 215, 60, 16))
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.string_("0"); 
 		
 		OSCIISlider.new(win, Rect(445, 214, 60, 8), "- Q", 0.001, 1, params[3], 0.001)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.canFocus_(false)
 			.action_({arg sl; 
 					eqGroup.set(\rq, sl.value); 
@@ -1494,12 +1494,12 @@ XiiEqualizer {
 		win.view.decorator = lay = FlowLayout(win.view.bounds, 5@215, 5@215); 
 		
 		// inBus
-		SCStaticText(win, 30 @ 15).font_(Font("Helvetica", 9)).string_("inBus").align_(\right); 
+		SCStaticText(win, 30 @ 15).font_(GUI.font.new("Helvetica", 9)).string_("inBus").align_(\right); 
 
 		SCPopUpMenu(win, 40 @ 15)
 			.items_(if(channels==1, {monoChList},{stereoChList}))
 			.value_(inbus/channels)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.action_({ arg ch;
@@ -1509,12 +1509,12 @@ XiiEqualizer {
 			});
 
 		// outBus
-		SCStaticText(win, 30 @ 15).font_(Font("Helvetica", 9)).string_("outBus").align_(\right); 
+		SCStaticText(win, 30 @ 15).font_(GUI.font.new("Helvetica", 9)).string_("outBus").align_(\right); 
 		
 		SCPopUpMenu(win, 40 @ 15)
 			.items_(if(channels==1, {monoChList},{stereoChList}))
 			.value_(outbus/channels)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.action_({ arg ch;
@@ -1524,15 +1524,15 @@ XiiEqualizer {
 			});
 					
 		// Target
-		SCStaticText(win, 15 @ 15).font_(Font("Helvetica", 9)).string_("Tgt").align_(\right); 
-		SCNumberBox(win, 40 @ 15).font_(Font("Helvetica", 9)).value_(tgt).action_({|v| 
+		SCStaticText(win, 15 @ 15).font_(GUI.font.new("Helvetica", 9)).string_("Tgt").align_(\right); 
+		SCNumberBox(win, 40 @ 15).font_(GUI.font.new("Helvetica", 9)).value_(tgt).action_({|v| 
 		Ê Êv.value = 0.max(v.value); 
 		Ê Êtgt = v.value.asInteger; 
 		}); 
 		
 		// addAction
 		SCPopUpMenu(win, 60@15) 
-		Ê Ê.font_(Font("Helvetica", 9)) 
+		Ê Ê.font_(GUI.font.new("Helvetica", 9)) 
 		Ê Ê.items_(["addToHead", "addToTail", "addAfter", "addBefore"]) 
 		Ê Ê.value_(1) 
 		Ê Ê.action_({|v| 
@@ -1541,12 +1541,12 @@ XiiEqualizer {
 		
 		// Print
 		SCButton(win,18@15) 
-		Ê Ê.font_(Font("Helvetica", 9)) 
+		Ê Ê.font_(GUI.font.new("Helvetica", 9)) 
 		Ê Ê.states_([["#"]]) ;
 
 		// on off
 		onOffButt = SCButton(win, 40@15) 
-		Ê Ê.font_(Font("Helvetica", 9)) 
+		Ê Ê.font_(GUI.font.new("Helvetica", 9)) 
 		Ê Ê.states_([["On", Color.black, Color.clear],
 					["Off", Color.black, Color.green(alpha:0.2)]]) 
 		Ê Ê.action_({|v| 

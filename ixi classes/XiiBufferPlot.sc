@@ -114,10 +114,10 @@ XiiBufferPlot {
 			chanArray[j] = val;
 		});
 		
-		window = argwindow ? SCWindow("ixi buffer plot", Rect(bounds.left, bounds.height, 			bounds.width+20, bounds.height+20), resizable: false);
+		window = argwindow ? GUI.window.new("ixi buffer plot", Rect(bounds.left, bounds.height, 			bounds.width+20, bounds.height+20), resizable: false);
 		numChannels.do({ |i|
 			chanPlotter.add(
-				SCMultiSliderView(window, 
+				GUI.multiSliderView.new(window, 
 					Rect(bounds.left, bounds.top + ((bounds.height/numChannels)*i),
 											 bounds.width, bounds.height/numChannels))
 				.readOnly_(true)

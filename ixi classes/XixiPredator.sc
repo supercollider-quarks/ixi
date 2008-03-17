@@ -86,23 +86,23 @@ XixiPredator {
 	draw {
 		if(point.y-10 < stageRect.height, {
 	    	     ^{ var rot;
-				Pen.use({
-					Color.black.set;
-					Pen.width = 1;
-					Pen.translate(point.x, point.y);
-					Pen.moveTo(0@0);
+				GUI.pen.use({
+					GUI.pen.color = Color.black;
+					GUI.pen.width = 1;
+					GUI.pen.translate(point.x, point.y);
+					GUI.pen.moveTo(0@0);
 					
 					rot = atan2(prey.point.y - point.y, prey.point.x - point.x);
-					Pen.rotate(rot);
+					GUI.pen.rotate(rot);
 	
-			     	Pen.line(0@0, 15@5);
-			     	Pen.line(0@0, 15@ -5);
-			     	Pen.stroke;
+			     	GUI.pen.line(0@0, 15@5);
+			     	GUI.pen.line(0@0, 15@ -5);
+			     	GUI.pen.stroke;
 		
-			     	fillcolor.set;
-			    		Pen.fillOval(Rect(-10, -5, 20, 10));
-			     	Color.black.set;
-			     	Pen.strokeOval(Rect(-10, -5, 20, 10));
+			     	GUI.pen.color = fillcolor;
+			    		GUI.pen.fillOval(Rect(-10, -5, 20, 10));
+			     	GUI.pen.color = Color.black;
+			     	GUI.pen.strokeOval(Rect(-10, -5, 20, 10));
 				});
 		     }
 	     });

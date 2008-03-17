@@ -41,7 +41,7 @@ XiiSpectralEQ {
 		});
 		// add pair if not there already else fetch the info
 		if ( (Archive.global.at(\win_position).at(name.asSymbol).isNil), {
-			point = Point(660,540);
+			point = Point(160,240);
 			Archive.global.at(\win_position).put(name.asSymbol, point);
 		}, {
 			point = Archive.global.at(\win_position).at(name.asSymbol);
@@ -68,7 +68,7 @@ XiiSpectralEQ {
 		addAct = \addToTail; 
 		fxOn = false; 
 
-		point = if(setting.isNil, {XiiWindowLocation.new(name)}, {setting[1]});
+		point = if(setting.isNil, {Point(100,100)}, {setting[1]});
 		xiigui = nil; // not using window server class here
 		params = if(setting.isNil, {[Array.fill(size, 0.5), 0, 0, 0.5]}, {setting[2]});
 
@@ -78,9 +78,9 @@ XiiSpectralEQ {
 		stereoChList = XiiACDropDownChannels.getStereoChnList;
 		monoChList = XiiACDropDownChannels.getMonoChnList;
 
-		win = SCWindow(name, Rect(point.x, point.y, 540, 243), resizable:false).front;
+		win = GUI.window.new(name, Rect(point.x, point.y, 540, 243), resizable:false).front;
 		
-		msl = SCMultiSliderView(win, Rect(10, 5, size/2 , 200))
+		msl = GUI.multiSliderView.new(win, Rect(10, 5, size/2 , 200))
 			.value_(Array.fill(512, 0)) //.value_(spectralsl)
 			.isFilled_(true)
 			.canFocus_(false)
@@ -94,23 +94,23 @@ XiiSpectralEQ {
 				bufB.setn(msl.index*2, [msl.value[msl.index], msl.value[msl.index]]);
 			});
 		
-		SCStaticText(win, Rect(365, 215, 60, 16))
-			.font_(Font("Helvetica", 9))
+		GUI.staticText.new(win, Rect(365, 215, 60, 16))
+			.font_(GUI.font.new("Helvetica", 9))
 			.string_("band freq:"); 
 		
-		cFreqWin = SCStaticText(win, Rect(410, 215, 60, 16))
-			.font_(Font("Helvetica", 9))
+		cFreqWin = GUI.staticText.new(win, Rect(410, 215, 60, 16))
+			.font_(GUI.font.new("Helvetica", 9))
 			.string_("0"); 
 		
 		win.view.decorator = lay = FlowLayout(win.view.bounds, 5@215, 5@215); 
 		
 		// inBus
-		SCStaticText(win, 30 @ 15).font_(Font("Helvetica", 9)).string_("inBus").align_(\right); 
+		GUI.staticText.new(win, 30 @ 15).font_(GUI.font.new("Helvetica", 9)).string_("inBus").align_(\right); 
 
-		SCPopUpMenu(win, 40 @ 15)
+		GUI.popUpMenu.new(win, 40 @ 15)
 			.items_(if(channels==1, {monoChList},{stereoChList}))
 			.value_(inbus/channels)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.action_({ arg ch;
@@ -120,12 +120,12 @@ XiiSpectralEQ {
 			});
 
 		// outBus
-		SCStaticText(win, 30 @ 15).font_(Font("Helvetica", 9)).string_("outBus").align_(\right); 
+		GUI.staticText.new(win, 30 @ 15).font_(GUI.font.new("Helvetica", 9)).string_("outBus").align_(\right); 
 		
-		SCPopUpMenu(win, 40 @ 15)
+		GUI.popUpMenu.new(win, 40 @ 15)
 			.items_(if(channels==1, {monoChList},{stereoChList}))
 			.value_(outbus/channels)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.action_({ arg ch;
@@ -135,15 +135,15 @@ XiiSpectralEQ {
 			});
 					
 		// Target
-		SCStaticText(win, 15 @ 15).font_(Font("Helvetica", 9)).string_("Tgt").align_(\right); 
-		SCNumberBox(win, 40 @ 15).font_(Font("Helvetica", 9)).value_(tgt).action_({|v| 
+		GUI.staticText.new(win, 15 @ 15).font_(GUI.font.new("Helvetica", 9)).string_("Tgt").align_(\right); 
+		GUI.numberBox.new(win, 40 @ 15).font_(GUI.font.new("Helvetica", 9)).value_(tgt).action_({|v| 
 		Ê Êv.value = 0.max(v.value); 
 		Ê Êtgt = v.value.asInteger; 
 		}); 
 		
 		// addAction
-		SCPopUpMenu(win, 60@15) 
-		Ê Ê.font_(Font("Helvetica", 9)) 
+		GUI.popUpMenu.new(win, 60@15) 
+		Ê Ê.font_(GUI.font.new("Helvetica", 9)) 
 		Ê Ê.items_(["addToHead", "addToTail", "addAfter", "addBefore"]) 
 		Ê Ê.value_(1) 
 		Ê Ê.action_({|v| 
@@ -151,13 +151,13 @@ XiiSpectralEQ {
 		Ê Ê}); 
 		
 		// Print
-		SCButton(win,18@15) 
-		Ê Ê.font_(Font("Helvetica", 9)) 
+		GUI.button.new(win,18@15) 
+		Ê Ê.font_(GUI.font.new("Helvetica", 9)) 
 		Ê Ê.states_([["#"]]) ;
 
 		// on off
-		onOffButt = SCButton(win, 40@15) 
-		Ê Ê.font_(Font("Helvetica", 9)) 
+		onOffButt = GUI.button.new(win, 40@15) 
+		Ê Ê.font_(GUI.font.new("Helvetica", 9)) 
 		Ê Ê.states_([["On", Color.black, Color.clear],
 					["Off", Color.black, Color.green(alpha:0.2)]]) 
 		Ê Ê.action_({|v| 

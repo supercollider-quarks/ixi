@@ -22,20 +22,20 @@ XiiPoolManager {
 					}, {
 						Object.readArchive("preferences/bufferPools.ixi")					}); // if no dict, create it
 		
-		win = SCWindow.new("PoolManager", Rect(point.x, point.y, rect.width, rect.height),
+		win = GUI.window.new("PoolManager", Rect(point.x, point.y, rect.width, rect.height),
 			 resizable:false);
 		
-		selPool = SCPopUpMenu(win, Rect(10, 5, 140, 16))
-			.font_(Font("Helvetica", 9))
+		selPool = GUI.popUpMenu.new(win, Rect(10, 5, 140, 16))
+			.font_(GUI.font.new("Helvetica", 9))
 			.items_(bufferDict.keys.asArray)
 			.value_(0)
 			.background_(Color.white)
 			.action_({ arg item;
 			});
 
-		delPool = SCButton(win, Rect(10, 27, 67, 16))
+		delPool = GUI.button.new(win, Rect(10, 27, 67, 16))
 			.canFocus_(false)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.states_([["delete pool", Color.black, Color.clear]])
 			.action_({
 				bufferDict.removeAt(selPool.items[selPool.value].asSymbol);
@@ -43,8 +43,8 @@ XiiPoolManager {
 				bufferDict.writeArchive("preferences/bufferPools.ixi");
 			});
 
-		loadPool = SCButton(win, Rect(82, 27, 67, 16))
-			.font_(Font("Helvetica", 9))
+		loadPool = GUI.button.new(win, Rect(82, 27, 67, 16))
+			.font_(GUI.font.new("Helvetica", 9))
 			.states_([["load pool", Color.black, Color.clear]])
 			.action_({
 				if(bufferDict.at(selPool.items[selPool.value]) != nil, {
@@ -61,11 +61,11 @@ XiiPoolManager {
 
 		// if the manager is created from a save button in the pool
 		if(pool.notNil, {
-			txtv = SCTextView(win, Rect(10, 51, 100, 14))
+			txtv = GUI.textView.new(win, Rect(10, 51, 100, 14))
 					.hasVerticalScroller_(false)
 					.autohidesScrollers_(true)
 					.focus(true)
-					.font_(Font("Helvetica", 9))
+					.font_(GUI.font.new("Helvetica", 9))
 					.string_("")
 					.keyUpAction_({arg view, key, mod, unicode; 
 						if(unicode ==13, {
@@ -74,9 +74,9 @@ XiiPoolManager {
 					});
 
 	
-			saveButt = SCButton(win, Rect(115, 50, 34, 16))
+			saveButt = GUI.button.new(win, Rect(115, 50, 34, 16))
 				.states_([["save",Color.black, Color.clear]])
-				.font_(Font("Helvetica", 9))
+				.font_(GUI.font.new("Helvetica", 9))
 				.action_({ arg butt; var str, oldnamelist;
 					"OO in savebutt".postln;
 					str = if(txtv.string == "", {Date.getDate.stamp.asString}, {txtv.string});

@@ -16,7 +16,6 @@ XiiRecord {
 	}
 	
 	init { arg argServer, argInbus, argChans, argHeaderFormat, argSampleFormat;
-	
 		server = argServer ? Server.local;
 		inbus = argInbus;
 		numChannels = argChans;
@@ -36,8 +35,14 @@ XiiRecord {
 			if( ext == "ircam", { ext = "sf" });
 			ext = "." ++ ext;
 		});
-	
-		path = path ? (Date.localtime.stamp ++ ext);
+
+		// This is because there is no Date.localtime.stamp on windows!
+		if(GUI.id == \swing, { // probably windows
+			path = path ? ("sound" ++ 100000.rand.asString ++ ext);
+		}, { 
+			path = path ? (Date.localtime.stamp ++ ext);
+		});
+		
 		bufnum = argBufnum ? server.bufferAllocator.alloc(1);
 	
 		server.sendMsg("/b_alloc", bufnum, 32768, numChannels,

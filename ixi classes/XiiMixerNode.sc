@@ -42,7 +42,7 @@ XiiMixerNode {
 		outbus = params[1];
 		pan = params[2];
 		
-		win = SCWindow.new(name, Rect(point.x, point.y, 222, 70), resizable:false);
+		win = GUI.window.new(name, Rect(point.x, point.y, 222, 70), resizable:false);
 		
 		SynthDef(\mixerNode1x2, { arg inbus, outbus, pan;
 			var in;
@@ -61,12 +61,12 @@ XiiMixerNode {
 		spec = ControlSpec(0, 1.0, \amp); // for amplitude in rec slider
 
 		// channels dropdown - INPUT CHANNEL
-		SCStaticText(win, Rect(10, 9, 40, 16)).string_("in");
-		SCPopUpMenu(win,Rect(35, 10, 50, 16))
+		GUI.staticText.new(win, Rect(10, 9, 40, 16)).string_("in");
+		GUI.popUpMenu.new(win,Rect(35, 10, 50, 16))
 			.items_(if(channels==1, {monoChList},{stereoChList}))
 			.value_(params[0])
 			.background_(Color.white)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.canFocus_(false)
 			.action_({ arg ch;
 				if(channels==1, {inbus = ch.value}, {inbus = ch.value * 2});
@@ -75,12 +75,12 @@ XiiMixerNode {
 			});
 			
 		// channels dropdown - OUTPUT CHANNEL
-		SCStaticText(win, Rect(10, 34, 40, 16)).string_("out");
-		SCPopUpMenu(win,Rect(35, 35, 50, 16))
+		GUI.staticText.new(win, Rect(10, 34, 40, 16)).string_("out");
+		GUI.popUpMenu.new(win,Rect(35, 35, 50, 16))
 			.items_(if(channels==1, {stereoChList}, {monoChList}))
 			.value_(params[1])
 			.background_(Color.white)
-			.font_(Font("Helvetica", 9))
+			.font_(GUI.font.new("Helvetica", 9))
 			.canFocus_(false)
 			.action_({ arg ch;
 				if(channels==2, {outbus = ch.value}, {outbus = ch.value * 2});
@@ -92,16 +92,16 @@ XiiMixerNode {
 		panLslider = OSCIISlider.new(win, Rect(100, 10, 100, 10), "- pan", -1, 1, params[2], 0.01)
 			.action_({arg sl; synth.set(\pan, sl.value); params[2] = sl.value;});
 		
-		SCPopUpMenu(win, Rect(100, 40, 66, 16)) 
-		   .font_(Font("Helvetica", 9)) 
+		GUI.popUpMenu.new(win, Rect(100, 40, 66, 16)) 
+		   .font_(GUI.font.new("Helvetica", 9)) 
 		   .items_(["addToHead", "addToTail", "addAfter", "addBefore"]) 
 		   .value_(1) 
 		   .action_({|v| 
 		      addAct = v.items.at(v.value).asSymbol; 
 		   }); 
 
-		onOffButt = SCButton(win,Rect(172, 40, 27, 16))
-		     .font_(Font("Helvetica", 9)) 
+		onOffButt = GUI.button.new(win,Rect(172, 40, 27, 16))
+		     .font_(GUI.font.new("Helvetica", 9)) 
 			.states_([
 					["On",Color.black, Color.clear],
 					["Off",Color.black,bgColor]
