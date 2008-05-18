@@ -4,7 +4,7 @@ XiiRecorder {
 	var <>win, params;
 	
 	var numChannels;
-	var recButton; // to allow for outside start of record
+	var recButton; // allowing for outside start of record (Function:record)
 	var inbus, recBussesPop, ampAnalyserSynth;
 	
 	*new { arg server, channels, setting = nil;
@@ -21,7 +21,7 @@ XiiRecorder {
 		
 		numChannels = channels;
 		filename = "";
-		name = "      Sound Recorder";
+		name = "- recorder -";
 		s = server ? Server.default;
 
 		xiigui = nil; // not using window server class here
@@ -57,7 +57,6 @@ XiiRecorder {
 						.action_({ arg butt;
 								if(butt.value == 1, {
 									numChannels = 2;
-									//monoButt.valueAction_(0);
 									params[1] = 0;
 									recBussesPop.items_(XiiACDropDownChannels.getStereoChnList);
 									recBussesPop.value_(inbus/2);
@@ -77,7 +76,6 @@ XiiRecorder {
 						.action_({ arg butt;
 								if(butt.value == 1, {
 									numChannels = 1;
-									//stereoButt.valueAction_(0);
 									params[0] = 0;
 									recBussesPop.items_(XiiACDropDownChannels.getMonoChnList);
 									recBussesPop.value_(inbus);
@@ -105,10 +103,10 @@ XiiRecorder {
 					if(butt.value == 1, {
 						filename = txtv.string.asString;
 						if(filename == "", {
-							if(GUI.id == \swing, { // probably windows
-								filename = "sound" ++ 100000.rand.asString;
+							if(thisProcess.platform.name==\windows, { // Date not working on wz
+								filename = "sound" ++ Main.elapsedTime.round; // temp solution
 							}, { 
-								filename = "rec_" ++ Date.localtime.stamp++".aif";
+								filename = "rec_" ++ Date.localtime.stamp;
 							});
 						});
 						txtv.string_(filename);

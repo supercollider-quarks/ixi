@@ -8,7 +8,7 @@ XiiBufferPool {
 		var recordingName, recButton, r, filename, timeText, secTask, inbus, numChannels;
 		var stereoButt, monoButt, preRecButt;
 		var <bufferPoolNum;
-		var soundFileWindowsList, ram, ramview, fileramview;
+		var soundFileWindowsList, ram, ramview, fileramview, fileramarray;
 		var cmdPeriodFunc;
 		var txtv, ram, loadBufTask;
 		var ampslider, ampAnalyserSynth, responder, vuview, amp, ampAnalFunc;
@@ -18,13 +18,13 @@ XiiBufferPool {
 		}
 		
 	initXiiBufferPool {arg server, channels, setting, poolname=nil;
-		var nameView, folderButt, fileButt, viewButt, saveButt;
+		var nameView, folderButt, freeButt, viewButt, saveButt;
 
 		var bgColor, foreColor, spec, outbus;
 		var refreshButton, playButton, r, filename, timeText, secTask;
 		var soundfile, player, buffer, task, volSlider, openButton, volume;
 		var folderSounds, addedSoundNames, sounds, soundNames;
-		var soundFileWindowsList, stereomonoview;
+		var stereomonoview;
 		var recBussesPop;
 		
 		s = server;
@@ -37,10 +37,11 @@ XiiBufferPool {
 		bufferList = List.new;
 		bufferListSelections = List.new; // this is for the selections of each buffer
 		bufferListNames = []; // Cocoa dialog will fill this.
-
-		name = if(poolname==nil, {("bufferPool"+(bufferPoolNum+1).asString)}, {poolname});
+		fileramarray = [];
+		
+		name = if(poolname==nil, {("- bufferpool"+(bufferPoolNum+1).asString+"-")}, {poolname});
 		filename = "";
-		inbus = 0;
+		inbus = 8;
 		numChannels = 2;
 		ram = 0;
 		amp = 1.0;
@@ -115,19 +116,36 @@ XiiBufferPool {
 				);
 			});	
 
-		fileButt = GUI.button.new(win, Rect(74, 167, 40, 18))
+		freeButt = GUI.button.new(win, Rect(74, 167, 40, 18))
 			.states_([["free",Color.black, Color.clear]])
 			.font_(GUI.font.new("Helvetica", 9))			
 			.canFocus_(false)
-			.action_({ arg butt; var a, chNum, dur, filepath, pFunc;
-				soundFileWindowsList.do(_.close);
-				bufferList.do(_.free);
-				bufferList = List.new;
-				ram = 0;
-				bufferListSelections = List.new;
-				bufferListNames = [];
+			.action_({ arg butt; var fileindex, filename;
+				fileindex = txtv.value;
+				filename = txtv.items[txtv.value];
+//				[\filename, filename].postln;
+//				soundFileWindowsList.do(_.close);
+//				bufferList.do(_.free);
+//				bufferList = List.new;
+//				ram = 0;
+//				bufferListSelections = List.new;
+//				bufferListNames = [];
+//				txtv.items_(bufferListNames);
+//				XQ.globalBufferDict.add(name.asSymbol -> 0);
+
+
+//				[\fileindex, fileindex].postln;
+				bufferList[fileindex].free;
+			//bufferList.removeAt(fileindex);
+			//bufferListSelections.removeAt(fileindex);
+				bufferListNames.removeAt(fileindex);
 				txtv.items_(bufferListNames);
-				XQ.globalBufferDict.add(name.asSymbol -> 0);
+				XQ.buffers(name.asSymbol).removeAt(fileindex);
+				XQ.selections(name.asSymbol).removeAt(fileindex);
+				fileramarray.removeAt(fileindex);
+				ramview.string_((fileramarray.sum/1000/1000).round(0.01));
+				soundFileWindowsList.do({arg view; if(view.filename==filename, {view.close; }) });
+				txtv.value_(fileindex-1);
 			});	
 				
 		folderButt = GUI.button.new(win, Rect(117, 167, 55, 18))
@@ -265,6 +283,7 @@ XiiBufferPool {
 								{ramview.string_(ram.asString)}.defer;
 								bufferListSelections.add([0, f.numFrames]);
 								f.close;
+								fileramarray = fileramarray.add(filesize);
 								{this.sendBufferPoolToWidgets}.defer;
 								loadBufTask.stop;
 							});
@@ -298,7 +317,7 @@ XiiBufferPool {
 		// record busses
 		recBussesPop = GUI.popUpMenu.new(win, Rect(10, 250, 44, 16))
 			.items_(XiiACDropDownChannels.getStereoChnList)
-			.value_(0)
+			.value_(inbus/2)
 			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
@@ -365,6 +384,7 @@ XiiBufferPool {
 			filesize = f.numFrames * f.numChannels * 2 * 2;
 			ram = ram + (filesize/1000/1000).round(0.01);
 			f.close;
+			fileramarray = fileramarray.add(filesize);
 		});
 		txtv.items_(bufferListNames);
 		txtv.focus(true);
@@ -390,6 +410,34 @@ XiiBufferPool {
 		});
 	}
 	
+	// not used yet, idea is to get stratosamples to create a bufferpool as well.
+	makeGUI {arg paths, selections; var f, filesize, buffer;
+		paths.do({ arg file;
+			file.postln;
+			f = SoundFile.new;
+			f.openRead(file);
+			//buffer = Buffer.read(s, file);
+			//bufferList.add(buffer);
+			// if loading from Cocoa Dialog, then all file is selected:
+			if(selections.isNil, {bufferListSelections.add([0, f.numFrames])});
+			bufferListNames = bufferListNames.add(file.basename);
+			// size = frames * channels * bytes * 16 to 32 bit converson
+			filesize = f.numFrames * f.numChannels * 2 * 2;
+			ram = ram + (filesize/1000/1000).round(0.01);
+			f.close;
+		});
+		txtv.items_(bufferListNames);
+		txtv.focus(true);
+		
+		// if loading from PoolManager, then supply selection list:
+		//if(selections.notNil, {bufferListSelections = selections});
+
+		//XQ.globalBufferDict.add(name.asSymbol -> [bufferList, bufferListSelections]);
+
+		ramview.string_(ram.asString);
+		this.sendBufferPoolToWidgets;
+	}
+
 	sendBufferPoolToWidgets {
 		" - > sending pool buffers to all active quark instruments < -".postln;
 		XQ.globalWidgetList.do({arg widget;

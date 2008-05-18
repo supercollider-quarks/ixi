@@ -15,7 +15,7 @@ XiiScaleSynth {
 		server = argserver ? Server.default;
 		//  screen resolution
 		screenX = GUI.window.screenBounds.asArray[2]; 
-		screenY = GUI.window.screenBounds.asArray[3];
+		screenY = GUI.window.screenBounds.asArray[3] - 44; // minus 50 for sliders at bottom
 		
 		// the initials transformations of the base scale.
 		trns1 = 5; // first row up from base scale (which is in C)
@@ -25,8 +25,8 @@ XiiScaleSynth {
 		tabletScreenY = screenY - 40; // give space for the control bar at the bottom
 		
 		// --------  GUI 
-		win = GUI.window.new(" - ", border: false);
-		win.fullScreen;
+		win = GUI.window.new("- scalesynth -", Rect(0,0, screenX, screenY), border: true);
+		//win.fullScreen;
 			boxColList = List.new;
 			17.do({arg j; var a;
 				var tempR, tempG, tempB;
@@ -58,6 +58,7 @@ XiiScaleSynth {
 		
 		tablet = GUI.tabletView.new(win,Rect(0, 0, screenX, tabletScreenY));
 		tablet.background = Color.white;
+		tablet.canFocus = false;
 		tablet.mouseDownAction = { arg  view, x, y, pressure, tiltx, tilty, deviceID, buttonNumber;
 			synth.set(\vol, pressure);
 			17.do({arg j; // y axis
@@ -75,16 +76,17 @@ XiiScaleSynth {
 					r = Rect(3+(i*screenX/15), 2+(j*tabletScreenY/17), (screenX/15)-6, (tabletScreenY/17)-6);
 					if((x >= r.left) && (x <= (r.left + r.width)) && (y >= r.top) && (y <= (r.top + r.height))) {
 						boxColList[j][i].red = boxColList[j][i].red+0.05;
-						win.refresh;
 					}
 				});
 			});
+			win.refresh;
 		};
+		
 		tablet.mouseUpAction = { arg  view,x,y,pressure;
 			synth.set(\vol, 0);
 		};
 		
-		GUI.button.new(win, Rect(6, screenY-34, 40, 20)).states_([["stop"]]).action_({
+		GUI.button.new(win, Rect(6, screenY-34, 40, 20)).states_([["close"]]).action_({
 			var t;
 			win.close; 
 			scaleBuf.free; 
@@ -123,7 +125,7 @@ XiiScaleSynth {
 		win.front;
 		
 		// --- scale stuff ---
-			scaleMenu = GUI.listView.new(win, Rect(500, screenY-34, 80, 30));
+			scaleMenu = GUI.popUpMenu.new(win, Rect(500, screenY-34, 80, 16));
 			scaleNames = ['ionian','dorian', 'phrygian', 'lydian', 'mixolydian', 'aeolian', 'locrian', 'default', 'bartok', 'todi', 'purvi', 'marva', 'bhairav', 'ahirbhairav', 'spanish'];
 			scales = Dictionary[	'ionian'		-> [0,2,4,5,7,9,11], 
 								'dorian' 		-> [0,2,3,5,7,9,10],
@@ -142,6 +144,7 @@ XiiScaleSynth {
 								'spanish'		-> [0,1,4,5,7,8,10]
 							];
 			scaleMenu.items = scaleNames;
+			scaleMenu.background_(Color.white);
 			scaleMenu.action = { arg sbs;
 				setScale.value(scales.at(scaleNames.at(sbs.value)));
 			};

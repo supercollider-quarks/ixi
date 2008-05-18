@@ -20,7 +20,7 @@ XiiSettings {
 		var setting, file;
 		"*********** STORE PRESET ******************".postln;
 		setting = List.new; // not using dict because of name
-		[\widlist, XQ.globalWidgetList].postln;
+		//[\widlist, XQ.globalWidgetList].postln;
 		XQ.globalWidgetList.do({arg widget, i;
 			if(widget.xiigui.isNil, { // if widget does not have a GUI abstraction
 				if(widget.asString[0] == $a, {
@@ -32,11 +32,8 @@ XiiSettings {
 				setting.add([widget.asString.replace("a ",\), widget.xiigui.getState]);
 			});
 		});
-		\deb1.postln;
 		settingsDict.add(settingName.asSymbol -> setting);
-		\deb2.postln;
 		settingsDict.writeArchive("preferences/presets.ixi");
-		\deb3.postln;
 	}	
 	
 	getSetting { arg name;
@@ -46,7 +43,7 @@ XiiSettings {
 	}
 	
 	getSettingsList {
-		^settingsDict.keys.asArray;
+		^settingsDict.keys.asArray.sort;
 	}
 	
 	loadSetting {arg name;
@@ -54,9 +51,11 @@ XiiSettings {
 		"*********** LOAD PRESET ******************".postln;
 		this.clearixiQuarks; // turn all quarks off and empty the screen
 		setting = settingsDict.at(name.asSymbol);
+		//[\setting, setting].postln;
 		XQ.globalWidgetList = List.new;
 		setting.do({arg widget, i;
 			var channels, effectCodeString; 
+			//[\widget, widget].postln;
 			channels = widget[1][0];
 			effectCodeString = widget[0]++".new(Server.default,"++channels++","++widget[1].asCompileString++")";
 			XQ.globalWidgetList.add( effectCodeString.interpret );

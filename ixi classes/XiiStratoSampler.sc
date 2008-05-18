@@ -18,17 +18,17 @@ XiiStratoSampler {
 	
 ///////////////
 
-var s, time, point;
-var inBusPop, outBusPop, outbus, inbus;
-var update, bufSec, prelevel, preLevelSl, reclevel, recLevelSl;
-var startIndexDrawClock, indexDrawClock, refreshClock, drawIndexButt, drawIndexFlag;
-var recSynth, playSynth, startPlayFunc;
-var volSl, amp, startButt;
-var bufLengthBox, newClearBufButt;
-var bufNameView, writeBufferButt;
-var bufNuminDict, buffer, bufPlot, writtenBufferNames;
-var startingPlayFlag, comingFromFieldFlag, writeBuffer;
-var runningFlag, bufferSecs;
+		var s, time, point;
+		var inBusPop, outBusPop, outbus, inbus;
+		var update, bufSec, prelevel, preLevelSl, reclevel, recLevelSl;
+		var startIndexDrawClock, indexDrawClock, refreshClock, drawIndexButt, drawIndexFlag;
+		var recSynth, playSynth, startPlayFunc;
+		var volSl, amp, startButt;
+		var bufLengthBox, newClearBufButt;
+		var bufNameView, writeBufferButt;
+		var bufNuminDict, buffer, bufPlot, writtenBufferNames;
+		var startingPlayFlag, comingFromFieldFlag, writeBuffer;
+		var runningFlag, bufferSecs, toggleButt;
 
 		if(livebufInstances.isNil, {
 			livebufInstances = [this];
@@ -42,7 +42,7 @@ bufInBufferDictFlag = false;
 
 xiigui = nil;
 point = if(setting.isNil, {Point(100, 500)}, {setting[1]});
-params = if(setting.isNil, {[4, 0.75, 1, 2, 1, 0, 1]}, {setting[2]});
+params = if(setting.isNil, {[4, 0.75, 0.5, 2, 1, 0, 1]}, {setting[2]});
 
 inbus = params[0]*2;
 prelevel = params[1];
@@ -60,7 +60,7 @@ runningFlag = false;
 
 buffer = Buffer.alloc(s, 44100 * bufferSecs, 1); 
 
-win = GUI.window.new("StratoSampler", Rect(point.x, point.y, 820, 240));
+win = GUI.window.new("- stratosampler -", Rect(point.x, point.y, 820, 240));
 
 bufPlot = XiiBufferPlot.new(buffer, win, Rect( 120, 5, 680, 220));
 
@@ -104,7 +104,12 @@ bufLengthBox = XiiSNBox.new(win, Rect(10, 90, 40, 16))
 			.align_(\center)
 			.clipLo_(0.1)
 			.clipHi_(10.0)
-			.value_(params[3]);
+			.value_(params[3])
+			.action_({ arg sbs;
+				var val;
+				val = sbs.value.clip(0.1, 10);
+				sbs.value=val; // argh! - Since the xiisnbox clipping is fucked
+			});
 
 				
 newClearBufButt = GUI.button.new(win, Rect(60, 90, 50, 18))
@@ -118,7 +123,7 @@ newClearBufButt = GUI.button.new(win, Rect(60, 90, 50, 18))
 					bufPlot.redraw;
 				};
 			}, {
-				startButt.valueAction_(0);
+				//startButt.valueAction_(0);
 				bufPlot.remove;
 				bufPlot = nil;
 				params[3] = bufLengthBox.value;
@@ -146,14 +151,14 @@ newClearBufButt = GUI.button.new(win, Rect(60, 90, 50, 18))
 					buffer = Buffer.alloc(s, 44100 * bufLengthBox.value, 1);
 					s.sync;
 					bufPlot = XiiBufferPlot.new(buffer, win, Rect( 120, 5, 680, 220 ));
-					//0.5.wait;
+					
 					s.sync;
+					//0.5.wait; // should not be necessary
 					{
-					bufPlot.redraw;
-					bufPlot.setIndex_(0);
+						bufPlot.setIndex_(0);
+						bufPlot.redraw;
 					}.defer(0.5); // either defer or put the thing into a Routine
 				});
-			
 			});
 		});
 
@@ -240,6 +245,13 @@ writeBuffer = {
 				if(widget.isKindOf(XiiSounddrops), {widget.updatePoolMenu;});
 				}.defer;
 			});
+			/*
+			XiiBufferPool.new(Server.default, nil, nil, selPool.items[selPool.value].asString)
+				.makeGUI(
+					// what to pass here? filepaths to the samples
+				)			
+			);
+			*/
 		});
 		}.defer;
 	});
@@ -284,7 +296,24 @@ drawIndexButt = OSCIIRadioButton(win, Rect(10, 208, 12, 12), "draw")
 					params[6] = butt.value; // settings
 				});
 
-startButt = GUI.button.new(win, Rect(60, 205, 50, 18))
+toggleButt = GUI.button.new(win, Rect(60, 205, 12, 18))
+	.states_([["o", Color.black, Color.green(alpha:0.2)], ["x", Color.black, Color.clear]])
+	.font_(GUI.font.new("Helvetica", 9))			
+	.action_({arg butt;
+		if(butt.value == 1, {
+			recSynth.set(\prelevel, 1) ;
+			recSynth.set(\reclevel, 0) ;
+			preLevelSl.value_(1); // not using valueAction as I want to keep params values
+			recLevelSl.value_(0);			
+		}, {
+			recSynth.set(\prelevel, params[1]) ;
+			recSynth.set(\reclevel, params[2]) ;
+			preLevelSl.value_(params[1]);
+			recLevelSl.value_(params[2]);			
+		})
+	});
+
+startButt = GUI.button.new(win, Rect(77, 205, 33, 18))
 	.states_([["start", Color.black, Color.clear],
 			["stop", Color.black, Color.green(alpha:0.2)]])
 	.font_(GUI.font.new("Helvetica", 9))			
@@ -304,7 +333,7 @@ startButt = GUI.button.new(win, Rect(60, 205, 50, 18))
 			bufPlot.redraw;
 		});
 	});
-
+	
 startPlayFunc = {
 	startingPlayFlag = true;
 	 bufSec = (buffer.numFrames/buffer.numChannels)/44100;

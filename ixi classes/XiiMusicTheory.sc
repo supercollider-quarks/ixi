@@ -10,19 +10,24 @@ XiiMusicTheory {
 		
 
 	initXiiMusicTheory {
-		var win, bounds, chord, chords, chordnames;
+		var bounds, chord, chords, chordnames;
 		var scale, scales, scalenames;
 		var chordmenu, scalemenu, play;
 		var fString, fundamental=60;
 		var setting, point, k, scaleOrChord, scaleChordString;
 		var playMode, fundNoteString;
+		var noteArray, noteRecFlag;
 		
 		playMode = false;
 		bounds = Rect(120, 5, 800, 222);
+		noteRecFlag = false;
+		noteArray = [];
 		
 		point = if(setting.isNil, {Point(310, 250)}, {setting[1]});
-		
-		win = GUI.window.new("Basic Music Theory", 
+		xiigui = nil; // not using window server class here
+		params = if(setting.isNil, {[0,0,1]}, {setting[2]});
+
+		win = GUI.window.new("- basic music theory -", 
 						Rect(point.x, point.y, bounds.width+20, bounds.height+10), resizable:false);
 		
 		k = MIDIKeyboard.new(win, Rect(10, 60, 790, 160), 4, 48);
@@ -32,6 +37,7 @@ XiiMusicTheory {
 								if(playMode, {
 									note.postln;
 									Synth(\midikeyboardsine, [\freq, note.midicps]);
+									if(noteRecFlag, {noteArray = noteArray.add(note)});
 								}, {
 									k.showScale(chord, fundamental, Color.new255(103, 148, 103));									scaleChordString.string_((fundamental+chord).midinotename.asString);
 									chord.postln;
@@ -40,7 +46,9 @@ XiiMusicTheory {
 		k.keyTrackAction_({arg note; fundamental = note; 
 								fString.string_(note.asString++"  :  "++note.midinotename);
 								if(playMode, {
+									note.postln;
 									Synth(\midikeyboardsine, [\freq, note.midicps]);
+									if(noteRecFlag, {noteArray = noteArray.add(note)});
 								},{	
 									k.showScale(chord, fundamental, Color.new255(103, 148, 103));
 									scaleChordString.string_((fundamental+chord).midinotename.asString);
@@ -151,7 +159,31 @@ XiiMusicTheory {
 					});
 				}).start;
 			});
-			win.front;
 		
-}
+				// plot the frequency of strings played
+		win.view.keyDownAction_({|me, char|
+			if(char == $a, {
+				noteRecFlag = true;
+			})	
+		});
+		
+		win.view.keyUpAction_({|me, char|
+			if(char == $a, {
+				" ************ your recorded midi note array is : ".postln;
+				noteArray.postln;
+				noteRecFlag = false;
+				noteArray = [];
+			})	
+		});
+		
+		win.front;
+		
+	}
+
+	getState { // for save settings
+		var point;		
+		point = Point(win.bounds.left, win.bounds.top);
+		^[2, point, params];
+	}
+
 }

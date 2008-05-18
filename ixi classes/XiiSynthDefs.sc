@@ -96,8 +96,7 @@ XiiSynthDefs {
 
 		// --- the bufferplayer --- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		
-		SynthDef.writeOnce(\xiiBufPlayerSTEREO, {arg trigID = 10, out=0, bufnum=0, vol=0.0, pan = 1, trig=0, 
-				pitch=1.0, onOff=0, startPos=0, endPos= 1000;
+		SynthDef.writeOnce(\xiiBufPlayerSTEREO, {arg trigID = 10, out=0, bufnum=0, vol=0.0, pan = 1, trig=0, pitch=1.0, startPos=0, endPos= 1000;
 			var updateRate=40, playbuf, ampl, ampr, signal;
 			playbuf = LoopBuf.ar(2, bufnum, pitch, trig, startPos, startPos, endPos) * vol;
 			signal = Balance2.ar(playbuf[0], playbuf[1], pan);
@@ -108,8 +107,7 @@ XiiSynthDefs {
 			Out.ar(out, signal);
 		});
 		
-		SynthDef.writeOnce(\xiiBufPlayerMONO, {arg trigID = 10, out=0, bufnum=0, vol=0.0, pan = 0, trig=0, 
-				pitch=1.0, onOff=0, startPos=0, endPos= 1000;
+		SynthDef.writeOnce(\xiiBufPlayerMONO, {arg trigID = 10, out=0, bufnum=0, vol=0.0, pan = 0, trig=0, pitch=1.0, startPos=0, endPos= 1000;
 			var updateRate=40, playbuf, ampl;
 			playbuf = LoopBuf.ar(1, bufnum, pitch, trig, startPos, startPos, endPos) * vol;
 			ampl = Amplitude.kr(playbuf);  
@@ -224,6 +222,7 @@ XiiSynthDefs {
 			env = EnvGen.kr(Env.new(levels, times), timeScale: timesc, doneAction:2);
 			in = InFeedback.ar(inbus, 2); 
 			in = PitchShift.ar(in, 0.1, pitchratio, 0, 0.004) * amp * env;
+			in = LPF.ar(in, 20000); // make sure not to get spectral mirroring
 			Out.ar(outbus, in);
 		});
 
@@ -236,12 +235,13 @@ XiiSynthDefs {
 		
 		// - the bell synthesis
 		SynthDef.writeOnce(\xiiBells, {arg outbus=0, freq=440, dur=1, amp=0.4, pan=0;
-		        var x, env;
+		        var x, in, env;
 		        env = EnvGen.kr(Env.perc(0.01, Rand(333,666)/freq, amp), doneAction:2);
 		        x = Mix.ar([SinOsc.ar(freq, 0, 0.3), SinOsc.ar(freq*2, 0, 0.2)] ++
 		        				Array.fill(6, {SinOsc.ar(freq*Rand(-10,10), 0, Rand(0.08,0.2))}));
 		        //x = BPF.ar(x, freq, 4.91);
-		        x = Pan2.ar(x, pan);
+		        in = LPF.ar(x, 20000); // make sure not to get spectral mirroring
+		        in = Pan2.ar(in, pan);
 		        Out.ar(outbus, x*env);
 		});
 		
@@ -250,7 +250,7 @@ XiiSynthDefs {
 		        var x, env;
 		        env = EnvGen.kr(Env.perc(0.01, 220/freq, amp), doneAction:2);
 		        x = Mix.ar(Array.fill(8, {SinOsc.ar(freq*IRand(1,10),0, 0.12)}));
-		        x = RLPF.ar(x, freq*14, Rand(0.04,1));
+		        x = LPF.ar(x, 20000);
 		        x = Pan2.ar(x,pan);
 		        Out.ar(outbus, x*env);
 		});
@@ -261,16 +261,17 @@ XiiSynthDefs {
 		        var x, env;
 		        env = EnvGen.kr(Env.perc(0.01, 220/freq, amp), doneAction:2);
 		        x = Mix.ar([FSinOsc.ar(freq, pi/2, 0.5), Pulse.ar(freq, Rand(0.3,0.5))]);
-		        x = RLPF.ar(x, freq*14, Rand(0.04,1));
+		        x = LPF.ar(x, 20000);
 		        x = Pan2.ar(x,pan);
-		        Out.ar(outbus, x*env);
+		        Out.ar(outbus, LeakDC.ar(x)*env);
 		});
 		
-		SynthDef.writeOnce(\xiiKs_string, { arg outbus, note, pan, rand, delayTime, noiseType=1;
+		SynthDef.writeOnce(\xiiKs_string, { arg outbus, note, pan, amp=1, rand, delayTime, noiseType=1;
 			var x, y, env;
 			env = Env.new(#[1, 1, 0],#[2, 0.001]);
 			x = Decay.ar(Impulse.ar(0, 0, rand), 0.1+rand, WhiteNoise.ar); 
 		 	x = CombL.ar(x, 0.05, note.reciprocal, delayTime, EnvGen.ar(env, doneAction:2)); 
+		     x = LPF.ar(x, 20000) * amp;
 			x = Pan2.ar(x, pan);
 			Out.ar(outbus, LeakDC.ar(x));
 		});
@@ -289,20 +290,21 @@ XiiSynthDefs {
 			trig = (Impulse.ar(0.005, 180) * 0.01)
 						* EnvGen.ar(Env.perc(0.001, 220/freq), doneAction:2);
 			ring = Ringz.ar(trig, [freq, freq+2], 220/freq);
+			ring = LPF.ar(ring, 20000);
 			ring = Pan2.ar(ring, pan) * amp;
-			Out.ar(outbus, ring);
+			Out.ar(outbus, LeakDC.ar(ring));
 		});
 		
 		SynthDef.writeOnce(\xiiKlanks, { arg outbus=0, freq= 1.0, amp = 1, pan;
 			var trig, klan, env;
 			var  p, exc, x, s;
 			trig = PinkNoise.ar( 0.11 );
-			klan = Klank.ar(`[ Array.fill( 16, { Rand(10.0 ) }), nil, 
+			klan = Klank.ar(`[ Array.fill( 16, { Rand(1.0, 10.0) }), nil, 
 							Array.fill( 16, { 0.1 + Rand(2.0)})], trig, freq );
 			klan = (klan * amp).softclip;
-			klan = LPF.ar(klan, freq*2);
+			klan = LPF.ar(klan, 20000);
 			env = EnvGen.ar(Env.perc(0.001, 340/freq), doneAction:2);
-			Out.ar( outbus, Pan2.ar( klan * env, pan ));
+			Out.ar( outbus, Pan2.ar( LeakDC.ar(klan) * env, pan ));
 		});
 		
 		// --------------- The Gridder ---------------------
@@ -419,7 +421,7 @@ XiiSynthDefs {
 			var sig, onsets, pips, am;
 			sig = LoopBuf.ar(1, bufnum, rate, 1, startloop, startloop, endLoop:endloop);
 			am = Amplitude.kr(sig);
-			onsets = OnsetsDS.kr(sig, fftbuf, trackbuf, thresh*8, \complex);
+			onsets = XiiOnsets.kr(sig, fftbuf, trackbuf, thresh*8, \complex);
 			6.do{ am = max(am, Delay1.kr(am))}; // get the max power over the last 6 control periods
 			SendTrig.kr(onsets, 840, am);
 			Out.ar(outbus, ((sig * amp)).dup);

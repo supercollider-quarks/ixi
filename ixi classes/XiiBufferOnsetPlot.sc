@@ -174,7 +174,8 @@ XiiBufferOnsetPlot {
 	
 	drawOnsets {
 		win.drawHook_({
-			onsetsList.do({arg point, i; 
+			Pen.width = 1;
+			onsetsList.do({arg point, i;
 				GUI.pen.color = Color.red.alpha_(0.2);
 				GUI.pen.fillOval( Rect(point.x-3.5, point.y-3.5, 8, 8));
 				GUI.pen.color = Color.black.alpha_(0.6);
@@ -189,6 +190,7 @@ XiiBufferOnsetPlot {
 	
 	drawFFTMushrooms {arg fftOnsets;
 		win.drawHook_({
+			Pen.width = 1;
 			fftOnsets.do({arg point, i; 
 				GUI.pen.color = Color.red.alpha_(0.2);
 				GUI.pen.addAnnularWedge(point, 3, 9, pi, pi);

@@ -14,7 +14,7 @@ XiiWaveScope {
 	*new { arg server, numChannels = 2, setting = nil;
 		var win, name, point;
 		if(Server.default == GUI.stethoscope.defaultServer, {
-			name = "wavescope";
+			name = "- wavescope -";
 			point = if(setting.isNil, {XiiWindowLocation.new(name)}, {setting[1]});
 			win = GUI.window.new(name, Rect(point.x, point.y, 400, 328));
 			win.view.decorator = FlowLayout(Rect(6, 0, 400, 328));
@@ -155,7 +155,8 @@ XiiWaveScope {
 
 		this.updateColors;
 		
-		cmdPeriodFunc = { onOffButt.valueAction_(0)};
+		cmdPeriodFunc = { //onOffButt.valueAction_(0)
+		};
 		CmdPeriod.add(cmdPeriodFunc);
 
 		win.onClose_({ 

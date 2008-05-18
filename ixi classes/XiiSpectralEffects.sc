@@ -46,9 +46,9 @@ XiiMagClip {
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Spectral MagClip 2x2", \xiiSpectral_MagClip2x2, params, channels, this, setting); 
+			XiiEffectGUI.new("- magclip 2x2 -", \xiiSpectral_MagClip2x2, params, channels, this, setting); 
 			}, {				// mono
-			XiiEffectGUI.new("Spectral MagClip 1x1", \xiiSpectral_MagClip1x1, params, channels, this, setting);
+			XiiEffectGUI.new("- magclip 1x1 -", \xiiSpectral_MagClip1x1, params, channels, this, setting);
 		})
 	}
 }
@@ -102,9 +102,9 @@ XiiMagSmear {
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Spectral MagSmear 2x2", \xiiSpectral_MagSmear2x2, params, channels, this, setting); 
+			XiiEffectGUI.new("- magsmear 2x2 -", \xiiSpectral_MagSmear2x2, params, channels, this, setting); 
 			}, {				// mono
-			XiiEffectGUI.new("Spectral MagSmear 1x1", \xiiSpectral_MagSmear1x1, params, channels, this, setting);
+			XiiEffectGUI.new("- magsmear 1x1 -", \xiiSpectral_MagSmear1x1, params, channels, this, setting);
 		})
 	}
 }
@@ -160,9 +160,9 @@ XiiMagShift {
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Spectral MagShift 2x2", \xiiSpectral_MagSmear2x2, params, channels, this, setting); 
+			XiiEffectGUI.new("- magshift 2x2 -", \xiiSpectral_MagSmear2x2, params, channels, this, setting); 
 			}, {				// mono
-			XiiEffectGUI.new("Spectral MagShift 1x1", \xiiSpectral_MagSmear1x1, params, channels, this, setting);
+			XiiEffectGUI.new("- magshift 1x1 -", \xiiSpectral_MagSmear1x1, params, channels, this, setting);
 		})
 	}
 }
@@ -216,9 +216,9 @@ XiiMagFreeze {
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Spectral MagFreeze 2x2", \xiiSpectral_MagFreeze2x2, params, channels, this, setting); 
+			XiiEffectGUI.new("- magfreeze 2x2 -", \xiiSpectral_MagFreeze2x2, params, channels, this, setting); 
 			}, {				// mono
-			XiiEffectGUI.new("Spectral MagFreeze 1x1", \xiiSpectral_MagFreeze1x1, params, channels, this, setting);
+			XiiEffectGUI.new("- magfreeze 1x1 -", \xiiSpectral_MagFreeze1x1, params, channels, this, setting);
 		})
 	}
 }
@@ -275,9 +275,9 @@ XiiRectComb {
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Spectral RectComb 2x2", \xiiSpectral_RectComb2x2, params, channels, this, setting); 
+			XiiEffectGUI.new("- rectcomb 2x2 -", \xiiSpectral_RectComb2x2, params, channels, this, setting); 
 			}, {				// mono
-			XiiEffectGUI.new("Spectral RectComb 1x1", \xiiSpectral_RectComb1x1, params, channels, this, setting);
+			XiiEffectGUI.new("- rectcomb 1x1 -", \xiiSpectral_RectComb1x1, params, channels, this, setting);
 		})
 	}
 }
@@ -334,9 +334,9 @@ XiiBinScramble {
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Spectral BinScramble 2x2", \xiiSpectral_BinScramble2x2, params, channels, this, setting); 
+			XiiEffectGUI.new("- binscramble 2x2 -", \xiiSpectral_BinScramble2x2, params, channels, this, setting); 
 			}, {				// mono
-			XiiEffectGUI.new("Spectral BinScramble 1x1", \xiiSpectral_BinScramble1x1, params, channels, this, setting);
+			XiiEffectGUI.new("- binscramble 1x1 -", \xiiSpectral_BinScramble1x1, params, channels, this, setting);
 		})
 	}
 }
@@ -392,9 +392,71 @@ XiiBinShift {
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Spectral BinShift 2x2", \xiiSpectral_BinShift2x2, params, channels, this, setting); 
+			XiiEffectGUI.new("- binshift 2x2 -", \xiiSpectral_BinShift2x2, params, channels, this, setting); 
 			}, {				// mono
-			XiiEffectGUI.new("Spectral BinShift 1x1", \xiiSpectral_BinShift1x1, params, channels, this, setting);
+			XiiEffectGUI.new("- binshift 1x1 -", \xiiSpectral_BinShift1x1, params, channels, this, setting);
+		})
+	}
+}
+
+
+
+
+
+// shift and scale the position of the bins 
+XiiSpectralDelay {	
+	var <>xiigui;
+
+	*new { arg server, channels, setting = nil;
+		^super.new.initSpectralDelay(server, channels, setting);
+		}
+		
+	initSpectralDelay {arg server, channels, setting;
+		var delaySpec, params, s, buffer; 
+		s = server ? Server.default;
+		buffer = Buffer.alloc(s, 1024, 1);
+
+		SynthDef(\xiiSpectral_Delay1x1, { arg inbus=0, outbus=0, stretch=0, delay=0.7, bufnum=0, dryvol = 0, vol=1;
+			var in, chain;
+			in = InFeedback.ar(inbus, 1);
+			chain = FFT(bufnum, in);
+			chain = chain.pvcollect(buffer.numFrames, {|mag, phase, index|
+				mag + DelayN.kr(mag, 2, delay);
+			}, frombin: 0, tobin: 256, zeroothers: 1);
+			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/44100) * dryvol) + (IFFT(chain) * vol));
+		}).load(s);
+		
+		
+		SynthDef(\xiiSpectral_Delay2x2, { arg inbus=0, outbus=0, stretch=0, delay=0, trig=0, bufnum=0, dryvol=0, vol=1;
+			var in, chain;
+			in = Mix.ar(InFeedback.ar(inbus, 2));
+			chain = FFT(bufnum, in);
+			chain = chain.pvcollect(buffer.numFrames, {|mag, phase, index|
+				mag + DelayN.kr(mag, 2, delay);
+			}, frombin: 0, tobin: 256, zeroothers: 1);
+			// I need to delay the output of raw signal by the size of FFT buffer
+			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/44100) * dryvol) + (IFFT(chain).dup * vol));
+		}).load(s);
+		
+		delaySpec = ControlSpec.new(0.1, 2, \lin, 0.01, 1); 
+/*
+		if(channels == 2, { 	// stereo
+			buffer = Buffer.alloc(s, 2048, 2); // a four second 2 channel Buffer
+		}, {
+			buffer = Buffer.alloc(s, 2048, 1); // a four second 1 channel Buffer
+		});
+*/
+		params = [ 
+		Ê Ê["Delay", "FxLevel", "DryLevel"], 
+		Ê Ê[\delay, \vol, \dryvol, \bufnum], 
+		Ê Ê[delaySpec, \amp, \amp], 
+		Ê Êif(setting.notNil, {setting[5]}, {[1, 1, 1, 0, buffer.bufnum]})
+		]; 
+		
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("- spectraldelay 2x2 -", \xiiSpectral_Delay2x2, params, channels, this, setting); 
+			}, {				// mono
+			XiiEffectGUI.new("- spectraldelay 1x1 -", \xiiSpectral_Delay1x1, params, channels, this, setting);
 		})
 	}
 }

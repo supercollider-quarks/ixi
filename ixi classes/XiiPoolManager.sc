@@ -22,7 +22,7 @@ XiiPoolManager {
 					}, {
 						Object.readArchive("preferences/bufferPools.ixi")					}); // if no dict, create it
 		
-		win = GUI.window.new("PoolManager", Rect(point.x, point.y, rect.width, rect.height),
+		win = GUI.window.new("- poolmanager -", Rect(point.x, point.y, rect.width, rect.height),
 			 resizable:false);
 		
 		selPool = GUI.popUpMenu.new(win, Rect(10, 5, 140, 16))
@@ -48,6 +48,7 @@ XiiPoolManager {
 			.states_([["load pool", Color.black, Color.clear]])
 			.action_({
 				if(bufferDict.at(selPool.items[selPool.value]) != nil, {
+				
 					XQ.globalWidgetList.add(
 						// here sending bufferpaths and selection array
 						XiiBufferPool.new(Server.default, nil, nil, selPool.items[selPool.value].asString)
@@ -56,6 +57,8 @@ XiiPoolManager {
 								bufferDict.at(selPool.items[selPool.value])[1]  // selections
 								);
 					);
+					
+					
 				});
 			});
 
@@ -66,7 +69,7 @@ XiiPoolManager {
 					.autohidesScrollers_(true)
 					.focus(true)
 					.font_(GUI.font.new("Helvetica", 9))
-					.string_("")
+					.string_(pool.name.asString)
 					.keyUpAction_({arg view, key, mod, unicode; 
 						if(unicode ==13, {
 							saveButt.focus(true);
@@ -78,7 +81,7 @@ XiiPoolManager {
 				.states_([["save",Color.black, Color.clear]])
 				.font_(GUI.font.new("Helvetica", 9))
 				.action_({ arg butt; var str, oldnamelist;
-					"OO in savebutt".postln;
+					//"OO in savebutt".postln;
 					str = if(txtv.string == "", {Date.getDate.stamp.asString}, {txtv.string});
 					// saving filepaths and selection list into file
 					bufferDict.add((str).asSymbol -> 

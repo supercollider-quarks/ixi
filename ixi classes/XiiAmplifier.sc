@@ -22,7 +22,7 @@ XiiAmplifier {
 		addAct = \addToTail;
 
 		s = server ? Server.local;
-		name = "Amplifier";
+		name = "- amplifier -";
 		channels = if(setting.isNil, {ch}, {setting[0]});
 
 		stereoChList = XiiACDropDownChannels.getStereoChnList;

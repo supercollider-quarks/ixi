@@ -27,7 +27,7 @@ XiiFreqScope {
 		busNum=0;
 		height=300;
 
-		name = "freq scope";
+		name = "- freqscope -";
 		
 		point = if(setting.isNil, {XiiWindowLocation.new(name)}, {setting[1]});
 		xiigui = nil; // not using window server class here
@@ -170,7 +170,9 @@ XiiFreqScope {
 			.inBus_(busNum);
 
 
-		cmdPeriodFunc = { onOffButt.valueAction_(0)};
+		cmdPeriodFunc = { 
+		//onOffButt.valueAction_(0)
+		};
 		CmdPeriod.add(cmdPeriodFunc);
 
 		win.onClose_({

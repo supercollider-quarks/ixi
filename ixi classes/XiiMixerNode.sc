@@ -26,7 +26,7 @@ XiiMixerNode {
 		
 		channels = if(setting.isNil, {ch}, {setting[0]});
 
-		if(ch==1, {name = "    MixerNode - 1x2"},{name = "    MixerNode - 2x1"});
+		if(ch==1, {name = "- mixernode 1x2 -"},{name = "- mixernode 2x1 -"});
 
 		stereoChList = XiiACDropDownChannels.getStereoChnList;
 		monoChList =   XiiACDropDownChannels.getMonoChnList;

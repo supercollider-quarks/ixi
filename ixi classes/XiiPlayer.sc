@@ -30,7 +30,7 @@ XiiPlayer {
 		soundfile = sounds[0]; // default soundfile
 		outbus = 0;
 		filename = "";
-		name = "             File Player";
+		name = "- player -";
 		s = server ? Server.default;
 		
 		volume = 0;

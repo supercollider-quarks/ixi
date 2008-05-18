@@ -24,7 +24,7 @@ XiiPolyMachine {
 		var synthPrototypeArray;
 		var createEnvWin, envArray, envFlagArray, createAudioStreamBusWin;
 		var point, relativeTime, relativeTimeRadioButt;
-		var tracks;
+		var tracks, lastStateNum;
 		
 		tracks = XQ.pref.polyMachineTracks; // 4 is default (XQ.pref is set in the preferences/preferences.ixi file)
 		fixedBoxSize = true;
@@ -42,7 +42,6 @@ XiiPolyMachine {
 		audioStreamFlagArray = Array.fill(tracks, {false});
 		envFlagArray = Array.fill(tracks, {true});
 		envArray = Array.fill(tracks, {[[ 0.0, 1.0, 0.7, 0.7, 0.0], [0.05, 0.1, 0.5, 0.2], 1]}); // levels, times, duration
-		stateNum = 0; // number of states in the dictionary
 		relativeTime = false;
 		
 		synthPrototypeArray = Array.fill(tracks, "{
@@ -55,10 +54,13 @@ XiiPolyMachine {
 
 xiigui = nil;
 point = if(setting.isNil, {Point(10, 200)}, {setting[1]});
-params = if(setting.isNil, {[1, 0]}, {setting[2]});
+params = if(setting.isNil, {[1, 0, stateDict, 0]}, {setting[2]});
 
+stateDict = params[2];
+stateNum = params[2].size; // number of states in the dictionary
+lastStateNum = params[3];
 
-		win = GUI.window.new("polymachine", Rect(point.x, point.y, 760, tracks*62), resizable:false);
+		win = GUI.window.new("- polymachine -", Rect(point.x, point.y, 760, tracks*62), resizable:false);
 		
 		indexBoxArray = Array.fill(tracks, {arg i;
 			BoxGrid.new(win, bounds: Rect(260, 10+(i*60), 16*30, 12), columns: 16, rows: 1)
@@ -182,7 +184,7 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 				ldSndsGBufferList.value(poolName);
 			});
 			
-		ldSndsGBufferList = {arg argPoolName;	 var numOfBuffers;
+		ldSndsGBufferList = {arg argPoolName, firstpool=false; var numOfBuffers;
 			poolName = argPoolName.asSymbol;
 			if(try {XQ.globalBufferDict.at(poolName)[0] } != nil, {
 				sndfiles = Array.fill(XQ.globalBufferDict.at(poolName)[0].size, { arg i;
@@ -193,11 +195,11 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 				bufferPopUpArray.do({arg popup, i; 
 					popup.items_(sndfiles); 
 					popup.value_(i%sndfiles.size); // if no soundfiles, then code
-					bufNumArray[i] = i%sndfiles.size; // if there are fewer than 4 (or N_tracks) soundfiles
+					bufNumArray[i] = i%sndfiles.size; // if there are fewer than 4 soundfiles
+					if(firstpool, {popup.action.value(i%sndfiles.size)});
 				});
 
-				if(numOfBuffers < tracks, { // TO BE FIXED !!!
-					//tracks.do({|i| bufNumArray[i] = i%numOfBuffers; codeFlagArray[i] = false;});
+				if(numOfBuffers < tracks, {
 					numOfBuffers.do({|i| bufNumArray[i] = i; codeFlagArray[i] = false;});
 				}, {
 					codeFlagArray = Array.fill(tracks, {false});
@@ -251,26 +253,38 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 		
 		statesPop = GUI.popUpMenu.new(win, Rect(10, 32, 100, 16))
 			.font_(GUI.font.new("Helvetica", 9))
-			.items_(["states"])
+			.items_(params[2].keys.asArray.sort)
 			.value_(0)
 			.background_(Color.white)
 			.action_({ arg item; var chosenstate;
 				if(stateNum > 0, { // if there are any states
+				//stateDict.at(("state 1").asSymbol).postln;
 				chosenstate = stateDict.at(("state "++(item.value+1).asString).asSymbol);
+				//[\chosenstate, chosenstate].postln;
+				
 				fixedBoxSize = chosenstate[tracks].copy;
 				volArray = chosenstate[tracks+1].copy;
 				tempo = chosenstate[tracks+2].copy;
 				codeArray = chosenstate[tracks+3].copy; 
 				envArray = chosenstate[tracks+4].copy;
 				envFlagArray = chosenstate[tracks+5].copy;
+				poolName = chosenstate[tracks+6].copy;
+				bufNumArray = chosenstate[tracks+7].copy;
+				//[\bufNumArray, bufNumArray].postln;
+				//[\poolName, poolName].postln;
+			
 				clockArray.do({arg clock; clock.tempo_(tempo)});
 				envButtOnOffArray.do({arg butt, i; 
 					if(chosenstate[9][i] == true, {butt.value_(1)}, 
 					{butt.value_(0)}) });
-				tracks.do({arg i; drawBoxGrids.value(chosenstate[i].size, i); [\ok, i].postln;});
+				tracks.do({arg i; drawBoxGrids.value(chosenstate[i].size, i); });
 				selectBoxArray.do({arg boxgrid, i; boxgrid.setNodeStates_([chosenstate[i]])});
 				trackVolumeSlider.do({arg sl, i; sl.value_([volArray[i]]); });
+				selbPool.value_(selbPool.items.indexOfEqual(poolName));
+				//ldSndsGBufferList.value(poolName);
+				bufferPopUpArray.do({arg popup, i; popup.value_(bufNumArray[i])});
 				tempoSlider.value_(tempo*60);
+				lastStateNum = item.value; params[3] = lastStateNum;
 				});
 			});
 			
@@ -299,8 +313,14 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 				statesarray = statesarray.add(codeArray.copy);    // code array        - index slot 7
 				statesarray = statesarray.add(envArray.copy);     // env array         - index slot 8
 				statesarray = statesarray.add(envFlagArray.copy); // on/off states     - index slot 9
+				statesarray = statesarray.add(poolName.copy);     // poolName          - index slot 10
+				statesarray = statesarray.add(bufNumArray.copy);  // bufNumArray       - index slot 11
+				//statesarray = statesarray.add(lastStateNum.copy); // laststateNum      - index slot 12
+				//[\bufnumarray, bufNumArray].postln;
 				stateDict.add(("state "++stateNum.asString).asSymbol -> statesarray);
-				[\statesarray, statesarray].postln;
+				params[2] = stateDict;
+				// get to the right state when loading up a setting (-1 because it's used for a menu)
+				lastStateNum = stateNum-1; params[3] = lastStateNum; 				//[\statesarray, statesarray].postln;
 			});
 
 		clearSeqButt = GUI.button.new(win, Rect(10, 82, 97, 18))
@@ -629,9 +649,10 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 		// setting		
 		volumeSlider.valueAction_(params[0]);
 		outbusPoP.valueAction_(params[1]);
+		statesPop.valueAction_(params[3]);
 		
 	}
-	
+	/*
 	updatePoolMenu {
 		var pool, poolindex;
 		pool = selbPool.items.at(selbPool.value);        // get the pool name (string)
@@ -641,6 +662,21 @@ params = if(setting.isNil, {[1, 0]}, {setting[2]});
 			selbPool.value_(poolindex); // so nothing changed, but new poolarray
 		});
 	}	
+	*/
+
+	updatePoolMenu {
+		var poolname, poolindex;
+		poolname = selbPool.items.at(selbPool.value); // get the pool name (string)
+		selbPool.items_(XQ.globalBufferDict.keys.asArray.sort); // put new list of pools
+		poolindex = selbPool.items.indexOf(poolname); // find the index of old pool in new array
+		if(poolindex != nil, { // not first time pool is loaded
+			selbPool.valueAction_(poolindex); // nothing changed, but new poolarray or sound 
+			ldSndsGBufferList.value(poolname);
+		}, {
+			selbPool.valueAction_(0); // loading a pool for the first time (index nil) 
+			ldSndsGBufferList.value(XQ.globalBufferDict.keys.asArray[0], true); // load first pool
+		});
+	}
 	
 	getState { // for save settings
 		var point;

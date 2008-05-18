@@ -19,7 +19,7 @@ var slValues, trackVolumes, stepsValues;
 var globalRButt, singularRButt, local, setToTopButt, slIndex;
 var numberBoxArray, generateNumBoxArray;
 var soundFuncArray, playFuncsArray;
-var outbus, inbus, globalvol, playFunc, freq, pitchratio, createScalesWin;
+var outbus, inbus, globalvol, playFunc, createScalesWin;
 var createCodeWin, createAudioStreamBusWin, keyboard, fundamental, scaleButt, freqText, freqTextView;
 var generateNoteViews, resolution, tonalityButt, resSlider, outbusPop;
 var loadArchive, saveArchive, speed;
@@ -28,6 +28,8 @@ var notes, note; // scale chosen
 var statesPop, clearButt, storeButt, draw, drawButt, backgrounddraw;
 var scale, selectall;
 var change, backGRView;
+var freq, amp, pitchratio, buffer;
+var scalewin, aswin;
 
 s = server;
 xiigui = nil;
@@ -36,7 +38,7 @@ stateDict = ();
 stateNum = 0;
 
 dropcount = 16;
-globalvol = 1;
+globalvol = 0.7;
 fundamental = 36;
 resolution = 24;
 speed = 0.4;
@@ -49,9 +51,11 @@ scale = false;
 selectall = false;
 
 server = Server.default;
-slValues = Array.fill(dropcount, 0.0); // Y locs of the tracks
 stepsValues = Array.fill(dropcount, 8);
 trackVolumes = Array.fill(dropcount, 0.3);
+slValues = Array.fill(dropcount, {|i| 
+				1.0.rand.round(stepsValues[i].reciprocal) // so it lands in place
+			});
 
 soundFuncArray = Array.fill(48, {
 				().add(\playFunc -> 1)
@@ -61,10 +65,10 @@ soundFuncArray = Array.fill(48, {
 				.add(\buffer -> 0)	
 				.add(\inbus -> 20)
 				.add(\codeFlag -> false)	
-				.add(\code -> "{ |freq, amp|
+				.add(\code -> "{
 	var env, sine;
 	env = EnvGen.ar(Env.perc, doneAction:2);
-	sine = SinOsc.ar(440, 0, 0.5 * env);
+	sine = SinOsc.ar(440, 0, env);
 	sine ! 2
 }.play")
 });
@@ -76,6 +80,7 @@ if(setting.isNil, {
 	point = setting[1];
 	stateDict = setting[2];
 	stateNum = stateDict.size;
+
 	// ok - set state 1 as default state, and load vars - GUI views take care of themselves
 	params = setting[2].at("state 1".asSymbol);
 	soundFuncArray = params[0].copy;
@@ -88,6 +93,7 @@ if(setting.isNil, {
 	speed = params[7].copy;
 	outbus = params[8].copy;
 	draw = params[9].copy;
+	
 });
 
 local = false;
@@ -159,6 +165,9 @@ msl = GUI.multiSliderView.new(win, Rect(120, 5, 680, 200))
 		params[1] = slValues;
 		slIndex = xb.index;
 		volMsl.index = xb.index;
+		freqTextView.string_(soundFuncArray[xb.index].freq.round(0.01).asString);
+		soundFuncPop.value_( soundFuncArray[slIndex].playFunc );
+		bufferPop.value_( soundFuncArray[slIndex].buffer );
 		if(selectall == true, { 
 			selectall=false;
 			backgrounddraw = true; 
@@ -187,6 +196,8 @@ volMsl = GUI.multiSliderView.new(win, Rect(120, 210, 680, 22))
 		params[3] = trackVolumes;
 		soundFuncArray[xb.index].amp = xb.value[xb.index];
 		freqTextView.string_(soundFuncArray[xb.index].freq.round(0.01).asString);
+		soundFuncPop.value_( soundFuncArray[slIndex].playFunc );
+		bufferPop.value_( soundFuncArray[slIndex].buffer );
 		if(selectall == true, { 
 			selectall = false; 
 			backgrounddraw = true; 
@@ -288,15 +299,18 @@ volMsl = GUI.multiSliderView.new(win, Rect(120, 210, 680, 22))
 		try{numberBoxArray.do({|box| box.remove})}; // if loading a setting remove old boxes
 		numberBoxArray = Array.fill(dropcount, {|i| 
 			XiiSNBox(win, Rect(120+(i*(680/dropcount)), 240, (680/(dropcount)-1), 12))
-				.font_(Font("Helvetica", if(dropcount>42, {8}, {9})))
+				.font_(GUI.font.new("Helvetica", if(dropcount>42, {8}, {9})))
 				.value_( stepsValues[i] )
 				.focusColor_( XiiColors.darkgreen )
-				.clipHi_(32)
-				.clipLo_(2)
+				//.clipHi_(24)
+				//.clipLo_(2)
 				.align_(\center)
 				.background_(Color.white)
 				.action_({ arg sbs;
-					stepsValues[i] = sbs.value;
+					var val;
+					val = sbs.value.clip(2, 24);
+					sbs.value=val; // argh! - Since the xiisnbox clipping is fucked
+					stepsValues[i] = val;
 					params[2] = stepsValues.copy;
 					if(drawButt.value == 1, { // if drawing, then draw
 						drawer.clearDrawing;
@@ -362,11 +376,19 @@ volMsl = GUI.multiSliderView.new(win, Rect(120, 210, 680, 22))
 			keyboard = Grid.new(win, Rect(200, 266, 599, 66), columns: res, rows: 7, border:true)
 						.setBackgrColor_(Color.white)
 						.nodeDownAction_({arg nl; // nodeloc 
-							soundFuncArray[slIndex].freq = microtone2Darray[nl[1]] [nl[0]];
+							var freq;
+							freq = microtone2Darray[nl[1]] [nl[0]];
+							soundFuncArray[slIndex].freq = freq;
+							// highest pitch is 8133.64
+							soundFuncArray[slIndex].pitchratio = [0.2, 4].asSpec.map(freq/8133.64);
 							freqTextView.string_((microtone2Darray[nl[1]][nl[0]].round(0.01)).asString);
 						})
 						.nodeTrackAction_({arg nl; 
-							soundFuncArray[slIndex].freq = microtone2Darray[nl[1]] [nl[0]];
+							var freq;
+							freq = microtone2Darray[nl[1]] [nl[0]];
+							soundFuncArray[slIndex].freq = freq;
+							// highest pitch is 8133.64 and pitchratio is thus from 0.2 to 4
+							soundFuncArray[slIndex].pitchratio = [0.2, 4].asSpec.map(freq/8133.64);
 							freqTextView.string_((microtone2Darray[nl[1]][nl[0]].round(0.01)).asString);
 						})
 						.nodeUpAction_({arg nodeloc; 
@@ -446,17 +468,17 @@ volMsl = GUI.multiSliderView.new(win, Rect(120, 210, 680, 22))
 
 	ldSndsGBufferList = {arg argPoolName;
 			poolName = argPoolName.asSymbol;
-	
-			if(try {XQ.globalBufferDict.at(poolName)[0] } != nil, {
-				sndNameList = [];
-				bufferList = List.new;
-				XQ.globalBufferDict.at(poolName)[0].do({arg buffer;
-					sndNameList = sndNameList.add(buffer.path.basename);
-					bufferList.add(buffer.bufnum);
+				if(try {XQ.globalBufferDict.at(poolName)[0] } != nil, {
+					sndNameList = [];
+					bufferList = List.new;
+					XQ.globalBufferDict.at(poolName)[0].do({arg buffer;
+						sndNameList = sndNameList.add(buffer.path.basename);
+						bufferList.add(buffer.bufnum);
 					// assign random buffer to each drop
-					soundFuncArray.do({|dict| dict.buffer = sndNameList.size.rand });
-				 });
-				 bufferPop.items_(sndNameList);
+						soundFuncArray.do({|dict| dict.buffer = sndNameList.size.rand });
+					});
+					 bufferPop.items_(sndNameList);
+					 bufferPop.action.value(0); // put the first file into the view and load buffer
 			}, {
 				sndNameList = [];
 			});
@@ -570,8 +592,8 @@ volMsl = GUI.multiSliderView.new(win, Rect(120, 210, 680, 22))
 					dropsSl.value_(dropcount);
 					speedSl.value_(speed.reciprocal);
 					outbusPop.value_(outbus/2);
-					[\draw, draw].postln;
-					[\drawbinary, draw.binaryValue].postln;
+					//[\draw, draw].postln;
+					//[\drawbinary, draw.binaryValue].postln;
 					drawButt.value_(draw.binaryValue);
 					generateNumBoxArray.(dropcount);
 					bufferPop.value_(soundFuncArray[msl.index].buffer); // set the sound and buffer to the selected drop
@@ -612,7 +634,7 @@ volMsl = GUI.multiSliderView.new(win, Rect(120, 210, 680, 22))
 					outbus.copy,
 					draw.copy
 				];
-				[\paramsdraw, params[9]].postln;
+				//[\paramsdraw, params[9]].postln;
 				stateDict.add(("state "++stateNum.asString).asSymbol -> params.copy);
 				soundFuncArray = soundFuncArray.deepCopy; // make a new stamp of sndfarray
 			});
@@ -777,13 +799,12 @@ speedSl = OSCIISlider(win, Rect(10, 190, 100, 8), "- speed", 2, 16, params[7], 0
 				if(val< -0.05, { // BANG! - making noise
 					val = 1.0 - stepsValues[i].reciprocal;
 					if(soundFuncArray[i].codeFlag == false, { // evaluating synths
-						// use matchAt in order to evaluate Func with arguments
-						playFuncsArray[soundFuncArray[i].playFunc].value(
-							soundFuncArray[i].freq, 
-							soundFuncArray[i].amp,
-							soundFuncArray[i].pitchratio,
-							soundFuncArray[i].buffer
-						);
+						freq = soundFuncArray[i].freq;
+						amp = soundFuncArray[i].amp; 
+						pitchratio = soundFuncArray[i].pitchratio;
+						buffer = soundFuncArray[i].buffer;
+						inbus = soundFuncArray[i].inbus;
+						playFuncsArray[soundFuncArray[i].playFunc].value;
 					}, { // evaluating sc-code
 						code = soundFuncArray[i].code;
 						if(code[code.size-4..code.size] == "play", { // is it a synthdef??
@@ -833,42 +854,47 @@ speedSl = OSCIISlider(win, Rect(10, 190, 100, 8), "- speed", 2, 16, params[7], 0
 	};
 
 	createAudioStreamBusWin = {arg index;
-		var win, envview, timesl, setButt;
-		win = GUI.window.new("audiostream inbus", Rect(200, 450, 250, 100), resizable:false).front;
-		win.alwaysOnTop = true;
+		var envview, timesl, setButt;
+		aswin = GUI.window.new("audiostream inbus", Rect(200, 450, 250, 100), resizable:false).front;
+		aswin.alwaysOnTop = true;
 		
-		GUI.staticText.new(win, Rect(20, 55, 20, 16))
+		GUI.staticText.new(aswin, Rect(20, 55, 20, 16))
 			.font_(GUI.font.new("Helvetica", 9)).string_("in"); 
 
-		GUI.popUpMenu.new(win, Rect(35, 55, 50, 16))
+		GUI.popUpMenu.new(aswin, Rect(35, 55, 50, 16))
 			.items_(XiiACDropDownChannels.getStereoChnList)
 			.value_(10)
 			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
 			.canFocus_(false)
 			.action_({ arg ch;
-				soundFuncArray[slIndex].inbus = ch.value * 2;
+				if(selectall == true, { // all drops selected
+					soundFuncArray.do({ |dict| dict.put(\inbus, ch.value * 2) });
+				}, {
+					soundFuncArray[slIndex].put(\inbus, ch.value * 2);
+				});
 			});
 
-		setButt = GUI.button.new(win, Rect(120, 55, 60, 16))
-				.states_([["set inbus", Color.black, Color.clear]])
-				.focus(true)
-				.font_(GUI.font.new("Helvetica", 9))
-				.action_({
-					win.close;
-				});
+		setButt = GUI.button.new(aswin, Rect(120, 55, 60, 16))
+			.states_([["set inbus", Color.black, Color.clear]])
+			.focus(true)
+			.font_(GUI.font.new("Helvetica", 9))
+			.action_({
+				aswin.close;
+			});
 	};
 	
 	createScalesWin = {
-		var win, envview, timesl, setButt, setRandButt, clearButt;
-		win = GUI.window.new("scales and chords", Rect(200, 450, 250, 100), resizable:false).front;
-		win.alwaysOnTop = true;
+		var envview, timesl, setButt, setRandButt, clearButt;
+		scalewin = GUI.window.new("scales and chords", 
+						Rect(200, 450, 250, 100), resizable:false).front;
+		scalewin.alwaysOnTop = true;
 		notes = (0..11);
 		
-		GUI.staticText.new(win, Rect(10, 15, 40, 16))
+		GUI.staticText.new(scalewin, Rect(10, 15, 40, 16))
 			.font_(GUI.font.new("Helvetica", 9)).string_("scales :"); 
 
-		GUI.popUpMenu.new(win, Rect(50, 15, 90, 16))
+		GUI.popUpMenu.new(scalewin, Rect(50, 15, 90, 16))
 			.items_(Array.fill(XiiTheory.scales.size, {arg i; XiiTheory.scales[i][0]}))
 			.value_(0)
 			.font_(GUI.font.new("Helvetica", 9))
@@ -879,10 +905,10 @@ speedSl = OSCIISlider(win, Rect(10, 190, 100, 8), "- speed", 2, 16, params[7], 0
 				keyboard.showScale(notes, fundamental, Color.new255(103, 148, 103));
 			});
 
-		GUI.staticText.new(win, Rect(10, 35, 40, 16))
+		GUI.staticText.new(scalewin, Rect(10, 35, 40, 16))
 			.font_(GUI.font.new("Helvetica", 9)).string_("chords :"); 
 
-		GUI.popUpMenu.new(win, Rect(50, 35, 90, 16))
+		GUI.popUpMenu.new(scalewin, Rect(50, 35, 90, 16))
 			.items_(Array.fill(XiiTheory.chords.size, {arg i; XiiTheory.chords[i][0]}))
 			.value_(0)
 			.font_(GUI.font.new("Helvetica", 9))
@@ -893,7 +919,7 @@ speedSl = OSCIISlider(win, Rect(10, 190, 100, 8), "- speed", 2, 16, params[7], 0
 				keyboard.showScale(notes, fundamental, Color.new255(103, 148, 103));
 			});
 
-		setRandButt = GUI.button.new(win, Rect(150, 15, 60, 16))
+		setRandButt = GUI.button.new(scalewin, Rect(150, 15, 60, 16))
 				.states_([["set random", Color.black, Color.clear]])
 				.canFocus_(false)
 				.font_(GUI.font.new("Helvetica", 9))
@@ -904,7 +930,7 @@ speedSl = OSCIISlider(win, Rect(10, 190, 100, 8), "- speed", 2, 16, params[7], 0
 					soundFuncArray.do({ |dict| dict.freq = scale.choose.midicps; });
 				});
 		
-		clearButt = GUI.button.new(win, Rect(150, 35, 60, 16))
+		clearButt = GUI.button.new(scalewin, Rect(150, 35, 60, 16))
 				.states_([["clear keyb", Color.black, Color.clear]])
 				.canFocus_(false)
 				.font_(GUI.font.new("Helvetica", 9))
@@ -913,7 +939,7 @@ speedSl = OSCIISlider(win, Rect(10, 190, 100, 8), "- speed", 2, 16, params[7], 0
 					keyboard.clear;
 				});
 				
-		GUI.button.new(win, Rect(50, 65, 160, 16))
+		GUI.button.new(scalewin, Rect(50, 65, 160, 16))
 				.states_([["set last note as fundamental", Color.black, Color.clear]])
 				.canFocus_(false)
 				.font_(GUI.font.new("Helvetica", 9))
@@ -925,7 +951,7 @@ speedSl = OSCIISlider(win, Rect(10, 190, 100, 8), "- speed", 2, 16, params[7], 0
 	};
 
 	playFuncsArray = [
-			 { |freq=440, amp=1, pitchratio=1, buffer=0| 
+			 { // |freq=440, amp=1, pitchratio=1, buffer=0| 
 				var myBuffer, selStart, selEnd; // the sample player
 				if(try{XQ.globalBufferDict.at(poolName)[0][buffer]} != nil, {
 					myBuffer = XQ.globalBufferDict.at(poolName)[0][buffer];
@@ -951,32 +977,32 @@ speedSl = OSCIISlider(win, Rect(10, 190, 100, 8), "- speed", 2, 16, params[7], 0
 					});
 				});
 			} ,
-			{ |freq=440, amp=1|
+			{
 					Synth(\xiiSine, [		\outbus, outbus,
 										\freq, freq,
 										\phase, 1.0.rand,
 										\amp, amp * globalvol
 					])
 			},
-			{ |freq=440, amp=1|
+			{
 					Synth(\xiiBells, [		\outbus, outbus,
 										\freq, freq,
 										\amp, amp * globalvol
 					])
 			},
-			{ |freq=440, amp=1|
+			{
 					Synth(\xiiSines, [		\outbus, outbus,
 										\freq, freq,
 										\amp, amp * globalvol
 					])
 			},
-			{ |freq=440, amp=1|
+			{
 					Synth(\xiiSynth1, [	\outbus, outbus,
 										\freq, freq,
 										\amp, amp * globalvol
 					])
 			},
-			{ |freq=440, amp=1|
+			{
 					Synth(\xiiKs_string, [	\outbus, outbus,
 										\note, freq, 
 										\pan, 0.7.rand2, 
@@ -985,41 +1011,41 @@ speedSl = OSCIISlider(win, Rect(10, 190, 100, 8), "- speed", 2, 16, params[7], 0
 										\amp, amp * globalvol
 										]);
 			},
-			{ |freq=440, amp=1|
+			{
 					Synth(\xiiString, [	\outbus, outbus,
 										\freq, freq, 
 										\pan, 0.7.rand2, 
 										\amp, amp * globalvol
 										]);
 			},
-			{ |freq=440, amp=1|
+			{
 					Synth(\xiiImpulse, [	\outbus, outbus,
 										\pan, 0.7.rand2,
 										\amp, amp * globalvol
 										]);
 			},
-			{ |freq=440, amp=1|
+			{
 					Synth(\xiiRingz, [		\outbus, outbus,
 										\freq, freq, 
 										\pan, 0.7.rand2,
 										\amp, amp * globalvol
 										]);
 			},
-			{ |freq=440, amp=1|
+			{
 					Synth(\xiiKlanks, [	\outbus, outbus,
 										\freq, freq, 
 										\pan, 0.7.rand2,
 										\amp, amp * globalvol
 										]);
 			},
-			{ |freq=440, amp=1|
+			{
 					Synth(\xiiGridder, [	\outbus, outbus,
 										\freq, freq, 
 										\pan, 0.7.rand2,
 										\amp, amp * globalvol
 										]);
 			},
-			{ |freq=440, amp=1, pitchratio=1, inbus= 20|
+			{
 					Synth(\xiiAudioStream,[	\outbus, outbus,
 										\inbus, inbus,
 										\pitchratio, pitchratio, 
@@ -1035,26 +1061,48 @@ speedSl = OSCIISlider(win, Rect(10, 190, 100, 8), "- speed", 2, 16, params[7], 0
 			var t;
 			timeTask.stop;
 			XQ.globalWidgetList.do({arg widget, i; if(widget == this, { t = i })});
-			try{XQ.globalWidgetList.removeAt(t)};
+			try{ XQ.globalWidgetList.removeAt(t) };
+			try{ scalewin.close };
+			try{ aswin.close };
 		});
 	}
 	
+	/*
 	updatePoolMenu {
 		var pool, poolindex;
 		pool = selbPool.items.at(selbPool.value);  
-		selbPool.items_(XQ.globalBufferDict.keys.asArray); 
+		selbPool.items_(XQ.globalBufferDict.keys.asArray.sort); 
 		poolindex = selbPool.items.indexOf(pool);
 		if(poolindex != nil, {
-			selbPool.value_(poolindex);
+			selbPool.valueAction_(poolindex);
+			ldSndsGBufferList.value(pool);
 		});
 	}
+	*/
+	
+	updatePoolMenu {
+		var poolname, poolindex;
+		poolname = selbPool.items.at(selbPool.value); // get the pool name (string)
+		selbPool.items_(XQ.globalBufferDict.keys.asArray.sort); // put new list of pools
+		poolindex = selbPool.items.indexOf(poolname); // find the index of old pool in new array
+		if(poolindex != nil, {
+			selbPool.valueAction_(poolindex); // nothing changed, but new poolarray or sound 
+			ldSndsGBufferList.value(poolname);
+		}, {
+			selbPool.valueAction_(0); // loading a pool for the first time (index nil) 
+			ldSndsGBufferList.value(XQ.globalBufferDict.keys.asArray[0]); // load first pool
+		});
+	}
+
 	
 	getState { // for save settings
 		var point;
 		point = Point(win.bounds.left, win.bounds.top);
-		^[2, point, if(stateNum>0, { stateDict }, { params }) ]; // if multiple states then send dict
+		if(stateDict.size == 0, {
+			stateDict.add("state 1".asSymbol -> params.copy); // we create a state
+		});
+		^[2, point, stateDict ];
 	}
-
 }
 
 

@@ -1,4 +1,4 @@
-// adoptation of Newton Armstrong's Record class
+// ixi adoptation of Newton Armstrong's Record class
 
 XiiRecord {
 	var <server, <inbus, <numChannels, <headerFormat, <sampleFormat;
@@ -9,8 +9,14 @@ XiiRecord {
 	
 	*initClass {
 		for(1, 8, { arg i;
+			// 
+			//SynthDef.writeOnce("xii-diskout-" ++ i.asString, { arg i_in, i_bufNum=0, amp=1;
+			//	DiskOut.ar(i_bufNum, amp * InFeedback.ar(i_in, i));
+			//});
+			
+			// Adding Limiter as sometimes I was getting bad noises on overload
 			SynthDef.writeOnce("xii-diskout-" ++ i.asString, { arg i_in, i_bufNum=0, amp=1;
-				DiskOut.ar(i_bufNum, amp * InFeedback.ar(i_in, i));
+				DiskOut.ar(i_bufNum, Limiter.ar(amp * InFeedback.ar(i_in, i), 0.99, 0.01) );
 			});
 		});
 	}
@@ -37,8 +43,8 @@ XiiRecord {
 		});
 
 		// This is because there is no Date.localtime.stamp on windows!
-		if(GUI.id == \swing, { // probably windows
-			path = path ? ("sound" ++ 100000.rand.asString ++ ext);
+		if(thisProcess.platform.name==\windows, { // windows
+			path = path ? ("sound" ++ Main.elapsedTime.round ++ ext);
 		}, { 
 			path = path ? (Date.localtime.stamp ++ ext);
 		});
@@ -48,15 +54,16 @@ XiiRecord {
 		server.sendMsg("/b_alloc", bufnum, 32768, numChannels,
 			["/b_write", bufnum, path, headerFormat, sampleFormat, 0, 0, 1]
 		);
+		
 //		synth = Synth.new("xii-diskout-" ++ numChannels, 
 //					[\i_in, inbus, \i_bufNum, bufnum], 
 //					target: server,
 //					addAction: \addToTail // added by thor
 //					);
-		synth = Synth.tail(RootNode(Server.default), "xii-diskout-" ++ numChannels, // RootNode by thor
+
+		// thor: changing to the use of RootNode
+		synth = Synth.tail(RootNode(Server.default), "xii-diskout-" ++ numChannels,
 					[\i_in, inbus, \i_bufNum, bufnum]
-					//target: server,
-					//addAction: \addToTail // added by thor
 					);
 	
 		isRecording = true;

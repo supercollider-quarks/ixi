@@ -123,7 +123,7 @@ XiiEffectGUI {
 		Ê Ê}); 
 				
 		param[0].size.do({|i| 
-		Ê Êslider[i] = EZSlider(win, 288@15, param[0][i], param[2][i], 
+		Ê Êslider[i] = XiiEZSlider(win, 288@15, param[0][i], param[2][i], 
 									labelWidth: 50, numberWidth: 40); 
 		Ê Êslider[i].labelView.font_(GUI.font.new("Helvetica", 9)); 
 		Ê Êslider[i].numberView.font_(GUI.font.new("Helvetica", 9)); 
@@ -168,6 +168,9 @@ XiiEffectGUI {
 
 		win.onClose_({
 			var t;
+			param[0].do({|slider| 
+		Ê Ê		slider.stop;
+			});
 			if (fxOn, { synth.free; });
 			CmdPeriod.remove(cmdPeriodFunc);
 			if(bufnum != nil, { // if the effect is using a buffer

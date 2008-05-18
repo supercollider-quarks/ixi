@@ -55,7 +55,7 @@ point = if(setting.isNil, {Point(100, 130)}, {setting[1]});
 params = if(setting.isNil, {[1, [0,0]]}, {setting[2]});
 outbusarray = params[1];
 
-win = GUI.window.new("   grainBox", Rect(point.x, point.y, 756, 300), resizable:false);
+win = GUI.window.new("- grainbox -", Rect(point.x, point.y, 756, 300), resizable:false);
 win.drawHook = {
 	GUI.pen.color = Color.new255(255, 100, 0);
 	GUI.pen.width = 3;
@@ -65,9 +65,9 @@ win.drawHook = {
 	p.do({arg point;
 		GUI.pen.lineTo(point+0.5);
 	});
-	GUI.pen.stroke
+	GUI.pen.stroke;
 };
-//win.refresh;
+
 
 
 getCenterPos = { arg envval, i; var spec, myvar;
@@ -86,6 +86,23 @@ channels.do({arg i; var sampleInSec, r, c; // LOOP
 		randCntrPos = randCntrPos.add(sampleInSec / (4.0.rand));
 	}, {
 		randCntrPos = randCntrPos.add(1.0.rand)
+	});
+
+selbPool = GUI.popUpMenu.new(win, Rect(10, 5, 102, 16))
+	.font_(GUI.font.new("Helvetica", 9))
+	.items_(if(XQ.poolNames == [], {["no pool", "no pool 2"]}, {XQ.poolNames}))
+	.value_(1)
+	.background_(Color.white)
+	.action_({ arg item; var dictArray;
+		var filepath, selStart, selEnd, soundfile, myTempBuffer;
+		poolName = selbPool.items[item.value];
+		ldSndsGBufferList.value(poolName.asSymbol); // HERE IS THE BUG !!!
+		//fileListPopup[0].items_(sndNameList);
+		//fileListPopup[1].items_(sndNameList);
+		//fileListPopup[1].value = 1;
+	});
+	if(sndNameList == [], {
+		selbPool.items_(["no bufferPool", "no bufferpool"]);
 	});
 
 // ===================== ENVELOPE VIEW CODE ==============================
@@ -301,7 +318,7 @@ fileListPopup.add(GUI.popUpMenu.new(win,Rect(190+(i*316), 264, 140, 18))
 			.background_(Color.new255(255, 255, 255))
 			.value_(i)
 			.action_({ arg popup; var filepath, soundfile, selStart, selEnd;
-						var checkBufLoadTask, myTempBuffer;
+				var checkBufLoadTask, myTempBuffer;
 				filepath = XQ.globalBufferDict.at(poolName)[0][popup.value].path;
 				selStart = XQ.globalBufferDict.at(poolName)[1][popup.value][0];
 				selEnd = selStart + XQ.globalBufferDict.at(poolName)[1][popup.value][1]-1;
@@ -333,7 +350,7 @@ popupOutBus = GUI.popUpMenu.new(win,Rect(127+(i*316), 264,50,18))
 				.font_(GUI.font.new("Helvetica", 9))
 				.items_(XiiACDropDownChannels.getStereoChnList)
 				.background_(Color.new255(255, 255, 255))
-				.value_(outbusarray[i])
+				.value_(outbusarray[i]/2)  // divide the array by 2 because of stereo busses
 				.action_({ arg popup; var outbus;
 						outbus = popup.value * 2;
 						outbusarray[i] = outbus;
@@ -344,23 +361,6 @@ popupOutBus = GUI.popUpMenu.new(win,Rect(127+(i*316), 264,50,18))
 });
 // ============================ END OF CHANNEL FUNC ==================================
 
-
-selbPool = GUI.popUpMenu.new(win, Rect(10, 5, 102, 16))
-	.font_(GUI.font.new("Helvetica", 9))
-	.items_(if(XQ.globalBufferDict.keys.asArray == [], {["no pool"]}, {XQ.globalBufferDict.keys.asArray}))
-	.value_(0)
-	.background_(Color.white)
-	.action_({ arg item; var dictArray;
-		var filepath, selStart, selEnd, soundfile, myTempBuffer;
-		poolName = selbPool.items[item.value];
-		ldSndsGBufferList.value(poolName.asSymbol);
-		fileListPopup[0].items_(sndNameList);
-		fileListPopup[1].items_(sndNameList);
-		fileListPopup[1].value = 1;
-	});
-	if(sndNameList == [], {
-		selbPool.items_(["no bufferPool"]);
-	});
 
 
 // -----------------------------------------------
@@ -435,37 +435,44 @@ startStopButt = GUI.button.new(win,Rect(10, 30, 102, 18))
 			try{XQ.globalWidgetList.removeAt(t)};
 		});
 
-		// loads stereo files, but converts to mono elsewhere
-
 		ldSndsGBufferList = {arg argPoolName;
 			poolName = argPoolName.asSymbol;
 			if(try {XQ.globalBufferDict.at(poolName)[0] } != nil, {
 				sndNameList = [];
 				bufferList = List.new;
 				sampleDurList = List.new;
-				XQ.globalBufferDict.at(poolName)[0].do({arg buffer;
+				XQ.globalBufferDict.at(poolName)[0].do({arg buffer, i;
 					sndNameList = sndNameList.add(buffer.path.basename);
 					bufferList.add(buffer.bufnum);
-					sampleDurList.add(buffer.numFrames/44100);
+					sampleDurList.add(XQ.globalBufferDict.at(poolName)[1][i]/44100);
+					// put the new sounds into popupmenus
+					fileListPopup[0].items_(sndNameList);
+					fileListPopup[1].items_(sndNameList);
+					fileListPopup[1].value = 1;
 				 });
 			}, {
 				sndNameList = [];
 			});
 		};
-		ldSndsGBufferList.value(selbPool.items[0].asSymbol);
+		
+		ldSndsGBufferList.value(XQ.poolNames[0]); // load the first pool 
 		this.updatePoolMenu;
-		
 		glVolSlider.valueAction_(params[0]);
-		
+		selbPool.valueAction_(0);
 	}
 	
 	updatePoolMenu {
-		var pool, poolindex;
+		var pool, poolindex, poolnamesarray;
+		poolnamesarray = XQ.globalBufferDict.keys.asArray.sort;
 		pool = selbPool.items.at(selbPool.value);  
-		selbPool.items_(XQ.globalBufferDict.keys.asArray);
+		selbPool.items_(poolnamesarray);
 		poolindex = selbPool.items.indexOf(pool);
-		if(poolindex != nil, {
+		if(poolindex == nil, {
+			selbPool.value_(0);
+			ldSndsGBufferList.value(poolnamesarray[0]);
+		},{
 			selbPool.value_(poolindex);
+			ldSndsGBufferList.value(pool);
 		});
 	}
 	
@@ -497,11 +504,11 @@ startStopButt = GUI.button.new(win,Rect(10, 30, 102, 18))
 		["x = allpass delay time","y = allpass decay time"],
 		];
 		r = Routine.new({
-		w = GUI.window.new("   colour info", Rect(250, 100, 280, 380));
+		w = GUI.window.new("   colour info", Rect(250, 100, 280, 480));
 		w.alpha = 0.2;
 		w.front;
 		10.do({arg i;	
-			w.bounds_(Rect(120-(i*10), 730, 280, 480));
+			w.bounds_(Rect(120-(i*10), 100, 280, 480));
 			w.alpha = if(i<4, {0.4}, {i/9});
 			});
 			r = nil;

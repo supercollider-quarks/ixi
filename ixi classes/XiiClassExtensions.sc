@@ -1,12 +1,14 @@
 
+
 + Function {
+
 	record {arg time, bus, channels=1;
 		var foundWidget = false;
 		
 		XQ.globalWidgetList.do({|widget| 
 			if(widget.isKindOf(XiiRecorder), {
-				"i've got a widget".postln;
 				foundWidget = true;
+				widget.win.front;
 				widget.record(time, bus);
 			})
 		});
@@ -83,12 +85,10 @@
 	}
 }
 
+
 + SCSlider {
-			
-	incrementCtrl { ^this.valueAction = this.value + 0.001 }
-	decrementCtrl { ^this.valueAction = this.value - 0.001 }
-	
-	defaultKeyDownAction { arg char, modifiers, unicode,keycode;
+					
+	defaultKeyDownAction { arg char, modifiers, unicode, keycode;
 		// standard keydown
 		if (char == $r, { this.valueAction = 1.0.rand; ^this });
 		if (char == $n, { this.valueAction = 0.0; ^this });
@@ -109,13 +109,17 @@
 		});
 		^nil		// bubble if it's an invalid key
 	}
+	
+	incrementCtrl { ^this.valueAction = this.value + 0.001 }
+	decrementCtrl { ^this.valueAction = this.value - 0.001 }
+
 
 }
 
 
 + ArrayedCollection {
 	
-	ixiplot { arg name, bounds, discrete=false, numChannels = 1, minval, maxval, parent, labels=true, filled=true, color=XiiColors.lightgreen, step=0.1;	
+	ixiplot { arg name, bounds, discrete=false, numChannels = 1, minval, maxval, parent, labels=true, filled=true, color=XiiColors.lightgreen, step=0.001;	
 	
 		var plotter, txt, chanArray, unlaced, val, window, thumbsize, zoom, width, 
 			layout, write=false, msresize, gui;

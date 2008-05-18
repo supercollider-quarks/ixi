@@ -54,7 +54,7 @@ XiiGridder {
 		sample = 0;
 
 xiigui = nil;
-point = if(setting.isNil, {Point(300, 500)}, {setting[1]});
+point = if(setting.isNil, {Point(300, 100)}, {setting[1]});
 params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2]});
 
 		gBufferPoolNum = 0;
@@ -91,7 +91,7 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 	Out.ar(outbus, Pan2.ar(sine, pan));
 }).play(Server.default)}.asCompileString;
 
-		win = GUI.window.new("Gridder", Rect(point.x, point.y, 615, 500), resizable:false);
+		win = GUI.window.new("- gridder -", Rect(point.x, point.y, 615, 500), resizable:false);
 		
 		viewKeybButt = GUI.button.new(win, Rect(590, 476, 16, 16))
 				.canFocus_(false)
@@ -704,6 +704,7 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 		win.front;
 		win.onClose_({
 			var t;
+			cmdPeriodFunc.value;
 			CmdPeriod.remove(cmdPeriodFunc);
 			XQ.globalWidgetList.do({arg widget, i; if(widget === this, {t = i})});
 			try{XQ.globalWidgetList.removeAt(t)};
@@ -770,6 +771,7 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 		^l;
 	}
 
+/*
 	updatePoolMenu {
 		var pool, poolindex;
 		pool = selbPool.items.at(selbPool.value);        // get the pool name (string)
@@ -777,6 +779,21 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 		poolindex = selbPool.items.indexOf(pool);        // find the index of old pool in new array
 		if(poolindex != nil, {
 			selbPool.value_(poolindex); // so nothing changed, but new poolarray
+		});
+	}
+*/
+
+	updatePoolMenu {
+		var poolname, poolindex;
+		poolname = selbPool.items.at(selbPool.value); // get the pool name (string)
+		selbPool.items_(XQ.globalBufferDict.keys.asArray.sort); // put new list of pools
+		poolindex = selbPool.items.indexOf(poolname); // find the index of old pool in new array
+		if(poolindex != nil, {
+			selbPool.valueAction_(poolindex); // nothing changed, but new poolarray or sound 
+			ldSndsGBufferList.value(poolname);
+		}, {
+			selbPool.valueAction_(0); // loading a pool for the first time (index nil) 
+			ldSndsGBufferList.value(XQ.globalBufferDict.keys.asArray[0]); // load first pool
 		});
 	}
 
@@ -817,6 +834,7 @@ params = if(setting.isNil, {[1, 0, 12, 4000, 1, 120, 1, 0, 0, 1, 0]}, {setting[2
 			2, { {
 					Synth(\xiiBells, [		\outbus, outbus,
 										\freq, freq,
+										\pan, 0.0,
 										\amp, globalvol
 					])
 			} },

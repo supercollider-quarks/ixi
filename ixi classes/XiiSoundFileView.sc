@@ -15,7 +15,8 @@ XQ.globalBufferList[0][1][0] // and here the selection for that
 XiiSoundFileView {	
 
 	var <>xiigui, <>win;
-
+	var <filename;
+	
 	var sndfileview, soundfile;
 	var point, fileNumInPool;
 	var bgColor, foreColor;
@@ -31,7 +32,7 @@ XiiSoundFileView {
 		
 	initXiiSoundFileView {arg path, bufnum, numInPool, name, selArray;
 	
-	
+	filename = path.basename;
 	
 		logo = [
 Point(1,7), Point(8, 1), Point(15,1), Point(15,33),Point(24, 23), Point(15,14), Point(15,1), 
@@ -43,7 +44,7 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 		
 		//bufferPoolNum = bPoolNum;
 
-		win = GUI.window.new(path.basename+"  -  bufferPool: "+name, 
+		win = GUI.window.new(filename+"  -  bufferPool: "+name, 
 							Rect(200, 500, 800, 238), 
 							resizable:false).front;	
 
@@ -90,16 +91,16 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 			.setSelectionStart(0, selArray[0])		
 			.setSelectionSize(0, selArray[1]) // size in frames
 			.mouseDownAction_({arg view;
-				var selectionArray;
-				selectionArray = view.selections[view.currentSelection];
-				selStartView.string_("selStart : " + selectionArray[0]);
-				selEndView.string_("selEnd : " + (selectionArray[0]+selectionArray[1]));
+				selArray = view.selections[view.currentSelection];
+				numFramesView.string_("frames : " + (selArray[1]));
+				selStartView.string_("selStart : " + selArray[0]);
+				selEndView.string_("selEnd : " + (selArray[0]+selArray[1]));
 			})
 			.mouseMoveAction_({arg view;
-				var selectionArray;
-				selectionArray = view.selections[view.currentSelection];
-				selStartView.string_("selStart : " + selectionArray[0]);
-				selEndView.string_("selEnd : " + (selectionArray[0]+selectionArray[1]));
+				selArray = view.selections[view.currentSelection];
+				numFramesView.string_("frames : " + (selArray[1]));
+				selStartView.string_("selStart : " + selArray[0]);
+				selEndView.string_("selEnd : " + (selArray[0]+selArray[1]));
 			})
 			.mouseUpAction_({
 				if(synthRunFlag == true, { // IT'S LOOPING
@@ -107,7 +108,7 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 					end = start + sndfileview.selections[0][1]; // end of the selection
 					
 					if(sndfileview.selectionSize(0) < 10, {
-					 	end = soundfile.numFrames-1; // used to be -1 but that's a bug in LoopBuf
+					 	end = soundfile.numFrames; // used to be -1 but that's a bug in LoopBuf
 						seltime = (soundfile.numFrames-start)/44100;
 					}, { 
 						seltime = sndfileview.selections[0][1]/44100;
@@ -116,18 +117,18 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 					if(loop == false, {
 						if(chNum == 1, {
 							synth = Synth(\xiiPlayBufXSndFileView1x1, 
-										[\bufnum, bufnum, \start, start, \end, end]);
+										[\bufnum, bufnum, \start, start, \end, end, \vol, vol]);
 						}, {
 							synth = Synth(\xiiPlayBufXSndFileView2x2, 
-										[\bufnum, bufnum, \start, start, \end, end]);
+										[\bufnum, bufnum, \start, start, \end, end, \vol, vol]);
 						});
 					}, {
 						if(chNum == 1, {
 							synth = Synth(\xiiLoopBufXSndFileView1x1, 
-										[\bufnum, bufnum, \start, start, \end, end]);
+										[\bufnum, bufnum, \start, start, \end, end, \vol, vol]);
 						}, {
 							synth = Synth(\xiiLoopBufXSndFileView2x2, 
-										[\bufnum, bufnum, \start, start, \end, end]);
+										[\bufnum, bufnum, \start, start, \end, end, \vol, vol]);
 						});
 					});
 					
@@ -193,16 +194,42 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 				sndfileview.setSelectionStart(0, 0);
 				sndfileview.setSelectionSize(0, 0);
 				sndfileview.timeCursorPosition_(0);
+				numFramesView.string_("frames : " + soundfile.numFrames);
 				selStartView.string_("selStart : "+ 0);
 				selEndView.string_("selEnd : "+ soundfile.numFrames);
 				
 				//XQ.globalBufferList[bufferPoolNum][1][fileNumInPool] = [0, soundfile.numFrames];
 				XQ.globalBufferDict.at(name.asSymbol)[1][fileNumInPool] = [0, soundfile.numFrames];
+				
+				// for the timecursor
+				start = sndfileview.selections[0][0]; // the start
+				end = start + sndfileview.selections[0][1]; // end of the selection
+				
+				if(sndfileview.selectionSize(0) < 10, {
+				 	end = soundfile.numFrames; // used to be -1 but that's a bug in LoopBuf
+					seltime = (soundfile.numFrames-start)/44100;
+				}, { 
+					seltime = sndfileview.selections[0][1]/44100;
+				});
+
+				if(synthRunFlag, {	
+					if(loop == true, {
+						synth.free;
+						if(chNum == 1, {
+							synth = Synth(\xiiLoopBufXSndFileView1x1, 
+								[\bufnum, bufnum, \start, 0, \end, soundfile.numFrames, \vol, vol]);
+						}, {
+							synth = Synth(\xiiLoopBufXSndFileView2x2, 
+								[\bufnum, bufnum, \start, 0, \end, soundfile.numFrames, \vol, vol]);
+						});
+					});
+				});
+
 			});
 		
 		numFramesView = GUI.staticText.new(win, Rect(523, 219, 80, 12))
 					.font_(GUI.font.new("Helvetica", 9))
-					.string_("frames : "+ soundfile.numFrames );
+					.string_("frames : "+ selArray[1] );
 
 		selStartView = GUI.staticText.new(win, Rect(610, 219, 80, 12))
 					.font_(GUI.font.new("Helvetica", 9))
@@ -221,7 +248,7 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 				end = start + sndfileview.selections[0][1]; // end of the selection
 				if( end == 0, { end = soundfile.numFrames; });
 				if( start < 0, { start = 0 });
-				if( end > soundfile.numFrames, { end = soundfile.numFrames - 10 });
+				if( end > soundfile.numFrames, { end = soundfile.numFrames });
 
 				XQ.globalBufferDict.at(name.asSymbol)[1][fileNumInPool] = [start, sndfileview.selections[0][1]];
 			});
@@ -249,18 +276,18 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 					if(loop == false, {
 						if(chNum == 1, {
 							synth = Synth(\xiiPlayBufXSndFileView1x1, 
-								[\out, outbus, \bufnum, bufnum, \start, start, \end, end]);
+								[\out, outbus, \bufnum, bufnum, \start, start, \end, end, \vol, vol]);
 						}, {
 							synth = Synth(\xiiPlayBufXSndFileView2x2, 
-								[\out, outbus, \bufnum, bufnum, \start, start, \end, end]);
+								[\out, outbus, \bufnum, bufnum, \start, start, \end, end, \vol, vol]);
 						});
 					}, {
 						if(chNum == 1, {
 							synth = Synth(\xiiLoopBufXSndFileView1x1, 
-								[\out, outbus, \bufnum, bufnum, \start, start, \end, end]);
+								[\out, outbus, \bufnum, bufnum, \start, start, \end, end, \vol, vol]);
 						}, {
 							synth = Synth(\xiiLoopBufXSndFileView2x2, 
-								[\out, outbus, \bufnum, bufnum, \start, start, \end, end]);
+								[\out, outbus, \bufnum, bufnum, \start, start, \end, end, \vol, vol]);
 						});
 					});
 					this.startTimeCursor;

@@ -24,43 +24,33 @@ OSCIISlider {
 		valueText = GUI.staticText.new(w, numberrect)
 					.string_(lastval)
 					.font_(font);
+
 		slider = GUI.slider.new( w, slidrect);
-		
 		slider.background_(Color.new255(160, 170, 255, 100));
-		
-		//set slider to default value, else will default to 0.0
 		slider.value_(spec.unmap(lastval));
-		
-		//set associated variable to this value, client code will poll this rather than the slider directly
-		//so safe for TempoClock use etc
-		
 		slider.action_({arg sl; var val; 
-					val = spec.map(sl.value);  
-					valueText.string_(val); 
-					lastval=val;
-					});
+				val = spec.map(sl.value);  
+				valueText.string_(val); 
+				lastval=val;
+		});
 				
-	} // end of main func
+	}
 	
-	// set value from outside
 	value_ {arg val;
 		slider.value_(spec.unmap(val));
-		//slider.update;
 		valueText.string_(val);
 		lastval = val;
-		}
+	}
 		
-	// get the value
 	value{
 		^lastval;
-		}
+	}
 		
 	action_ { arg func;
 		slider.action_({arg sl; var val; 
 			val = spec.map(sl.value);  
 			valueText.string_(val); 
 			lastval=val;  
-			//lastval = sl;
 			func.value(lastval);
 		});
 	}
@@ -79,6 +69,12 @@ OSCIISlider {
 	
 	keyDownAction_ { arg func;
 		slider.keyDownAction_(func);
+//		if(char=="a", {
+//			startRecPath.value(\modindex);
+//		}, {
+//			me.defaultKeyDownAction(char, mod, uni);
+//		});
+
 	}
 	
 	font_{arg argfont;

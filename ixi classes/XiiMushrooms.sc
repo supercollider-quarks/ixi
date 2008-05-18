@@ -29,6 +29,7 @@ var soundFuncPop, playFunc, setPlayFunc;
 var freqAnalysisFlag, synthRunningFlag, freq;
 var createAudioStreamBusWin, createCodeWin, synthDefPrototype, synthDefInUse, chooseBufferWin;
 var myPlayBuf, onsetSelStart, onsetSelEnd;
+var audiostreamwin, bufferwin;
 
 s = server; //Server.default;
 
@@ -54,7 +55,7 @@ synthRunningFlag = false;
 fftbuf = Buffer.alloc(s, 512);
 trackbuf = Buffer.alloc(s, 512);
 
-win = GUI.window.new("Mushrooms", Rect(point.x, point.y, 820, 320), resizable: false);
+win = GUI.window.new("- mushrooms -", Rect(point.x, point.y, 820, 320), resizable: false);
 
 // just display a temp buf in the GUI so it's not empty
 {bufPlot = XiiBufferOnsetPlot.new(fftbuf, win, Rect( 120, 5, 680, 300))}.defer(1);
@@ -122,20 +123,18 @@ oscResponder =  OSCresponderNode(s.addr,'/tr',{ arg thistime, responder, msg;
 				});
  			});
 				
-		ldSndsGBufferList = {arg argPoolName;
+		ldSndsGBufferList = {arg argPoolName, firstpool=false;
 			poolName = argPoolName.asSymbol;
 			if(try {XQ.globalBufferDict.at(poolName)[0] } != nil, {
 				sndNameList = [];
 				bufferList = List.new;
 				XQ.globalBufferDict.at(poolName)[0].do({arg buffer, i;
-					if(buffer.path.notNil, {
-						sndNameList = sndNameList.add(buffer.path.basename);
-					},{
-						sndNameList = sndNameList.add("liveBuffer "++i.asString);
-					});
+					sndNameList = sndNameList.add(buffer.path.basename);
 					bufferList.add(buffer.bufnum);
 				 });
 				 bufferPop.items_(sndNameList);
+				 // not sure I want to change file
+				 if(firstpool, {bufferPop.action.value(0)}); 
 			}, {
 				"got no files".postln;
 				sndNameList = [];
@@ -517,14 +516,14 @@ setPlayFunc.value(1);
 		};
 		
 		createAudioStreamBusWin = {
-			var win, envview, timesl, setButt;
-			win = GUI.window.new("audiostream inbus", Rect(200, 450, 250, 100), resizable:false).front;
-			win.alwaysOnTop = true;
+			var envview, timesl, setButt;
+			audiostreamwin = GUI.window.new("audiostream inbus", Rect(200, 450, 250, 100), resizable:false).front;
+			audiostreamwin.alwaysOnTop = true;
 				
-			GUI.staticText.new(win, Rect(20, 55, 20, 16))
+			GUI.staticText.new(audiostreamwin, Rect(20, 55, 20, 16))
 				.font_(GUI.font.new("Helvetica", 9)).string_("in"); 
 
-			GUI.popUpMenu.new(win, Rect(35, 55, 50, 16))
+			GUI.popUpMenu.new(audiostreamwin, Rect(35, 55, 50, 16))
 				.items_(XiiACDropDownChannels.getStereoChnList)
 				.value_(10)
 				.font_(GUI.font.new("Helvetica", 9))
@@ -534,21 +533,21 @@ setPlayFunc.value(1);
 					inbus = ch.value * 2;
 				});
 
-			setButt = GUI.button.new(win, Rect(120, 55, 60, 16))
+			setButt = GUI.button.new(audiostreamwin, Rect(120, 55, 60, 16))
 					.states_([["set inbus", Color.black, Color.clear]])
 					.focus(true)
 					.font_(GUI.font.new("Helvetica", 9))
 					.action_({
-						win.close;
+						audiostreamwin.close;
 					});
 		};
 
 		chooseBufferWin = {			
-			var win, selbPool, bufferPop, ldSndsGBufferList, setButt, poolName;
-			win = GUI.window.new("Choose Buffer", Rect(200, 450, 200, 66), resizable:false).front;
-			win.alwaysOnTop = true;
+			var selbPool, bufferPop, ldSndsGBufferList, setButt, poolName;
+			bufferwin = GUI.window.new("Choose Buffer", Rect(200, 450, 200, 66), resizable:false).front;
+			bufferwin.alwaysOnTop = true;
 
-		selbPool = GUI.popUpMenu.new(win, Rect(10, 10, 100, 16))
+		selbPool = GUI.popUpMenu.new(bufferwin, Rect(10, 10, 100, 16))
 			.font_(GUI.font.new("Helvetica", 9))
 			.items_(if(XQ.globalBufferDict.keys.asArray == [], 
 					{["no pool"]}, {XQ.globalBufferDict.keys.asArray.sort}))
@@ -559,7 +558,7 @@ setPlayFunc.value(1);
 				bufferPop.valueAction_(0);
 			});
 
-		bufferPop = GUI.popUpMenu.new(win, Rect(10, 32, 100, 16)) // 550
+		bufferPop = GUI.popUpMenu.new(bufferwin, Rect(10, 32, 100, 16)) // 550
 				.font_(GUI.font.new("Helvetica", 9))
 				.items_(["no buffer"])
 				.background_(Color.white)
@@ -593,7 +592,7 @@ setPlayFunc.value(1);
 		
 		ldSndsGBufferList.value(selbPool.items[0].asSymbol);
 
-		setButt = GUI.button.new(win, Rect(120, 32, 60, 16))
+		setButt = GUI.button.new(bufferwin, Rect(120, 32, 60, 16))
 					.states_([["set buffer", Color.black, Color.clear]])
 					.focus(true)
 					.font_(GUI.font.new("Helvetica", 9))
@@ -614,6 +613,8 @@ win.onClose_({
 	oscResponder.remove;
 	XQ.globalWidgetList.do({arg widget, i; if(widget == this, { t = i })});
 	try{XQ.globalWidgetList.removeAt(t)};
+	try{ audiostreamwin.close };
+	try{ bufferwin.close };
 
 });
 
@@ -631,7 +632,8 @@ drawIndexButt.valueAction_(params[9]);
 
 ///////////////////
 	}
-	
+
+/*	
 	updatePoolMenu {
 		var pool, poolindex;
 		pool = selbPool.items.at(selbPool.value);  
@@ -641,7 +643,22 @@ drawIndexButt.valueAction_(params[9]);
 			selbPool.value_(poolindex);
 		});
 	}
+*/
 	
+	updatePoolMenu {
+		var poolname, poolindex;
+		poolname = selbPool.items.at(selbPool.value); // get the pool name (string)
+		selbPool.items_(XQ.globalBufferDict.keys.asArray.sort); // put new list of pools
+		poolindex = selbPool.items.indexOf(poolname); // find the index of old pool in new array
+		if(poolindex != nil, {
+			selbPool.valueAction_(poolindex); // nothing changed, but new poolarray or sound 
+			ldSndsGBufferList.value(poolname);
+		}, {
+			selbPool.valueAction_(0); // loading a pool for the first time (index nil) 
+			ldSndsGBufferList.value(XQ.globalBufferDict.keys.asArray[0], true); // load first pool
+		});
+	}
+
 	getState { // for save settings
 		var point;
 		point = Point(win.bounds.left, win.bounds.top);

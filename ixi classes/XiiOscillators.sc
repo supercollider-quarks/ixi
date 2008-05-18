@@ -54,9 +54,9 @@ XiiNoise {
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Noise 2x2", \xiiNoise2x2, params, channels, this, setting);
+			XiiEffectGUI.new("- noise 2x2 -", \xiiNoise2x2, params, channels, this, setting);
 			}, {				// mono
-			XiiEffectGUI.new("Noise 1x1", \xiiNoise1x1, params, channels, this, setting);
+			XiiEffectGUI.new("- noise 1x1 -", \xiiNoise1x1, params, channels, this, setting);
 		})
 	}
 }
@@ -126,9 +126,9 @@ XiiOscillators {
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Oscillators 2x2", \xiiOscillators2x2, params, channels, this, setting);
+			XiiEffectGUI.new("- oscillators 2x2 -", \xiiOscillators2x2, params, channels, this, setting);
 			}, {				// mono
-			XiiEffectGUI.new("Oscillators 1x1", \xiiOscillators1x1, params, channels, this, setting);
+			XiiEffectGUI.new("- oscillators 1x1 -", \xiiOscillators1x1, params, channels, this, setting);
 		})
 	}
 }

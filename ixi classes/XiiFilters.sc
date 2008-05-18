@@ -51,9 +51,9 @@ XiiBandpass {
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Bandpass Filter 2x2", \xiiBPF2x2, params, channels, this, setting); /// 
+			XiiEffectGUI.new("- bandpass 2x2 -", \xiiBPF2x2, params, channels, this, setting); /// 
 			}, {				// mono
-			XiiEffectGUI.new("Bandpass Filter 1x1", \xiiBPF1x1, params, channels, this, setting); /// 
+			XiiEffectGUI.new("- bandpass 1x1 -", \xiiBPF1x1, params, channels, this, setting); /// 
 		});
 	}
 }
@@ -105,9 +105,9 @@ XiiLowpass {
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Lowpass Filter 2x2", \xiiLPF2x2, params, channels, this, setting); /// 
+			XiiEffectGUI.new("- lowpass 2x2 -", \xiiLPF2x2, params, channels, this, setting); /// 
 			}, {				// mono
-			XiiEffectGUI.new("Lowpass Filter 1x1", \xiiLPF1x1, params, channels, this, setting); /// 
+			XiiEffectGUI.new("- lowpass 2x2 -", \xiiLPF1x1, params, channels, this, setting); /// 
 		})
 	}
 }
@@ -159,9 +159,9 @@ XiiHighpass {
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Highpass Filter 2x2", \xiiHPF2x2, params, channels, this, setting); /// 
+			XiiEffectGUI.new("- highpass 2x2 -", \xiiHPF2x2, params, channels, this, setting); /// 
 			}, {				// mono
-			XiiEffectGUI.new("Highpass Filter 1x1", \xiiHPF1x1, params, channels, this, setting); /// 
+			XiiEffectGUI.new("- highpass 1x1 -", \xiiHPF1x1, params, channels, this, setting); /// 
 		})
 	}
 }
@@ -219,9 +219,9 @@ XiiRLowpass {
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Resonant Lowpass Filter 2x2", \xiiRLPF2x2, params, channels, this, setting);
+			XiiEffectGUI.new("- resonant lowpass 2x2 -", \xiiRLPF2x2, params, channels, this, setting);
 			}, {				// mono
-			XiiEffectGUI.new("Resonant Lowpass Filter 1x1", \xiiRLPF1x1, params, channels, this, setting); 
+			XiiEffectGUI.new("- resonant lowpass 1x1 -", \xiiRLPF1x1, params, channels, this, setting); 
 		})
 	}
 }
@@ -279,9 +279,9 @@ XiiRHighpass {
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Resonant Highpass Filter 2x2", \xiiRHPF2x2, params, channels, this, setting);
+			XiiEffectGUI.new("- resonant highpass 2x2 -", \xiiRHPF2x2, params, channels, this, setting);
 			}, {				// mono
-			XiiEffectGUI.new("Resonant Highpass Filter 1x1", \xiiRHPF1x1, params, channels, this, setting);
+			XiiEffectGUI.new("- resonant highpass 1x1 -", \xiiRHPF1x1, params, channels, this, setting);
 		})
 	}
 }
@@ -339,9 +339,9 @@ XiiResonant {
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Resonant Filter 2x2", \xiiResonant2x2, params, channels, this, setting);
+			XiiEffectGUI.new("- resonant 2x2 -", \xiiResonant2x2, params, channels, this, setting);
 			}, {				// mono
-			XiiEffectGUI.new("Resonant Filter 1x1", \xiiResonant1x1, params, channels, this, setting);
+			XiiEffectGUI.new("- resonant 1x1 -", \xiiResonant1x1, params, channels, this, setting);
 		})
 	}
 }
@@ -412,9 +412,9 @@ XiiKlanks {
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Klank Filters 2x2", \xiiKlanks2x2, params, channels, this, setting);
+			XiiEffectGUI.new("- klanks 2x2 -", \xiiKlanks2x2, params, channels, this, setting);
 			}, {				// mono
-			XiiEffectGUI.new("Klank Filters 1x1", \xiiKlanks1x1, params, channels, this, setting);
+			XiiEffectGUI.new("- klanks 1x1 -", \xiiKlanks1x1, params, channels, this, setting);
 		})
 	}
 }
@@ -474,9 +474,9 @@ XiiMoogVCFFF {
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Moog VCF FF 2x2", \xiiMoogVCFFF2x2, params, channels, this, setting);
+			XiiEffectGUI.new("- moog vcf ff 2x2 -", \xiiMoogVCFFF2x2, params, channels, this, setting);
 			}, {				// mono
-			XiiEffectGUI.new("Moog VCF FF 1x1", \xiiMoogVCFFF1x1, params, channels, this, setting);
+			XiiEffectGUI.new("- moog vcf ff 1x1 -", \xiiMoogVCFFF1x1, params, channels, this, setting);
 		})
 	}
 }
@@ -534,9 +534,9 @@ XiiMoogVCF {
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("Moog VCF 2x2", \xiiMoogVCF2x2, params, channels, this, setting);
+			XiiEffectGUI.new("- moog vcf 2x2 -", \xiiMoogVCF2x2, params, channels, this, setting);
 			}, {				// mono
-			XiiEffectGUI.new("Moog VCF 1x1", \xiiMoogVCF1x1, params, channels, this, setting);
+			XiiEffectGUI.new("- moog vcf 1x1 -", \xiiMoogVCF1x1, params, channels, this, setting);
 		})
 	}
 }
@@ -611,9 +611,9 @@ XiiResonzOsc {
 		]; 
 		
 		xiigui = if(channels == 2, { 	// stereo
-			XiiEffectGUI.new("ResonzOsc 2x2", \xiiResonzOsc2x2, params, channels, this, setting);
+			XiiEffectGUI.new("- resonzosc 2x2 -", \xiiResonzOsc2x2, params, channels, this, setting);
 			}, {				// mono
-			XiiEffectGUI.new("ResonzOsc 1x1", \xiiResonzOsc1x1, params, channels, this, setting);
+			XiiEffectGUI.new("- resonzosc 1x1 -", \xiiResonzOsc1x1, params, channels, this, setting);
 		})
 	}
 }

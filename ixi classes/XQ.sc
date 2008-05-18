@@ -6,6 +6,19 @@
 Testing:
 XQ.globalBufferDict
 XQ.globalWidgetList
+
+// get all active pools
+XQ.poolNames
+
+// buffers
+XQ.buffers(XQ.poolNames[0]) 	// you need to know the poolname
+// selections
+XQ.selections(XQ.poolNames[0]) 	// you need to know the poolname
+// buffers and selections
+XQ.bufferList(XQ.poolNames[0]) 	// you need to know the poolname
+// example: the bufnum of the first buffer in the first bufferpool (in alphabetic order)
+XQ.buffers(XQ.poolNames[0])[0].bufnum
+
 XQ.bufferPoolNum
 XQ.pref
 XQ.pref.midi
@@ -36,9 +49,59 @@ XQ {
 			("mkdir -p" + preferencesfolderpath.quote).unixCmd;
 			"ixi-NOTE: an ixiquarks preferences folder was not found, it was created".postln;
 		});
-
 	}
 
+	// methods for accessing poolnames, buffers and selections. good for live-coding
+	// available pools
+	*poolNames {
+		^globalBufferDict.keys.asArray.sort;
+	}
+
+	// bufferlist with buffers AND selections
+	*bufferList {arg poolname;
+		if(poolname.isString, {poolname = poolname.asSymbol});
+		if(globalBufferDict.at(poolname).notNil, {
+			^globalBufferDict.at(poolname);
+		},{
+			"no bufferpool with that name".warn;
+			^[];
+		});
+	}
+	
+	// buffers only (not selections)
+	*buffers {arg poolname;
+		if(poolname.isString, {poolname = poolname.asSymbol});
+		if(globalBufferDict.at(poolname).notNil, {
+			^globalBufferDict.at(poolname)[0];
+		},{
+			"no bufferpool with that name".warn;
+			^[];
+		});
+	}
+
+	// selections only (not buffers)
+	*selections {arg poolname;
+		if(poolname.isString, {poolname = poolname.asSymbol});
+		if(globalBufferDict.at(poolname).notNil, {
+			^globalBufferDict.at(poolname)[1];
+		},{
+			"no bufferpool with that name".warn;
+			^[];
+		});
+	}
+
+	// the basenames of the buffers in the bufferlist
+	*bufferNames {arg poolname;
+		if(poolname.isString, {poolname = poolname.asSymbol});
+		if(globalBufferDict.at(poolname).notNil, {
+			^globalBufferDict.at(poolname)[0].collect({arg buffer; buffer.path.basename});
+		},{
+			"no bufferpool with that name".warn;
+			^[];
+		});
+	}
+
+	// read in the preference file and if it's not there, use default preferences
 	*preferences {
 		var prefFile, preferences;
 		try{

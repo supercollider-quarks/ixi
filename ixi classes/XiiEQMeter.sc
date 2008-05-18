@@ -25,7 +25,7 @@ XiiEQMeter {
 
 		colors = 	[Color.green, Color.black, Color(0.80392156862745, 0.37647058823529, 0.56470588235294, 1), Color(0.93333333333333, 0.38823529411765, 0.38823529411765, 1), Color(0.93333333333333, 0.86666666666667, 0.50980392156863, 1), Color(0.63529411764706, 0.70980392156863, 0.80392156862745, 1), Color(0.80392156862745, 0.70196078431373, 0.54509803921569, 1), Color(0.4, 0.80392156862745, 0.66666666666667, 1), Color(0.80392156862745, 0.71764705882353, 0.61960784313725, 1), Color(0.93333333333333, 0.50980392156863, 0.3843137254902, 1)];
 		
-		name = "EQ Meter";
+		name = "- eq meter -";
 
 		point = if(setting.isNil, {XiiWindowLocation.new(name)}, {setting[1]});
 		xiigui = nil; // not using window server class here
@@ -55,11 +55,12 @@ XiiEQMeter {
 			var in, chain, powers, cutfreqs;
 			in = InFeedback.ar(inbus, 2);
 			in = Mix.ar(in);
+			//in = Normalizer.ar(in, 0.94);
 			chain = FFT(b.bufnum, in);
 			cutfreqs = [20, 25, 32.5, 44, 54, 65, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000, 20000];
 			// original freq list:
 			//cutfreqs = [20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000];
-			powers = FFTSubbandPower.kr(chain, cutfreqs, 0);
+			powers = FFTSubbandPower.kr(chain, cutfreqs, 0, scalemode: 2);
 			Out.kr(c.index, powers);
 		}).load(s);
 

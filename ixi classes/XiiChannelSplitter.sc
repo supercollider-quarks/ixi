@@ -25,7 +25,7 @@ XiiChannelSplitter {
 		// mono or stereo?
 		channels = if(setting.isNil, {ch}, {setting[0]});
 
-		if(ch==1, {name = "  ChannelSplitter - 1x1"}, {name = "  ChannelSplitter - 2x2"});
+		if(ch==1, {name = "- channelsplitter 1x1 -"}, {name = "- channelsplitter 2x2 -"});
 
 
 		stereoChList = XiiACDropDownChannels.getStereoChnList;

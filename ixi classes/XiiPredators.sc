@@ -18,7 +18,8 @@ XiiPredators {
 		var createCodeWin, createAudioStreamBusWin, createEnvWin, synthDefPrototype, synthDefInUse;
 		var inbus, createEnvButt, envButt;
 		var aggrSl, frictionSl, restlSl, volSl, point;
-		
+		var funcwin, envwin, aswin, midikwin; // in order to close all windows on main win closing
+ 		
 		gBufferPoolNum = 0;
 		preyArray = [];
 		predatorArray = [];
@@ -38,7 +39,7 @@ xiigui = nil;
 point = if(setting.isNil, {Point(208, 164)}, {setting[1]});
 params = if(setting.isNil, {[4, 18, 20, 1, 0, 0.4]}, {setting[2]});
 
-		win = GUI.window.new("ixi predators", Rect(point.x, point.y, 640, 580), resizable:false);
+		win = GUI.window.new("- predators -", Rect(point.x, point.y, 640, 580), resizable:false);
 		wview = win.view;
 		
 		a = XixiPainter.new(win, Rect(10, 5, 620, 470)); // 640 * 480 resolution
@@ -226,10 +227,10 @@ params = if(setting.isNil, {[4, 18, 20, 1, 0, 0.4]}, {setting[2]});
 							func = {arg note; 	
 								preyArray.do({|prey| prey.setPitch_(note)})
 							};
-							ww = GUI.window.new("set pitch", 
+							midikwin = GUI.window.new("set pitch", 
 							Rect(win.bounds.left+400, win.bounds.top+230, 400, 80), resizable:false).front;
-							ww.alwaysOnTop = true;
-							k = MIDIKeyboard.new(ww, Rect(10, 5, 374, 60), 5, 24);
+							midikwin.alwaysOnTop = true;
+							k = MIDIKeyboard.new(midikwin, Rect(10, 5, 374, 60), 5, 24);
 							k.keyDownAction_({arg note; func.value(note)});
 							k.keyTrackAction_({arg note; func.value(note)});
 						});
@@ -302,7 +303,7 @@ params = if(setting.isNil, {[4, 18, 20, 1, 0, 0.4]}, {setting[2]});
 		};
 		
 		createCodeWin = {
-				var funcwin, func, subm, test, view;
+				var func, subm, test, view;
 				funcwin = GUI.window.new("scode", Rect(600, 400, 440, 200)).front;
 				funcwin.alwaysOnTop = true;
 				
@@ -339,17 +340,17 @@ params = if(setting.isNil, {[4, 18, 20, 1, 0, 0.4]}, {setting[2]});
 		};
 
 		createEnvWin = {arg index;
-			var win, envview, timesl, setButt, timeScale;
+			var envview, timesl, setButt, timeScale;
 			var selectedprey;
 			
 			preyArray.do({|prey, i| if(prey.selected == true, {selectedprey = i})}); // find the selected prey
 
 			timeScale = 1.0;
 			
-			win = GUI.window.new("asdr envelope", Rect(200, 450, 250, 130), resizable:false).front;
-			win.alwaysOnTop = true;
+			envwin = GUI.window.new("adsr envelope", Rect(200, 450, 250, 130), resizable:false).front;
+			envwin.alwaysOnTop = true;
 			
-			envview = GUI.envelopeView.new(win, Rect(10, 5, 230, 80))
+			envview = GUI.envelopeView.new(envwin, Rect(10, 5, 230, 80))
 				.drawLines_(true)
 				.selectionColor_(Color.red)
 				.canFocus_(false)
@@ -362,7 +363,7 @@ params = if(setting.isNil, {[4, 18, 20, 1, 0, 0.4]}, {setting[2]});
 				.setEditable(0, false);
 
 
-			timesl = OSCIISlider.new(win, 
+			timesl = OSCIISlider.new(envwin, 
 						Rect(10, 100, 130, 8), "- duration", 0.1, 10, preyArray[selectedprey].getEnv[2], 0.01)
 					.font_(GUI.font.new("Helvetica", 9))
 					.action_({arg sl; });
@@ -380,14 +381,14 @@ params = if(setting.isNil, {[4, 18, 20, 1, 0, 0.4]}, {setting[2]});
 		};
 
 		createAudioStreamBusWin = {arg index;
-			var win, envview, timesl, setButt;
-			win = GUI.window.new("audiostream inbus", Rect(200, 450, 250, 100), resizable:false).front;
-			win.alwaysOnTop = true;
+			var envview, timesl, setButt;
+			aswin = GUI.window.new("audiostream inbus", Rect(200, 450, 250, 100), resizable:false).front;
+			aswin.alwaysOnTop = true;
 				
-			GUI.staticText.new(win, Rect(20, 55, 20, 16))
+			GUI.staticText.new(aswin, Rect(20, 55, 20, 16))
 				.font_(GUI.font.new("Helvetica", 9)).string_("in"); 
 
-			GUI.popUpMenu.new(win, Rect(35, 55, 50, 16))
+			GUI.popUpMenu.new(aswin, Rect(35, 55, 50, 16))
 				.items_(XiiACDropDownChannels.getStereoChnList)
 				.value_(10)
 				.font_(GUI.font.new("Helvetica", 9))
@@ -398,12 +399,12 @@ params = if(setting.isNil, {[4, 18, 20, 1, 0, 0.4]}, {setting[2]});
 					preyArray.do({|prey| prey.setInBus_(inbus)});
 				});
 
-			setButt = GUI.button.new(win, Rect(120, 55, 60, 16))
+			setButt = GUI.button.new(aswin, Rect(120, 55, 60, 16))
 					.states_([["set inbus", Color.black, Color.clear]])
 					.focus(true)
 					.font_(GUI.font.new("Helvetica", 9))
 					.action_({
-						win.close;
+						aswin.close;
 					});
 		};
 
@@ -417,8 +418,12 @@ params = if(setting.isNil, {[4, 18, 20, 1, 0, 0.4]}, {setting[2]});
 			a.stop;
 			a.remove;
 			CmdPeriod.remove(cmdPeriodFunc);
-			XQ.globalWidgetList.do({arg widget, i; if(widget == this, {t = i})});
-			try{XQ.globalWidgetList.removeAt(t)};
+			XQ.globalWidgetList.do({ arg widget, i; if(widget == this, {t = i}) });
+			try{ XQ.globalWidgetList.removeAt(t) };
+			try{ funcwin.close };
+			try{ envwin.close };
+			try{ aswin.close };
+			try{ midikwin.close };
 		});
 		
 		// setting
@@ -430,6 +435,7 @@ params = if(setting.isNil, {[4, 18, 20, 1, 0, 0.4]}, {setting[2]});
 		volSl.valueAction_(params[5]);
  	}
 	
+	/*
 	updatePoolMenu {
 		var pool, poolindex;
 		pool = selbPool.items.at(selbPool.value);        // get the pool name (string)
@@ -439,7 +445,22 @@ params = if(setting.isNil, {[4, 18, 20, 1, 0, 0.4]}, {setting[2]});
 			selbPool.value_(poolindex); // so nothing changed, but new poolarray
 		});	
 	}
-	
+	*/
+
+	updatePoolMenu {
+		var poolname, poolindex;
+		poolname = selbPool.items.at(selbPool.value); // get the pool name (string)
+		selbPool.items_(XQ.globalBufferDict.keys.asArray.sort); // put new list of pools
+		poolindex = selbPool.items.indexOf(poolname); // find the index of old pool in new array
+		if(poolindex != nil, {
+			selbPool.valueAction_(poolindex); // nothing changed, but new poolarray or sound 
+			ldSndsGBufferList.value(poolname);
+		}, {
+			selbPool.valueAction_(0); // loading a pool for the first time (index nil) 
+			ldSndsGBufferList.value(XQ.globalBufferDict.keys.asArray[0]); // load first pool
+		});
+	}
+
 	getState { // for save settings
 		var point;
 		point = Point(win.bounds.left, win.bounds.top);

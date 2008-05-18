@@ -23,7 +23,7 @@ XiiTrigRecorder {
 		var point, name, inbus, sensitivity, prerectime;
 		
 		channels = if(setting.isNil, {ch}, {setting[0]});
-		name = "TrigRecorder";
+		name = "- trigrecorder -";
 
 		point = if(setting.isNil, {XiiWindowLocation.new(name)}, {setting[1]});
 		xiigui = nil; // not using window server class here

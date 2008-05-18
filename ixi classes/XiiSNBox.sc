@@ -2,11 +2,11 @@
 // mod from the original concept by thor and cylob / original behaviour from sc2 by James McCartney
 // fix key modidiers bug and horizontral scroll action by Stephan Wittwer 08/2006
 // handle a nil value by Wouter Snoei 08/2006
-// and made GUI cross platformable by ixi 03/2008
+// and made GUI cross platformable by ixi 03/2008 (that's why this class is so strange)
 
 
 XiiSNBox {
-	var <>clipLo = -inf, <>clipHi = inf, hit, inc=1.0, <>scroll=true, <>shift_step=0.1, <>ctrl_step=10;
+	var clipLo = -inf, clipHi = inf, hit, inc=1.0, <>scroll=true, <>shift_step=0.1, <>ctrl_step=10;
 	var box, object;
 
 	*viewClass { ^GUI.numberBox }
@@ -19,7 +19,7 @@ XiiSNBox {
 	initSNBox { arg parent, bounds;
 		box = GUI.numberBox.new(parent, bounds)
 			.mouseDownAction_({ arg me, x, y, modifiers, buttonNumber, clickCount;
-				[me, x, y, modifiers].postln;
+				//[me, x, y, modifiers].postln;
 				hit = Point(x,y);
 				if (scroll == true, {
 					inc = 1.0;
@@ -33,7 +33,7 @@ XiiSNBox {
 			.mouseMoveAction_({ arg me, x, y, modifiers;
 			
 				var direction;
-								[me, x, y, modifiers].postln;
+								//[me, x, y, modifiers].postln;
 
 				if (scroll == true, {
 					direction = 1.0;
@@ -50,12 +50,28 @@ XiiSNBox {
 		box.align_(a);
 	}
 	value_ { arg val;
+		//[\clipLo, clipLo, \clipHi, clipHi].postln;
 		box.keyString = nil;
 		box.stringColor = box.normalColor;
-		box.object = val !? { val.clip(clipLo, clipHi) };
-		box.string = box.object.asString;
+		//box.object = val !? { val.clip(clipLo, clipHi) };
+		//box.object = val.clip(clipLo, clipHi) ;
+		box.value = val.clip(clipLo, clipHi) ;
+		//box.string = box.object.asString;
+		box.string = box.value.asString;
 	}	
 	
+	value {
+		^box.value;
+	}
+	
+	clipLo_{arg lo;
+		clipLo = lo;
+	}
+
+	clipHi_{arg hi;
+		clipHi = hi;
+	}
+
 	boxColor_ {arg color;
 		box.boxColor_(color);
 	}
@@ -84,8 +100,10 @@ XiiSNBox {
 	}
 	valueAction_ { arg val;
 		var prev;
+			//	[\clipLo, clipLo, \clipHi, clipHi].postln;
 		prev = object;
-		box.value = val !? { val.clip(clipLo, clipHi) };
+		//box.value = val !? { val.clip(clipLo, clipHi) };
+		box.value = val.clip(clipLo, clipHi) ;
 		if (object != prev, { box.doAction });
 	}
 }

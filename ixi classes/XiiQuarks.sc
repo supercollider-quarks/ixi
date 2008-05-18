@@ -1,11 +1,8 @@
 
-// IMPORTANT IN THIS CLASS:
-// XQ.globalWidgetList
-// XQ.globalBufferDict - a.keys (.asArray)
-// all the environmental stuff are stored in classvars in the XQ class
-// the presets are handled in a class called XiiSettings
 
-// NOTE: BufferPlayer uses TriggerIDs from 50 to (number of instances * 50)
+
+// NOTE on Trigger IDs: 
+// BufferPlayer uses TriggerIDs from 50 to (number of instances * 50)
 // AudioIn uses TriggerID number 800
 // Recorder uses TriggerID nr 820
 // Mushrooms uses TriggerID nr 840
@@ -54,14 +51,26 @@
 // Added a Function:record method. Now you can do {SinOsc.ar(222)}.record(3) // 3 sec file
 // Added outbus in the SoundFilePlayer widget of BufferPool.
 // Ported to SwingOSC
+// new spectral effect: Speactral Delay
+// Added better accessibility to bufferPools through the XQ class (good for live coding)
+// fixing noise bug in synthdefs, (inserted a LPF instead of the RLPF)
 
+// NEW IN VERSION 6:
+// Adding a rec/play toggle button in the StratoSampler
+// change in colours in Quanoon and adding keyboard for fundamental key
+// fixing updates from bufferpools in instruments
+// adding Z (undo) for grains in SoundScratcher
+// adding pitchratio in Sounddrops (using the microtonal keyboard)
+// Automation (path recording) of sliders. (Press A for automation, C for clearing)
+// PolyMachine remebers states when stored in Settings
+// "free" button in BufferPools GUI frees only the selected buffer not all buffers
+// Adding Limiter to Recorder and BufferPool recording (thus no distortion possible)
 
-/*
-Port to SwingOSC issues:
-- No TabletView in SoundScratcher and ScaleSynth
-- Buggy XiiSNBox
-- UGens lacking : LoopBuf, Dan Stowell stuff.
-*/
+// TODO: make more Spectral plugins
+// TODO: Test the Warp1MC Ugens that take and output multichannel (see mail sept 10, 2007)
+// TODO: Make a mixer channel GUI
+// TODO: make limiter, normalizer, gate, compressor, expander, etc.
+
 
 /*
 
@@ -77,23 +86,17 @@ XQ.globalBufferDict
 Post << XQ.globalBufferDict 
 
 // let's look at what pools we have open:
-XQ.globalBufferDict.keys
+XQ.poolNames
 
-// if you want to sort them (alphabetically) and put into an array:
-XQ.globalBufferDict.keys.asArray.sort
+// get the buffers of a pool
+a = XQ.buffers('bufferPool 1')
+// get the selections of a pool
+a = XQ.selections('bufferPool 1')
+// get the buffers and the selections of a pool
+a = XQ.bufferList('bufferPool 1')
 
-// then if you know the name of your pool:
-a = XQ.globalBufferDict.at('bufferPool 1')
-
-// you then get 2 lists, one with the buffers and another with the selections
-// of the buffers. (selection start and selection length (in frames)).
-a[0] // the buffers
-a[1] // the selections
-
-// then you can do
-
-a[0][0] // the first sound in the buffer pool
-a[0][0].play 
+// now you can play the first buffer in your buffer pool.
+a[0].play
 
 // or (if your buffer is a mono sound)
 (
@@ -101,11 +104,27 @@ x = SynthDef("help-Buffer",{ arg out = 0, bufnum;
 	Out.ar( out,
 		PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum))
 	)
-}).play(s,[ \bufnum, a[0][0].bufnum ]);
+}).play(s,[ \bufnum, a[0].bufnum ]);
+)
+
+// check for versions (Pipe locks the machine if it's not online)
+(
+var version, pipe;
+// check if user is online: (will return a 4 digit number if not)
+a = "curl http://www.ixi-audio.net/content/download/ixiquarks/version.txt".systemCmd;
+// then get the version number (from a textfile with only one number in it)
+if(a==0, {
+	pipe = Pipe.new("curl http://www.ixi-audio.net/content/download/ixiquarks/version.txt", "r");
+	version = pipe.getLine; 
+	pipe.close;	
+});
+"current version is ".post; version.postln;
 )
 
 
 */
+
+
 
 XiiQuarks {	
 
@@ -132,6 +151,7 @@ XiiQuarks {
 		XQ.new; // A class containing all the settings and environment maintenance
 		
 		XQ.preferences; // retrieve preferences from the "preferences.ixi" file
+		Server.default.options.device = XQ.pref.device; // the audio device (soundcard)
 		midi = XQ.pref.midi; // if you want to use midi or not (true or false)
 		midiControllerNumbers = XQ.pref.midiControllerNumbers; // evolution mk-449c
 		midiRotateWindowChannel = XQ.pref.midiRotateWindowChannel;
@@ -150,7 +170,7 @@ XiiQuarks {
 		name = " ixi quarks";
 		point = XiiWindowLocation.new(name);
 		
-		win = GUI.window.new(name, Rect(point.x, point.y, 275, 224), resizable:false).front;
+		win = GUI.window.new(name, Rect(point.x, point.y, 275, 224), resizable:false);
 		
 		comingFromFieldFlag = false;
 		settingName = "preset_0";
@@ -171,11 +191,11 @@ XiiQuarks {
 			"Resonant", "Klanks", "MoogVCF", "MoogVCFFF"],
 			
 			["SpectralEQ", "MagClip", "MagSmear", "MagShift", "MagFreeze", 
-			"RectComb", "BinScramble", "BinShift"],
+			"RectComb", "BinScramble", "BinShift", "SpectralDelay"],
 			
 			["Noise", "Oscillators"],
 			
-			["spaceMachine", "timeMachine", "mindMachine", "iceMachine"]
+			["spaceMachine", "timeMachine", "mindMachine", "iceMachine", "glitchMachine"]
 		];
 		
 		types = ["utilities", "instruments", "effects", "filters", "spectral", "other", "machines"];
@@ -209,7 +229,7 @@ XiiQuarks {
 		storedSettingsPop = GUI.popUpMenu.new(win, Rect(10, 128, 78, 16)) // 550
 			.font_(GUI.font.new("Helvetica", 9))
 			.canFocus_(false)
-			.items_(settingRegister.getSettingsList.sort)
+			.items_(settingRegister.getSettingsList)
 			.background_(Color.white);
 
 		loadSettingButt = GUI.button.new(win, Rect(95, 128, 35, 17))
@@ -388,5 +408,6 @@ XiiQuarks {
 			GUI.pen.stroke;
 		};
 		win.refresh;
+		win.front;
 	}
 }

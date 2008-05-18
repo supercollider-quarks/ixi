@@ -22,7 +22,7 @@ XiiAudioIn {
 		var audioInSynth, s, name, point;
 		var onOffButt, cmdPeriodFunc;
 		
-		name = "          AudioIn 2x2";
+		name = "- audio in -";
 		s = server ? Server.local;
 		
 		// set up presets (storing window location and parameters)
@@ -39,7 +39,7 @@ XiiAudioIn {
 		spec = ControlSpec(0, 1.0, \amp); // for amplitude in rec slider
 		
 		inmeterl = GUI.rangeSlider.new(win, Rect(10, 10, 20, 80));
-		inmeterl.background_(bgColor).knobColor_(foreColor);
+		inmeterl.background_(bgColor).knobColor_(HiliteGradient(XiiColors.darkgreen, Color.white, \h));
 		inmeterl.lo_(0).hi_(0.05);
 		inmeterl.canFocus_(false);
 		
@@ -53,7 +53,7 @@ XiiAudioIn {
 					});
 		
 		inmeterr = GUI.rangeSlider.new(win, Rect(60, 10, 20, 80));
-		inmeterr.background_(bgColor).knobColor_(foreColor);
+		inmeterr.background_(bgColor).knobColor_(HiliteGradient(XiiColors.darkgreen, Color.white, \h));
 		inmeterr.lo_(0).hi_(0.05);
 		inmeterr.canFocus_(false);
 		

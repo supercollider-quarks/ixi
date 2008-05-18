@@ -42,7 +42,7 @@ xiigui = nil;
 point = if(setting.isNil, {Point(310, 250)}, {setting[1]});
 params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]});
 
-		win = GUI.window.new("SoundScratcher", 
+		win = GUI.window.new("- soundscratcher -", 
 				Rect(point.x, point.y, bounds.width+20, bounds.height+10), resizable:false);
 		pointcolor = Color.new255(200,50,40);
 		strokecolor = Color.black;
@@ -348,7 +348,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 				});
 			});
 		});
-	
+		
 		selbPool = GUI.popUpMenu.new(win, Rect(10, 10, 100, 16))
 			.font_(GUI.font.new("Helvetica", 9))
 			.items_(if(XQ.globalBufferDict.keys.asArray == [], {["no pool"]}, {XQ.globalBufferDict.keys.asArray.sort}))
@@ -385,7 +385,6 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 				.action_({ arg popup; 
 					var filepath, selStart, selNumFrames, checkBufLoadTask, restartPlayPath;
 					restartPlayPath = false;
-					
 					if(try {XQ.globalBufferDict.at(poolName)[0] } != nil, {
 				
 					if(synthesisStylePop.value == 2, {randomGrainTask.stop});
@@ -434,21 +433,18 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 				});
  			});
 				
-		ldSndsGBufferList = {arg argPoolName;			
+		ldSndsGBufferList = {arg argPoolName, firstpool=false;
 			poolName = argPoolName.asSymbol;
 			if(try {XQ.globalBufferDict.at(poolName)[0] } != nil, {
 				sndNameList = [];
 				bufferList = List.new;
 				XQ.globalBufferDict.at(poolName)[0].do({arg buffer, i;
-					if(buffer.path.notNil, {
-						sndNameList = sndNameList.add(buffer.path.basename);
-					},{
-						sndNameList = sndNameList.add("liveBuffer "++i.asString);
-					});
+					sndNameList = sndNameList.add(buffer.path.basename);
 					bufferList.add(buffer.bufnum);
 				 });
 				 bufferPop.items_(sndNameList);
-				 bufferPop.action.value(0); // put the first file into the view and load buffer
+				 // put the first file into the view and load buffer (if first time)
+				 if(firstpool, {bufferPop.action.value(0)}); 
 			}, {
 				"got no files".postln;
 				sndNameList = [];
@@ -920,12 +916,18 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 	}
  
 	updatePoolMenu {
-		var pool, poolindex;
-		pool = selbPool.items.at(selbPool.value);        // get the pool name (string)
-		selbPool.items_(XQ.globalBufferDict.keys.asArray); // put new list of pools
-		poolindex = selbPool.items.indexOf(pool);        // find the index of old pool in new array
-		if(poolindex != nil, {
-			selbPool.value_(poolindex); // so nothing changed, but new poolarray
+		var poolname, poolindex;
+		poolname = selbPool.items.at(selbPool.value); // get the pool name (string)
+		"updating pool menu".postln;
+		selbPool.items_(XQ.globalBufferDict.keys.asArray.sort); // put new list of pools
+		poolindex = selbPool.items.indexOf(poolname); // find the index of old pool in new array
+		if(poolindex != nil, { // not first time pool is loaded
+			selbPool.valueAction_(poolindex); // nothing changed, but new poolarray or sound 
+			"selbpool updating - index nil".postln;
+			ldSndsGBufferList.value(poolname);
+		}, {
+			selbPool.valueAction_(0); // loading a pool for the first time (index nil) 
+			ldSndsGBufferList.value(XQ.globalBufferDict.keys.asArray[0], true); // load first pool
 		});
 	}
 	
