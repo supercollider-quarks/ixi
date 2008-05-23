@@ -193,12 +193,10 @@ XiiQuarks {
 			["SpectralEQ", "MagClip", "MagSmear", "MagShift", "MagFreeze", 
 			"RectComb", "BinScramble", "BinShift", "SpectralDelay"],
 			
-			["Noise", "Oscillators"],
-			
-			["spaceMachine", "timeMachine", "mindMachine", "iceMachine", "glitchMachine"]
+			["Noise", "Oscillators"]
 		];
 		
-		types = ["utilities", "instruments", "effects", "filters", "spectral", "other", "machines"];
+		types = ["utilities", "instruments", "effects", "filters", "spectral", "other"];
 		
 		ixilogo = [ // the ixi logo
 			Point(1,7), Point(8, 1), Point(15,1), Point(15,33),Point(24, 23), Point(15,14), 
