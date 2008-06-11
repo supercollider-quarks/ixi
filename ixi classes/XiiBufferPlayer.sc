@@ -12,8 +12,7 @@ XiiBufferPlayer {
 	initXiiBufferPlayer {arg server, chnls, setting;
 
 var responder, bufsec, session, quitButt;
-var sndfiles;
-var tracks; // = 8; // 8 or 16 is IDEAL !
+var tracks, sndfiles;
 var trigID;
 var sliderList;
 var bufferList, synthList, stMonoList, globalList;
@@ -156,7 +155,7 @@ GUI.staticText.new(win, Rect(5, 100, 105, 160))
 	.string_("")
 	.background_(Color.new255(255, 100, 0, 20));
 
-
+poolName = XQ.poolNames[0];
 sndfiles = XQ.bufferNames(poolName);
 /*
 ldSndsGBufferList = {arg argPoolName, firstpool=false;
@@ -185,13 +184,12 @@ tracks.do({ arg i;
 	sliderList.add( // the left volume signal
 		GUI.rangeSlider.new(win, Rect(120+(virIndex+i*rowspace), 5+lowRow, 20, 100))
 			.background_(Color.new255(155, 205, 155))
-			//.knobColor_(Color.new255(103, 148, 103))
 			.knobColor_(HiliteGradient(XiiColors.darkgreen, Color.white, \h))
 			.lo_(0.0).hi_(0.01)
 			.canFocus_(false);
 	);
 	sliderList.add( // the right volume signal
-		GUI.rangeSlider.new(win, Rect(142+(virIndex+i*rowspace), 5+lowRow, 20, 100))
+		GUI.rangeSlider.new(win, Rect(145+(virIndex+i*rowspace), 5+lowRow, 20, 100))
 			.background_(Color.new255(155, 205, 155))
 			.knobColor_(HiliteGradient(XiiColors.darkgreen, Color.white, \h))
 			.lo_(0.0).hi_(0.01)
@@ -218,7 +216,7 @@ tracks.do({ arg i;
 	};
 
 	// outbus
-	ch = GUI.popUpMenu.new(win,Rect(120+(virIndex+i*rowspace), 111+lowRow , 50, 16))			.items_(XiiACDropDownChannels.getStereoChnList)
+	ch = GUI.popUpMenu.new(win,Rect(120+(virIndex+i*rowspace), 111+lowRow , 46, 16))			.items_(XiiACDropDownChannels.getStereoChnList)
 			.value_(params[1][i]/2)
 			.font_(GUI.font.new("Helvetica", 9))
 			.background_(Color.white)
@@ -230,7 +228,7 @@ tracks.do({ arg i;
 				params[1] = outbusArray;
 			});
 	
-startButtList.add(GUI.button.new(win,Rect(177+(virIndex+i*rowspace), 110+lowRow, 41, 18))
+startButtList.add(GUI.button.new(win,Rect(171+(virIndex+i*rowspace), 110+lowRow, 48, 18))
 					.states_([	["play",Color.black, Color.clear],
 								["stop",Color.black, Color.new255(155, 205, 155)]])
 					.font_(GUI.font.new("Helvetica", 9))
@@ -278,7 +276,7 @@ startButtList.add(GUI.button.new(win,Rect(177+(virIndex+i*rowspace), 110+lowRow,
 //[\params0, params[0]].postln;
 // soundfiles
 sfdropDownList.add(GUI.popUpMenu.new(win,Rect(120+(virIndex+i*rowspace), 135+lowRow , 100, 18))
-	.items_(sndfiles)
+	.items_([]) // was sndfiles, but this is loaded later
 	.value_(params[0][i])
 	.font_(GUI.font.new("Helvetica", 9))
 	.background_(Color.white)
@@ -342,7 +340,7 @@ pitchSlList.add(OSCIISlider.new(win,
 
 		ldSndsGBufferList = {arg arggBufferPoolName;
 			poolName = arggBufferPoolName.asSymbol;
-			//[\pooooooooooolname, poolName].postln;
+			[\oooooooopooooooooooolname, poolName].postln;
 			sndfiles = XQ.bufferNames(poolName);
 			//[\poolname, poolName, \sndfiles, sndfiles].postln;
 			
@@ -445,23 +443,31 @@ pitchSlList.add(OSCIISlider.new(win,
 */
 
 	updatePoolMenu {
-		var poolname, poolindex;
+		var poolname, poolindex, sndfiles;
 		poolname = selbPool.items.at(selbPool.value); // get the pool name (string)
 		selbPool.items_(XQ.globalBufferDict.keys.asArray.sort); // put new list of pools
 		poolindex = selbPool.items.indexOf(poolname); // find the index of old pool in new array
 		//[\poolindex, poolindex].postln;
 		if(poolindex != nil, { // not first time pool is loaded
 			if(settingsPool.isNil, {
-				selbPool.value_(poolindex); // nothing changed, but new poolarray or sound
+				"new sound !!!!!!!!!!!!! ".postln;
+				//selbPool.valueAction_(poolindex); // nothing changed, but new poolarray or sound
+				//ldSndsNames.value(poolname);
+			"------- 111".postln;
+				selbPool.action.value(poolindex);
 			}, {
 				ldSndsGBufferList.value(settingsPool);
 				poolindex = selbPool.items.indexOfEqual(settingsPool); 
-				selbPool.value_(poolindex); // nothing changed, but new poolarray or sound
+				//selbPool.value_(poolindex); // nothing changed, but new poolarray or sound
+			"--------- 222".postln;
+				selbPool.action.value(poolindex);
 			}) 
 			// ldSndsGBufferList.value(poolname);
 		}, {
 			ldSndsGBufferList.value(XQ.globalBufferDict.keys.asArray[0]); // load first pool
-			selbPool.value_(0); // loading a pool for the first time (index nil) 
+			//selbPool.value_(0); // loading a pool for the first time (index nil) 
+			"----- 333".postln;
+			selbPool.action.value(0);
 		});
 	}
 

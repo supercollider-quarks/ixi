@@ -63,7 +63,7 @@ XQ {
 		if(globalBufferDict.at(poolname).notNil, {
 			^globalBufferDict.at(poolname);
 		},{
-			"no bufferpool with that name".warn;
+			"no bufferpool with that name (bufferList)".warn;
 			^[];
 		});
 	}
@@ -74,7 +74,7 @@ XQ {
 		if(globalBufferDict.at(poolname).notNil, {
 			^globalBufferDict.at(poolname)[0];
 		},{
-			"no bufferpool with that name".warn;
+			"no bufferpool with that name (buffer)".warn;
 			^[];
 		});
 	}
@@ -85,7 +85,7 @@ XQ {
 		if(globalBufferDict.at(poolname).notNil, {
 			^globalBufferDict.at(poolname)[1];
 		},{
-			"no bufferpool with that name".warn;
+			"no bufferpool with that name (selections)".warn;
 			^[];
 		});
 	}
@@ -96,7 +96,7 @@ XQ {
 		if(globalBufferDict.at(poolname).notNil, {
 			^globalBufferDict.at(poolname)[0].collect({arg buffer; buffer.path.basename});
 		},{
-			"no bufferpool with that name".warn;
+			"no bufferpool with that name (bufferNames)".warn;
 			^[];
 		});
 	}

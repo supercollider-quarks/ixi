@@ -65,11 +65,12 @@
 // PolyMachine remebers states when stored in Settings
 // "free" button in BufferPools GUI frees only the selected buffer not all buffers
 // Adding Limiter to Recorder and BufferPool recording (thus no distortion possible)
+// Preventing accidental stop (apple+dot) with a Warning window
 
 // TODO: make more Spectral plugins
 // TODO: Test the Warp1MC Ugens that take and output multichannel (see mail sept 10, 2007)
 // TODO: Make a mixer channel GUI
-// TODO: make limiter, normalizer, gate, compressor, expander, etc.
+// TODO: make Dynamics: limiter, normalizer, gate, compressor, expander, etc.
 
 
 /*
@@ -106,6 +107,19 @@ x = SynthDef("help-Buffer",{ arg out = 0, bufnum;
 	)
 }).play(s,[ \bufnum, a[0].bufnum ]);
 )
+
+
+ there are a couple of things you have to know to get sound out of SC. A)
+Setting up an aggregate device is not enough to get your audio routed
+correctly.  SC looks at the audio interface currently in use by core audio
+and uses that device.  IOW - whatever core audio is using (selected in audio
+midi prefs) is what SC will use.  B) if you have a firewire or USB audio interface,
+you do not need to set up an aggregate device.  Simply select your firewire
+device as your input and output device (in Audio Midi prefs) and SC will use
+it as well.  You only need to set up an aggregate device if you plan to use
+the built-in mic or input and built-in output.  This is because SC will only
+accept one device for input and output and the new core audio divides them
+into separate devices.  
 
 // check for versions (Pipe locks the machine if it's not online)
 (
@@ -193,7 +207,9 @@ XiiQuarks {
 			["SpectralEQ", "MagClip", "MagSmear", "MagShift", "MagFreeze", 
 			"RectComb", "BinScramble", "BinShift", "SpectralDelay"],
 			
+			
 			["Noise", "Oscillators"]
+			
 		];
 		
 		types = ["utilities", "instruments", "effects", "filters", "spectral", "other"];
@@ -314,6 +330,7 @@ XiiQuarks {
 				if (unicode == 16rF701, { txtv.valueAction = txtv.value + 1;  });
 				if (unicode == 16rF702, { typesview.focus(true);  });
 			});
+			
 		if(GUI.id == \cocoa, {	txtv.focusColor_(XiiColors.darkgreen.alpha_(0.9)) });
 		
 		stereoButt = OSCIIRadioButton(win, Rect(140, 174, 12, 12), "stereo")

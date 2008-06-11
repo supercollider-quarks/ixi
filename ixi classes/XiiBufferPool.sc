@@ -39,7 +39,7 @@ XiiBufferPool {
 		bufferListNames = []; // Cocoa dialog will fill this.
 		fileramarray = [];
 		
-		name = if(poolname==nil, {("- bufferpool"+(bufferPoolNum+1).asString+"-")}, {poolname});
+		name = if(poolname==nil, {("bufferpool"+(bufferPoolNum+1).asString)}, {poolname});
 		filename = "";
 		inbus = 8;
 		numChannels = 2;

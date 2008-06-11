@@ -5,7 +5,8 @@ XiiWaveScope {
 	var <>win, params;
 	
 	classvar ugenScopes;
-	var <server, <numChannels,  <index;
+	var <server, <numChannels, <index;
+	var inbus;
 	var <bufsize, buffer, synth;
 	var n, c, d, sl, style=0, sizeToggle=0, zx, zy, ai=0;
 	var onOffButt;
@@ -58,6 +59,7 @@ XiiWaveScope {
 		xiigui = nil; // not using window server class here
 		params = if(setting.isNil, {[0,1,0]}, {setting[2]});
 		
+		inbus = params[0];
 		style = params[2];
 //		if(view.isNil) {
 //			"view is NIL".postln;
@@ -93,7 +95,9 @@ XiiWaveScope {
 			.canFocus_(false)
 			.action_({ arg ch; 
 				var i; 
-				this.index = ch.value;
+				inbus = ch.value;
+				this.index = inbus;
+				params[0] = inbus;
 			});
 			
 		GUI.staticText.new(view, Rect(100, 18, 33, 18))
@@ -111,6 +115,7 @@ XiiWaveScope {
 			.resize_(9)
 			.action_({ arg ch; 
 				this.numChannels = (ch.value+1).asInteger;
+				params[1] = ch.value;
 			});
 		GUI.staticText.new(view, Rect(155, 18, 27, 18))
 			.string_("style :")
@@ -126,6 +131,7 @@ XiiWaveScope {
 			.resize_(9)
 			.action_({ arg ch; 
 				n.style = ch.value.asInteger;
+				params[2] = ch.value;
 			});
 
 		onOffButt = GUI.button.new(view, Rect(195, 15, 30, 16))
@@ -135,6 +141,7 @@ XiiWaveScope {
 			.action_({ arg view;
 				if(view.value == 1, {
 					this.run;
+					this.index = inbus;
 				},{
 					this.stop;
 				});
@@ -166,6 +173,7 @@ XiiWaveScope {
 			try{XQ.globalWidgetList.removeAt(t)};
 			this.free;		
  		});
+ 		
 	}
 	
 	keyDown { arg char, modifiers, unicode, keycode;
@@ -211,7 +219,7 @@ XiiWaveScope {
 		if(synth.isPlaying.not) {
 			synth = SynthDef("xiistethoscope", { arg in, switch, bufnum;
 				ScopeOut.ar(In.ar(in, numChannels), bufnum);
-			}).play(RootNode(server), [\bufnum, buffer.bufnum, \in, index],
+			}).play(RootNode(server), [\bufnum, buffer.bufnum, \in, inbus],
 				\addToTail
 			);
 			synth.isPlaying = true;

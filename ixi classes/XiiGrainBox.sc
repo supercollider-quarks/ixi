@@ -70,9 +70,12 @@ win.drawHook = {
 
 
 
-getCenterPos = { arg envval, i; var spec, myvar;
+getCenterPos = { arg envval, i; var spec, myvar, sampledur, file;
 	if(sampleDurList.size > 0, { 
-		spec = [0, sampleDurList[fileListPopup[i].value], \linear, 0.01, randCntrPos[i]].asSpec;
+	 	file = fileListPopup[i].value;
+		 sampledur = sampleDurList[file][1]-sampleDurList[file][0];
+		// sampleDurList comes from XQ and is therefore with a start and end value of selection
+		spec = [0, sampledur, \linear, 0.01, randCntrPos[i]].asSpec;
 		myvar = spec.map(envval);// horizontal
 	}, {	myvar = nil;});
 	myvar;
@@ -82,7 +85,7 @@ nPoints = 10; // how many boxes (or nodes in the envelope)
 channels.do({arg i; var sampleInSec, r, c; // LOOP
 
 	if(try{sampleDurList.at(i)} != nil, {
-		sampleInSec = sampleDurList.at(i);
+		sampleInSec = sampleDurList.at(i)[1] - sampleDurList.at(i)[0];
 		randCntrPos = randCntrPos.add(sampleInSec / (4.0.rand));
 	}, {
 		randCntrPos = randCntrPos.add(1.0.rand)
@@ -96,7 +99,7 @@ selbPool = GUI.popUpMenu.new(win, Rect(10, 5, 102, 16))
 	.action_({ arg item; var dictArray;
 		var filepath, selStart, selEnd, soundfile, myTempBuffer;
 		poolName = selbPool.items[item.value];
-		ldSndsGBufferList.value(poolName.asSymbol); // HERE IS THE BUG !!!
+		ldSndsGBufferList.value(poolName.asSymbol);
 		//fileListPopup[0].items_(sndNameList);
 		//fileListPopup[1].items_(sndNameList);
 		//fileListPopup[1].value = 1;
@@ -303,6 +306,11 @@ Color.new255(205, 52, 54, 122) // Red alpha
 ];
 nPoints.do({arg i; envView.setFillColor(i,c.at(i)) });
 
+envView.setThumbSize(0, 10);
+envView.setThumbSize(1, 10);
+envView.setThumbSize(2, 10);
+envView.setThumbSize(3, 10);
+envView.setThumbSize(6, 10);
 envView.connect(2, [4.0]);
 envView.connect(0, [5.0]);
 envView.connect(6, [7.0, 8.0]);

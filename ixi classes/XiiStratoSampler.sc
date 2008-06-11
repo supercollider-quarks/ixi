@@ -336,7 +336,7 @@ startButt = GUI.button.new(win, Rect(77, 205, 33, 18))
 	
 startPlayFunc = {
 	startingPlayFlag = true;
-	 bufSec = (buffer.numFrames/buffer.numChannels)/44100;
+	 bufSec = ((buffer.numFrames/buffer.numChannels)/44100)+0.02; // the lookahead time in Limiter
 	{bufPlot.redraw}.defer;
 	 fork{
 		 time = Main.elapsedTime;

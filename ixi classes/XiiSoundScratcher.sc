@@ -896,6 +896,9 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 		mouseRButt.valueAction_(params[7]);
 		globalVolSl.valueAction_(params[8]);
 		outBusPop.valueAction_(params[9]);
+
+		ldSndsGBufferList.value(XQ.globalBufferDict.keys.asArray[0], true); // load first pool
+
 	}
 	
 	refresh {
@@ -926,6 +929,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 			"selbpool updating - index nil".postln;
 			ldSndsGBufferList.value(poolname);
 		}, {
+			"first pool".postln;
 			selbPool.valueAction_(0); // loading a pool for the first time (index nil) 
 			ldSndsGBufferList.value(XQ.globalBufferDict.keys.asArray[0], true); // load first pool
 		});

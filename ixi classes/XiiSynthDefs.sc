@@ -339,6 +339,7 @@ XiiSynthDefs {
 		SynthDef.writeOnce(\xiiTrigRecAnalyser1x1, {arg out=120, inbus=8, prerectime=1, sensitivity=0.8;
 			var in, signal;
 			in = InFeedback.ar(inbus, 1);
+			in = Limiter.ar(in, 0.99, 0.01);
 			signal = DelayN.ar(in, 2, prerectime); 
 			Out.ar(out, signal);
 			SendTrig.kr(Amplitude.kr(in) >= sensitivity, 666);
@@ -347,6 +348,7 @@ XiiSynthDefs {
 		SynthDef.writeOnce(\xiiTrigRecAnalyser2x2, {arg out=120, inbus=8, prerectime=1, sensitivity=0.8;
 			var in, signal;
 			in = InFeedback.ar(inbus, 2);
+			in = Limiter.ar(in, 0.99, 0.01);
 			signal = DelayN.ar(in, 2, prerectime); 
 			Out.ar(out, signal);
 			SendTrig.kr(Amplitude.kr(Mix.ar(in)) >= sensitivity, 666);
@@ -373,7 +375,8 @@ XiiSynthDefs {
 		// -------------- StratoSampler Synths ----------------------
 		SynthDef.writeOnce(\xiiStratoSamplerRec,{ arg  inbus=0, bufnum=0, reclevel=1.0, prelevel=0.0;
 		    var ain;
-		    ain = InFeedback.ar(inbus, 1);     // In
+		    ain = InFeedback.ar(inbus, 1);
+			ain = Limiter.ar(ain, 0.99, 0.01);
 		    RecordBuf.ar(ain, bufnum, recLevel: reclevel, preLevel: prelevel);
 		}, [0.2, 0.2 , 0.2, 0.2]);
 	   
