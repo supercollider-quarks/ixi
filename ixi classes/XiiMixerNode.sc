@@ -38,7 +38,8 @@ XiiMixerNode {
 		
 		bgColor = Color.new255(155, 205, 155);
 		foreColor = Color.new255(103, 148, 103);
-		inbus = params[0];
+		//inbus = params[0];
+		if(channels==1, {inbus = params[0]}, {inbus = params[0] * 2});
 		outbus = params[1];
 		pan = params[2];
 		

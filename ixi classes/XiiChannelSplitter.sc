@@ -37,7 +37,8 @@ XiiChannelSplitter {
 		
 		bgColor = Color.new255(155, 205, 155);
 		foreColor = Color.new255(103, 148, 103);
-		inbus = params[0];
+		//inbus = params[0];
+		if(channels==1, {inbus = params[0]}, {inbus = params[0] * 2});
 		outbus = params[1];
 		amp = params[2];
 		
@@ -68,6 +69,7 @@ XiiChannelSplitter {
 			.action_({ arg ch;
 				if(channels==1, {inbus = ch.value}, {inbus = ch.value * 2});
 				synth.set(\inbus, inbus );
+				params[0] = ch.value;
 			});
 			
 		// channels dropdown - OUTPUT CHANNEL
@@ -81,6 +83,7 @@ XiiChannelSplitter {
 			.action_({ arg ch;
 				if(channels==1, {outbus = ch.value}, {outbus = ch.value * 2});
 				synth.set(\outbus, outbus );
+				params[1] = ch.value;
 			});
 			
 		// panning sliders

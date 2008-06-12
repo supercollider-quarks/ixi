@@ -35,7 +35,8 @@ XiiAmplifier {
 		bgColor = Color.new255(155, 205, 155);
 		foreColor = Color.new255(103, 148, 103);
 		
-		inbus = params[0];
+		//inbus = params[0];
+		if(channels==1, {inbus = params[0]}, {inbus = params[0] * 2});
 		outbus = params[1];
 		amp = params[2];
 		
@@ -59,7 +60,7 @@ XiiAmplifier {
 		GUI.staticText.new(win, Rect(10, 9, 40, 16)).string_("in");
 		GUI.popUpMenu.new(win,Rect(35, 10, 50, 16))
 			.items_(if(channels==1, {monoChList}, {stereoChList}))
-			.value_(inbus)
+			.value_(params[0])
 			.background_(Color.white)
 			.font_(GUI.font.new("Helvetica", 9))
 			.canFocus_(false)
@@ -74,7 +75,7 @@ XiiAmplifier {
 		GUI.staticText.new(win, Rect(10, 34, 40, 16)).string_("out");
 		GUI.popUpMenu.new(win,Rect(35, 35, 50, 16))
 			.items_(if(channels==1, {monoChList}, {stereoChList}))
-			.value_(outbus)
+			.value_(params[1])
 			.background_(Color.white)
 			.font_(GUI.font.new("Helvetica", 9))
 			.canFocus_(false)
