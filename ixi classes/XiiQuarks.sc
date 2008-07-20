@@ -67,12 +67,6 @@
 // Adding Limiter to Recorder and BufferPool recording (thus no distortion possible)
 // Preventing accidental stop (apple+dot) with a Warning window
 
-// TODO: make more Spectral plugins
-// TODO: Test the Warp1MC Ugens that take and output multichannel (see mail sept 10, 2007)
-// TODO: Make a mixer channel GUI
-// TODO: make Dynamics: limiter, normalizer, gate, compressor, expander, etc.
-
-
 /*
 
 // HOW TO WORK WITH BUFFERPOOL IN YOUR OWN WORK....
@@ -159,8 +153,6 @@ XiiQuarks {
 		var prefFile, preferences;
 		
 		settingRegister = XiiSettings.new; // activate the settings registry
-
-		//GUI.cocoa;
 		
 		XQ.new; // A class containing all the settings and environment maintenance
 		
@@ -206,7 +198,6 @@ XiiQuarks {
 			
 			["SpectralEQ", "MagClip", "MagSmear", "MagShift", "MagFreeze", 
 			"RectComb", "BinScramble", "BinShift", "SpectralDelay"],
-			
 			
 			["Noise", "Oscillators"]
 			
