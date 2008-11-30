@@ -6,6 +6,7 @@ XiiRecorder {
 	var numChannels;
 	var recButton; // allowing for outside start of record (Function:record)
 	var inbus, recBussesPop, ampAnalyserSynth;
+	var openInEditor; // makes Function:record result in sound opening in an editor
 	
 	*new { arg server, channels, setting = nil;
 		^super.new.initXiiRecorder(server, channels, setting);
@@ -110,7 +111,7 @@ XiiRecorder {
 							});
 						});
 						txtv.string_(filename);
-						r = XiiRecord(s, inbus, numChannels);
+						r = XiiRecord(s, inbus, numChannels, sampleFormat: XQ.pref.bitDepth);
 						r.start("sounds/ixiquarks/"++filename++".aif");
 						r.setAmp_(amp);
 						secTask.start;
@@ -118,6 +119,11 @@ XiiRecorder {
 						r.stop;
 						secTask.stop;
 						vuview.value = 0;
+						if(openInEditor.booleanValue, {
+							"----------- opening in editor".postln;
+							("open -a 'Audacity.app'" 
+								+ "sounds/ixiquarks/"++filename++".aif").unixCmd;
+						});
 						txtv.string_(filename = PathName(filename).nextName);
 					});
 				}, {
@@ -199,7 +205,8 @@ XiiRecorder {
 		^[numChannels, point, params];
 	}
 	
-	record {arg time, bus;
+	record {arg time, bus, openInEd;
+		openInEditor = openInEd;
 		recButton.valueAction_(1);
 		if( time.isNil.not, { AppClock.sched(time, { recButton.valueAction_(0); nil}) });
 		if( bus.isNil.not, { 

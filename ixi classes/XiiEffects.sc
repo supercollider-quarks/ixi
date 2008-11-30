@@ -1,5 +1,6 @@
 XiiDelay {	
 	var <>xiigui; // to get and set settings
+	var <>win; // to get access to the GUI
 	
 	*new { arg server, channels, setting = nil;
 		^super.new.initXiiDelay(server, channels, setting);
@@ -58,13 +59,14 @@ XiiDelay {
 			XiiEffectGUI.new("- delay 2x2 -", \xiiDelay2x2, params, channels, this, setting);
 			}, {				// mono
 			XiiEffectGUI.new("- delay 1x1 -", \xiiDelay1x1, params, channels, this, setting);
-		})
+		});
+		win = xiigui.win;
 	}
 }
 
 
 XiiFreeverb {	
-	var <>xiigui;
+	var <>xiigui, <>win;
 
 	*new { arg server, channels, setting = nil;
 		^super.new.initFreeverb(server, channels, setting);
@@ -105,6 +107,7 @@ XiiFreeverb {
 			},{				// mono
 			XiiEffectGUI.new("- freeverb 1x1 -", \xiiFreeverb1x1, params, channels, this, setting); 
 			});
+		win = xiigui.win;
 
 	}
 }
@@ -112,7 +115,7 @@ XiiFreeverb {
 
 XiiAdCVerb {	
 
-	var <>xiigui;
+	var <>xiigui, <>win;
 
 	*new { arg server, channels, setting = nil;
 		^super.new.initAdCVerb(server, channels, setting);
@@ -157,12 +160,12 @@ XiiAdCVerb {
 			},{				// mono
 			XiiEffectGUI.new("- adcverb 1x1 -", \xiiAdcverb1x1, params, channels, this, setting); 
 		});
-
+		win = xiigui.win;
 	}
 }
 
 XiiDistortion {	
-	var <>xiigui;
+	var <>xiigui, <>win;
 
 	*new { arg server, channels, setting = nil;
 		^super.new.initDistortion(server,channels, setting);
@@ -205,11 +208,12 @@ XiiDistortion {
 			},{				// mono
 			XiiEffectGUI.new("- distortion 1x1 -", \xiiDistortion1x1, params, channels, this, setting); 
 		});
+		win = xiigui.win;
 	}
 }
 
 XiiixiReverb {	
-	var <>xiigui;
+	var <>xiigui, <>win;
 
 	*new { arg server, channels, setting = nil;
 		^super.new.initixiReverb(server, channels, setting);
@@ -262,12 +266,13 @@ XiiixiReverb {
 			XiiEffectGUI.new("- ixireverb 2x2 -", \xiiReverb2x2, params, channels, this, setting);
 			},{				// mono
 			XiiEffectGUI.new("- ixireverb 1x1 -", \xiiReverb1x1, params, channels, this, setting);
-		}); 
+		});
+		win = xiigui.win;
 	}
 }
 
 XiiChorus {	
-	var <>xiigui;
+	var <>xiigui, <>win;
 
 	*new { arg server, channels, setting = nil;
 		^super.new.initChorus(server, channels, setting);
@@ -318,12 +323,13 @@ XiiChorus {
 			},{				// mono
 			XiiEffectGUI.new("- chorus 1x1 -", \xiiChorus1x1, params, channels, this, setting); 
 		});
+		win = xiigui.win;
 	}
 }
 
 
 XiiOctave {	
-	var <>xiigui;
+	var <>xiigui, <>win;
 
 	*new { arg server, channels, setting = nil;
 		^super.new.initOctave(server, channels, setting);
@@ -366,12 +372,12 @@ XiiOctave {
 			},{				// mono
 			XiiEffectGUI.new("- octave 1x1 -", \xiiOctave1x1, params, channels, this, setting); 
 		});
-
+		win = xiigui.win;
 	}
 }
 
 XiiTremolo {	
-	var <>xiigui;
+	var <>xiigui, <>win;
 
 	*new { arg server, channels, setting = nil;
 		^super.new.initTremolo(server, channels, setting);
@@ -412,6 +418,7 @@ XiiTremolo {
 			}, {				// mono
 			XiiEffectGUI.new("- tremolo 1x1 -", \xiiTremolo1x1, params, channels, this, setting);
 		});
+		win = xiigui.win;
 	}
 }
 	
@@ -649,7 +656,7 @@ XiiEqualizer {
 }
 	
 XiiRandomPanner {	
-	var <>xiigui;
+	var <>xiigui, <>win;
 
 	*new { arg server, channels, setting = nil;
 		^super.new.initRandomPanner(server, channels, setting);
@@ -699,12 +706,13 @@ XiiRandomPanner {
 			XiiEffectGUI.new("RandomPanner 2x2", \xiiRandompanner2x2, params, channels, this, setting); 
 			}, {				// mono
 			XiiEffectGUI.new("RandomPanner 1x2", \xiiRandompanner1x2, params, channels, this, setting);
-		})
+		});
+		win = xiigui.win;
 	}
 }
 
 XiiCombVocoder {	
-	var <>xiigui;
+	var <>xiigui, <>win;
 
 	*new { arg server, channels, setting = nil;
 		^super.new.initCombVocoder(server, channels, setting);
@@ -727,7 +735,7 @@ XiiCombVocoder {
 		Ê Êfx = DelayC.ar(fx, maxDelay, delay); 
 		Ê ÊLocalOut.ar(fx * feedback); 
 		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
-		},[0.2,0.2,0.1,0.1]).load(s); 
+		},[nil, nil, 0.2,0.2,0.1,0.1]).load(s); 
 		
 		// stereo
 		SynthDef(\xiiCombvocoder2x2, {arg inbus=0,
@@ -743,7 +751,7 @@ XiiCombVocoder {
 		Ê Êfx = DelayC.ar(fx, maxDelay, delay); 
 		Ê ÊLocalOut.ar(fx * feedback); 
 		Ê ÊOut.ar(outbus, (fx * fxlevel) + (sig * level)) 
-		},[0.2,0.2,0.1,0.1]).load(s); 
+		},[nil, nil, 0.2,0.2,0.1,0.1]).load(s); 
 
 		delayTailSpec = ControlSpec.new(0.3, 0.001, \exponential, 0, 1.2); 
 		volSpec = ControlSpec.new(0.3, 0.999, \exponential, 0, 1.2); 
@@ -759,12 +767,13 @@ XiiCombVocoder {
 			XiiEffectGUI.new("- combvocoder 2x2 -", \xiiCombvocoder2x2, params, channels, this, setting); 
 			}, {				// mono
 			XiiEffectGUI.new("- combvocoder 1x1 -", \xiiCombvocoder1x1, params, channels, this, setting);
-		})
+		});
+		win = xiigui.win;
 	}
 }
 
 XiiMRRoque {	
-	var <>xiigui;
+	var <>xiigui, <>win;
 
 	*new { arg server, channels, setting = nil;
 		^super.new.initMRRoque(server, channels, setting);
@@ -781,12 +790,12 @@ XiiMRRoque {
 				outmix = 0.25, outroom = 0.15, outdamp = 0.5, 
 				bufnum, rate=1, end = 4, vol=1|
 			
-			var in, reverb, reverb2, signal;
-			
+			var in, reverb, reverb2, signal, sr;
+			sr = SampleRate.ir(0);
 			in = InFeedback.ar(inbus, 1);
 			reverb = FreeVerb.ar(in, mix, room, damp);
-			BufWr.ar(reverb, bufnum, Phasor.ar(0, 1, 0, 44100*end));
-			signal = BufRd.ar(1, bufnum, Phasor.ar(0, BufRateScale.kr(0) * rate, 0, 44100*end));
+			BufWr.ar(reverb, bufnum, Phasor.ar(0, 1, 0, sr*end));
+			signal = BufRd.ar(1, bufnum, Phasor.ar(0, BufRateScale.kr(0) * rate, 0, sr*end));
 			reverb2 = FreeVerb.ar(signal, outmix, outroom, outdamp);	
 			Out.ar(outbus, (signal+reverb2) * vol);
 		},[0.2,0.2,0.1,0.1]).load(s); 
@@ -796,12 +805,12 @@ XiiMRRoque {
 				outmix = 0.25, outroom = 0.15, outdamp = 0.5, 
 				bufnum, rate=1, end = 4, vol=1|
 			
-			var in, reverb, reverb2, signal;
-			
+			var in, reverb, reverb2, signal, sr;
+			sr = SampleRate.ir(0);
 			in = InFeedback.ar(inbus, 2);
 			reverb = FreeVerb.ar(in, mix, room, damp);
-			BufWr.ar(reverb, bufnum, Phasor.ar(0, 1, 0, 44100*end));
-			signal = BufRd.ar(2, bufnum, Phasor.ar(0, BufRateScale.kr(0) * rate, 0, 44100*end));
+			BufWr.ar(reverb, bufnum, Phasor.ar(0, 1, 0, sr*end));
+			signal = BufRd.ar(2, bufnum, Phasor.ar(0, BufRateScale.kr(0) * rate, 0, sr*end));
 			reverb2 = FreeVerb.ar(signal, outmix, outroom, outdamp);	
 			Out.ar(outbus, (signal+reverb2) * vol);
 		},[0.2,0.2,0.1,0.1]).load(s); 
@@ -810,9 +819,9 @@ XiiMRRoque {
 		rateSpec = ControlSpec.new(-1.5, 1.5, \lin, 0.1, -1.0); 
 
 		if(channels == 2, { 	// stereo
-			buffer = Buffer.alloc(s, 44100 * 4.0, 2); // a four second 2 channel Buffer
+			buffer = Buffer.alloc(s, s.sampleRate * 4.0, 2); // a four second 2 channel Buffer
 		}, {
-			buffer = Buffer.alloc(s, 44100 * 4.0, 1); // a four second 1 channel Buffer
+			buffer = Buffer.alloc(s, s.sampleRate * 4.0, 1); // a four second 1 channel Buffer
 		});
 
 		params = [ 
@@ -826,12 +835,13 @@ XiiMRRoque {
 			XiiEffectGUI.new("- mr roque 2x2 -", \xiiMrRoque2x2, params, channels, this, setting); 
 			}, {				// mono
 			XiiEffectGUI.new("- mr roque 1x1 -", \xiiMrRoque1x1, params, channels, this, setting);
-		})
+		});
+		win = xiigui.win;
 	}
 }
 
 XiiMultiDelay {	
-	var <>xiigui;
+	var <>xiigui, <>win;
 
 	*new { arg server, channels, setting = nil;
 		^super.new.initXiiMultiDelay(server, channels, setting);
@@ -876,9 +886,9 @@ XiiMultiDelay {
 		}).load(s);
 
 		if(channels == 2, { 	// stereo
-			buffer = Buffer.alloc(s, 44100 * 10.0, 2); // a 10 second 2 channel Buffer
+			buffer = Buffer.alloc(s, s.sampleRate * 10.0, 2); // a 10 second 2 channel Buffer
 		}, {
-			buffer = Buffer.alloc(s, 44100 * 10.0, 1); // a 10 second 1 channel Buffer
+			buffer = Buffer.alloc(s, s.sampleRate * 10.0, 1); // a 10 second 1 channel Buffer
 		});
 
 		delay1Spec = ControlSpec.new(0.1, 10, \lin, 0.1, 1); 
@@ -896,14 +906,15 @@ XiiMultiDelay {
 		xiigui = if(channels == 2, { 	// stereo
 			XiiEffectGUI.new("- multidelay 2x2 -", \xiiMultidelay2x2, params, channels, this, setting);
 			}, {				// mono
-			XiiEffectGUI.new("- multidelay 2x2 -", \xiiMultidelay1x1, params, channels, this, setting);		})
+			XiiEffectGUI.new("- multidelay 2x2 -", \xiiMultidelay1x1, params, channels, this, setting);		});
+		win = xiigui.win;
 	}
 }
 
 
 
 XiiCyberPunk {	
-	var <>xiigui;
+	var <>xiigui, <>win;
 
 	*new { arg server, channels, setting = nil;
 		^super.new.initCyberPunk(server, channels, setting);
@@ -946,6 +957,59 @@ XiiCyberPunk {
 			},{				// mono
 			XiiEffectGUI.new("- cyberpunk 1x1 -", \xiiCyberPunk1x1, params, channels, this, setting);
 			});
+		win = xiigui.win;
+	}
+}
 
+
+
+XiiBitCrusher {	
+	var <>xiigui, <>win;
+
+	*new { arg server, channels, setting = nil;
+		^super.new.initCyberPunk(server, channels, setting);
+		}
+		
+	initCyberPunk {arg server, channels, setting;
+	
+		var sampleSpec, bitSpec, params, s; 
+		s = server ? Server.local;
+		
+		// mono
+		SynthDef(\xiiBitCrusher1x1, {| inbus=0, outbus=0, samplerate=22050, bitsize=0, fxlevel=0.75, level=0 | 
+		Ê Êvar fx, sig, downsamp, bitRedux; 
+		Ê Êsig = InFeedback.ar(inbus, 1);
+		   // thanks alberto!
+		   downsamp = Latch.ar(sig, Impulse.ar(samplerate*0.5));
+		   bitRedux = downsamp.round(0.5 ** bitsize);
+		Ê ÊOut.ar(outbus, (bitRedux*fxlevel) + (sig * level)) // level 
+		}).load(s); 
+
+		// stereo
+		SynthDef(\xiiBitCrusher2x2, {| inbus=0, outbus=0, samplerate=22050, bitsize=0, fxlevel=0.75, level=0 | 
+		Ê Êvar fx, sig, downsamp, bitRedux; 
+		Ê Êsig = InFeedback.ar(inbus, 2);
+		   // thanks alberto!
+		   downsamp = Latch.ar(sig, Impulse.ar(samplerate*0.5));
+		   bitRedux = downsamp.round(0.5 ** bitsize);
+		Ê ÊOut.ar(outbus, (bitRedux*fxlevel) + (sig * level)) // level 
+		}).load(s); 
+
+		sampleSpec = ControlSpec.new(600, s.sampleRate, \exponential, 1, s.sampleRate); 
+		bitSpec = ControlSpec.new(2, 16, \exponential, 1, 16); 
+		
+		params = [ 
+		Ê Ê["sampleRate", "bitSize", "Fx Level", "Dry Level"], 
+		Ê Ê[\samplerate, \bitsize, \fxlevel, \level], 
+		Ê Ê[sampleSpec, bitSpec, \amp, \amp], 
+		Ê Êif(setting.isNil.not, {setting[5]}, {[s.sampleRate, 16, 1, 0 ]})
+		]; 
+		
+		xiigui = if(channels == 2, { 	// stereo
+			XiiEffectGUI.new("- bitcrusher 2x2 -", \xiiBitCrusher2x2, params, channels, this, setting); 
+			},{				// mono
+			XiiEffectGUI.new("- bitcrusher 1x1 -", \xiiBitCrusher1x1, params, channels, this, setting);
+			});
+		win = xiigui.win;
 	}
 }

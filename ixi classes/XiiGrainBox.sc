@@ -426,9 +426,9 @@ startStopButt = GUI.button.new(win,Rect(10, 30, 102, 18))
 		
 		
 		infoButt = GUI.button.new(win,Rect(10, 156, 102, 18))
-					.states_([["colour info"]])
+					.states_([["color info", Color.black, Color.clear]])
 					.font_(GUI.font.new("Helvetica", 9))
-					.background_(Color.new255(160, 170, 255, 100))
+					//.background_(Color.new255(160, 170, 255, 100))
 					.action_({this.infoFunc});
 		
 		cmdPeriodFunc = { startStopButt.valueAction_(0);};
@@ -452,7 +452,7 @@ startStopButt = GUI.button.new(win,Rect(10, 30, 102, 18))
 				XQ.globalBufferDict.at(poolName)[0].do({arg buffer, i;
 					sndNameList = sndNameList.add(buffer.path.basename);
 					bufferList.add(buffer.bufnum);
-					sampleDurList.add(XQ.globalBufferDict.at(poolName)[1][i]/44100);
+					sampleDurList.add(XQ.globalBufferDict.at(poolName)[1][i]/s.sampleRate);
 					// put the new sounds into popupmenus
 					fileListPopup[0].items_(sndNameList);
 					fileListPopup[1].items_(sndNameList);

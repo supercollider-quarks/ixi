@@ -65,7 +65,14 @@
 // PolyMachine remebers states when stored in Settings
 // "free" button in BufferPools GUI frees only the selected buffer not all buffers
 // Adding Limiter to Recorder and BufferPool recording (thus no distortion possible)
-// Preventing accidental stop (apple+dot) with a Warning window
+// Preventing accidental stop (apple+dot) with a Warning window [Removed]
+// Adding range slider in bufferplayer and view of soundfile
+// Adding cropping to SoundfileView (in bufferpool and bufferplayer) - this makes editing better
+// Adding support for different samplerate and bitdepth. (samplerate is detected from hardware but bitdepth set in the preferences file - internal bitdepth in sc is 32 but for written files other values can be set)
+// Adding BitCrusher effect
+
+// NEW IN VERSION 7:
+// Double click to open instruments in ixi quarks view
 
 /*
 
@@ -103,33 +110,6 @@ x = SynthDef("help-Buffer",{ arg out = 0, bufnum;
 )
 
 
- there are a couple of things you have to know to get sound out of SC. A)
-Setting up an aggregate device is not enough to get your audio routed
-correctly.  SC looks at the audio interface currently in use by core audio
-and uses that device.  IOW - whatever core audio is using (selected in audio
-midi prefs) is what SC will use.  B) if you have a firewire or USB audio interface,
-you do not need to set up an aggregate device.  Simply select your firewire
-device as your input and output device (in Audio Midi prefs) and SC will use
-it as well.  You only need to set up an aggregate device if you plan to use
-the built-in mic or input and built-in output.  This is because SC will only
-accept one device for input and output and the new core audio divides them
-into separate devices.  
-
-// check for versions (Pipe locks the machine if it's not online)
-(
-var version, pipe;
-// check if user is online: (will return a 4 digit number if not)
-a = "curl http://www.ixi-audio.net/content/download/ixiquarks/version.txt".systemCmd;
-// then get the version number (from a textfile with only one number in it)
-if(a==0, {
-	pipe = Pipe.new("curl http://www.ixi-audio.net/content/download/ixiquarks/version.txt", "r");
-	version = pipe.getLine; 
-	pipe.close;	
-});
-"current version is ".post; version.postln;
-)
-
-
 */
 
 
@@ -153,11 +133,13 @@ XiiQuarks {
 		var prefFile, preferences;
 		
 		settingRegister = XiiSettings.new; // activate the settings registry
+
+		//GUI.cocoa;
 		
 		XQ.new; // A class containing all the settings and environment maintenance
 		
 		XQ.preferences; // retrieve preferences from the "preferences.ixi" file
-		Server.default.options.device = XQ.pref.device; // the audio device (soundcard)
+		// Server.default.options.device = XQ.pref.device; // the audio device (soundcard)
 		midi = XQ.pref.midi; // if you want to use midi or not (true or false)
 		midiControllerNumbers = XQ.pref.midiControllerNumbers; // evolution mk-449c
 		midiRotateWindowChannel = XQ.pref.midiRotateWindowChannel;
@@ -184,14 +166,15 @@ XiiQuarks {
 		quarks = [ 
 			["AudioIn", "Recorder", "Player", "BufferPool", "PoolManager", 
 			"FreqScope", "WaveScope", "EQMeter", "MixerNode", 
-			"ChannelSplitter", "Amplifier", "TrigRecorder", "MusicTheory"],
+			"ChannelSplitter", "Amplifier", "TrigRecorder", "MusicTheory", "MuioPatchPanel"],
 	
 			["SoundScratcher", "StratoSampler", "Sounddrops", "Mushrooms", "Predators", 
-			"Gridder", "PolyMachine", "GrainBox", "Quanoon", "BufferPlayer", "ScaleSynth"], 
+			"Gridder", "PolyMachine", "GrainBox", "Quanoon", "BufferPlayer", "ScaleSynth",
+			"LiveCoder"], 
 			
 			["Delay", "Freeverb", "AdCVerb", "Distortion", "ixiReverb", "Chorus",
-			"Octave", "CyberPunk", "Tremolo", "Equalizer", "CombVocoder", "RandomPanner", 
-			"MRRoque", "MultiDelay"],
+			"Octave", "Equalizer", "CyberPunk", "Tremolo", "BitCrusher", "CombVocoder", 
+			"RandomPanner", "MRRoque", "MultiDelay"],
 			
 			["Bandpass", "Lowpass", "Highpass", "RLowpass", "RHighpass", 
 			"Resonant", "Klanks", "MoogVCF", "MoogVCFFF"],
@@ -199,11 +182,13 @@ XiiQuarks {
 			["SpectralEQ", "MagClip", "MagSmear", "MagShift", "MagFreeze", 
 			"RectComb", "BinScramble", "BinShift", "SpectralDelay"],
 			
-			["Noise", "Oscillators"]
+			["Limiter", "Normalizer", "Gate", "Compressor", "Sustainer", "NoiseGate", "Expander"],
+			
+			["Noise", "Oscillators", "Drawer"]
 			
 		];
 		
-		types = ["utilities", "instruments", "effects", "filters", "spectral", "other"];
+		types = ["utilities", "instruments", "effects", "filters", "spectral", "dynamics", "other"];
 		
 		ixilogo = [ // the ixi logo
 			Point(1,7), Point(8, 1), Point(15,1), Point(15,33),Point(24, 23), Point(15,14), 
@@ -228,7 +213,14 @@ XiiQuarks {
 			.enterKeyAction_({|view|
 				txtv.value_(0);
 				txtv.focus(true);
+			})
+			.keyDownAction_({arg view, char, modifiers, unicode;
+				if (unicode == 16rF700, { typesview.valueAction = typesview.value - 1;  });
+				if (unicode == 16rF703, { txtv.focus(true); });
+				if (unicode == 16rF701, { typesview.valueAction = typesview.value + 1;  });
+				if (unicode == 16rF702, { typesview.valueAction = typesview.value - 1;  });
 			});
+
 		if(GUI.id == \cocoa, {	typesview.focusColor_(XiiColors.darkgreen.alpha_(0.9)) });
 
 		storedSettingsPop = GUI.popUpMenu.new(win, Rect(10, 128, 78, 16)) // 550
@@ -310,6 +302,14 @@ XiiQuarks {
 				widgetCodeString = "Xii"++widget++".new(Server.default,"++channels++")";
 				XQ.globalWidgetList.add(widgetCodeString.interpret);
 			})
+			.mouseDownAction_({|view, x, y, modifiers, buttonNumber, clickCount|
+		    if(clickCount == 2){
+				widget = quarks[typesview.value][view.value];
+				widgetCodeString = "Xii"++widget++".new(Server.default,"++channels++")";
+				XQ.globalWidgetList.add(widgetCodeString.interpret);
+		    }
+		  })
+
 			.keyDownAction_({arg view, char, modifiers, unicode;
 				if(unicode == 13, {
 					widget = quarks[typesview.value][view.value];

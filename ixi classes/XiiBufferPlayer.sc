@@ -2,8 +2,10 @@
 XiiBufferPlayer {
 	classvar classIDNum;
 	var <>xiigui, <>win, params;
+	var <>viewerList, <startButtList, <sfdropDownList;
 	
 	var selbPool, poolName, settingsPool, ldSndsGBufferList;
+	var synthList, loopRangeList;
 	
 	*new {arg server, ch, setting = nil;
 		^super.new.initXiiBufferPlayer(server, ch, setting);
@@ -15,16 +17,17 @@ var responder, bufsec, session, quitButt;
 var tracks, sndfiles;
 var trigID;
 var sliderList;
-var bufferList, synthList, stMonoList, globalList;
+var stMonoList, globalList;
 var rowspace = 110, lowRow = 0, virIndex = 0;
 var windowSize;
 var soundDir;
-var glStartButt, glStopButt, volSlList, panSlList, pitchSlList, startButtList;
+var glStartButt, glStopButt, volSlList, panSlList, pitchSlList;
 var gBufferPoolNum;
-var sfdropDownList, globalVolSlider, tracksButt;
+var globalVolSlider, tracksButt;
 var s, p, point;
 var idNum, drawRadioButt, createResponder;
-var outbusArray, volArray, panArray, pitchArray, bufferIndexArray, poolName; // for storing settings
+var outbusArray, volArray, panArray, pitchArray, bufferIndexArray; // for storing settings
+var rangeArray;
 
 if(classIDNum.isNil, {classIDNum = 50}); // sendtrig id starts with 50
 idNum = classIDNum;
@@ -40,7 +43,9 @@ panSlList = List.new;
 pitchSlList = List.new;
 startButtList = List.new;
 sfdropDownList = List.new;
-
+viewerList = Array.fill(tracks, {nil});
+rangeArray = Array.fill(tracks, {[0, 1]});
+loopRangeList = List.new; // the list of views
 
 bufferIndexArray = Array.fill(tracks, {arg i; i});
 outbusArray = Array.fill(tracks, {0});
@@ -61,7 +66,7 @@ Point(24,43), Point(7,43), Point(1,36), Point(1,8)
 
 xiigui = nil;
 point = if(setting.isNil, {Point(10, 300)}, {setting[1]});
-params = if(setting.isNil, {[bufferIndexArray, outbusArray, volArray, panArray, pitchArray, poolName, globalList]}, {setting[2]});
+params = if(setting.isNil, {[bufferIndexArray, outbusArray, volArray, panArray, pitchArray, poolName, globalList, rangeArray]}, {setting[2]});
 
 poolName = params[5];
 settingsPool = poolName;
@@ -119,7 +124,7 @@ glStopButt.action = { arg butt;
 };
 
 globalVolSlider = OSCIISlider.new(win, 
-		Rect(15, 165, 80, 10), "- vol", 0, 1.0, 0, 0.0001, \amp)
+		Rect(15, 160, 80, 10), "- vol", 0, 1.0, 0, 0.0001, \amp)
 			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; 	
 					volSlList.size.do({arg i; 
@@ -130,7 +135,7 @@ globalVolSlider = OSCIISlider.new(win,
 				});
 	
 OSCIISlider.new(win, 
-		Rect(15, 195, 80, 10), "- pan", -1.0, 1.0, 0.0, 0.01)
+		Rect(15, 190, 80, 10), "- pan", -1.0, 1.0, 0.0, 0.01)
 			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; 
 					panSlList.size.do({arg i; 
@@ -140,7 +145,7 @@ OSCIISlider.new(win,
 					});	
 				});
 OSCIISlider.new(win, 
-		Rect(15, 225, 80, 10), "- pitch", 0, 2.0, 1.0, 0.01)
+		Rect(15, 220, 80, 10), "- pitch", 0, 2.0, 1.0, 0.01)
 			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; 	
 					pitchSlList.size.do({arg i; 
@@ -175,7 +180,7 @@ ldSndsGBufferList.value(if(params[5].isNil, {selbPool.items[0].asSymbol},{params
 //[\debug01_POOLNAME, poolName].postln;
 
 tracks.do({ arg i; 
-	var trigID, ch, sf, glButt, startPos, endPos;
+	var trigID, ch, sf, glButt, startPos, endPos, selectionfr;
 
 	trigID = idNum + (i * 2);
 
@@ -197,15 +202,15 @@ tracks.do({ arg i;
 	);
 	
 	stMonoList.add(
-		GUI.staticText.new(win, Rect(172+(virIndex+i*rowspace), 65+lowRow, 60, 16))
+		GUI.staticText.new(win, Rect(172+(virIndex+i*rowspace), 50+lowRow, 60, 16))
 			.font_(GUI.font.new("Helvetica", 9))
 			.string_("oo");
 	);
 
-	GUI.staticText.new(win, Rect(172+(virIndex+i*rowspace), 87+lowRow, 60, 16))
+	GUI.staticText.new(win, Rect(172+(virIndex+i*rowspace), 67+lowRow, 60, 16))
 		.font_(GUI.font.new("Helvetica", 9))
 		.string_("global:");
-	glButt = GUI.button.new(win,Rect(206+(virIndex+i*rowspace), 89+lowRow, 12, 12));
+	glButt = GUI.button.new(win,Rect(206+(virIndex+i*rowspace), 68+lowRow, 12, 12));
 	glButt.states = [	["",Color.black, Color.clear],
 					["",Color.black, Color.new255(155, 205, 155)]];
 	glButt.value = params[6][i];
@@ -214,6 +219,34 @@ tracks.do({ arg i;
 		globalList[i] = butt.value;
 		params[6] = globalList;
 	};
+
+	GUI.button.new(win, Rect(171+(virIndex+i*rowspace), 87+lowRow, 48, 16))
+		.font_(GUI.font.new("Helvetica", 9))
+		.canFocus_(false)
+		.states_([["view", Color.black, Color.clear]])
+		.action_({
+			// XQ.buffers(poolName)[sfdropDownList[i].value].postln;
+		//	"viewerlist is :".postln; viewerList[i].postln;
+			if(viewerList[i] == nil, {
+				// call this through the bufferpool
+				XQ.globalWidgetList.do({ |widget|
+					if(widget.isKindOf(XiiBufferPool), {
+						if(widget.name == poolName.asString, {
+							viewerList[i] =
+								widget.viewBuffer(
+									XQ.buffers(poolName)[sfdropDownList[i].value], // buffer
+									sfdropDownList[i].value, // index
+									poolName, // poolname
+									[0,0],
+									//XQ.selections(poolName)[sfdropDownList[i].value], 
+									this, i);
+						});	
+					});
+				});
+			},{
+				viewerList[i].win.front;
+			});
+		});
 
 	// outbus
 	ch = GUI.popUpMenu.new(win,Rect(120+(virIndex+i*rowspace), 111+lowRow , 46, 16))			.items_(XiiACDropDownChannels.getStereoChnList)
@@ -232,30 +265,37 @@ startButtList.add(GUI.button.new(win,Rect(171+(virIndex+i*rowspace), 110+lowRow,
 					.states_([	["play",Color.black, Color.clear],
 								["stop",Color.black, Color.new255(155, 205, 155)]])
 					.font_(GUI.font.new("Helvetica", 9))
-					.action_({ arg butt; var startPos, endPos;
+					.action_({ arg butt; var startPos, endPos, buffer;
 					
 					if(butt.value == 1, {
-					
+		
+		buffer = XQ.buffers(poolName)[sfdropDownList[i].value];
+		// [\buffer, buffer].postln;
+		//if(buffer.isNil, {buffer = XQ.buffers(poolName)[params[0][0]]}); // if < 8 buffers - first
+		
 		trigID = idNum + (i * 2);
-		startPos = XQ.selections(poolName)[params[0][i]][0];
-		endPos = startPos + XQ.selections(poolName)[params[0][i]][1];
+
+		startPos = XQ.selections(poolName)[sfdropDownList[i].value][0] + (params[7][i][0] * XQ.selections(poolName)[sfdropDownList[i].value][1]);
+			
+		endPos = XQ.selections(poolName)[sfdropDownList[i].value][0] + (XQ.selections(poolName)[sfdropDownList[i].value][1] * params[7][i][1]);
+
 		synthList[i] = 
-			if(XQ.buffers(poolName)[sfdropDownList[i].value].numChannels == 2, {
+			if(buffer.numChannels == 2, {
 				Synth.new(\xiiBufPlayerSTEREO, 
-					[ \bufnum, XQ.buffers(poolName)[params[0][i]].bufnum, 
+					[ \bufnum, buffer.bufnum, 
 					  \trigID, trigID, // the bus for the gui update
 					  \out, params[1][i],
 					  \vol, params[2][i], 
 					  \pan, params[3][i],
 					  \pitch, params[4][i],
 					  \startPos, startPos,
-					  \endPos, endPos
+					  \endPos, endPos //  XXXXX
 					  ], // the default out bus
 					  s, \addToHead);
 			}, {
 
 				Synth.new(\xiiBufPlayerMONO, 
-					[ \bufnum, XQ.buffers(poolName)[params[0][i]].bufnum, 
+					[ \bufnum, buffer.bufnum, 
 					  \trigID, trigID, // the bus for the gui update
 					  \out, params[1][i],
 					  \vol, params[2][i],
@@ -285,8 +325,14 @@ sfdropDownList.add(GUI.popUpMenu.new(win,Rect(120+(virIndex+i*rowspace), 135+low
 			if(XQ.buffers(poolName).at(sf.value).numChannels == 2, 
 				{"stereo"}, {"mono"})
 		);		
-		startPos = XQ.selections(poolName)[sf.value][0];
-		endPos = startPos + XQ.selections(poolName)[sf.value][1];
+		
+		//startPos = XQ.selections(poolName)[sf.value][0];
+		//endPos = startPos + XQ.selections(poolName)[sf.value][1];
+		// not sure if this is working yet:
+		startPos = XQ.selections(poolName)[sf.value][0] + (params[7][i][0] * XQ.selections(poolName)[sf.value][1]);
+			
+		endPos = XQ.selections(poolName)[sf.value][0] + (XQ.selections(poolName)[sf.value][1] * params[7][i][1]);
+		
 		synthList.at(i).set(\bufnum, XQ.buffers(poolName)[sf.value].bufnum);
 		synthList.at(i).set(\startPos, startPos);
 		synthList.at(i).set(\endPos, endPos);
@@ -296,7 +342,7 @@ sfdropDownList.add(GUI.popUpMenu.new(win,Rect(120+(virIndex+i*rowspace), 135+low
 );
 
 volSlList.add(OSCIISlider.new(win, 
-		Rect(120+(virIndex+i*rowspace), 165+lowRow, 100, 10), "- vol", 0, 1.0, params[2][i], 0.01, \amp)
+		Rect(120+(virIndex+i*rowspace), 160+lowRow, 100, 10), "- vol", 0, 1.0, params[2][i], 0.01, \amp)
 			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; var globalActiveCounter = 0, volAll = 0;
 				if(synthList[i] !=nil, { synthList[i].set(\vol, sl.value) });
@@ -312,7 +358,7 @@ volSlList.add(OSCIISlider.new(win,
 			})
 		);
 panSlList.add(OSCIISlider.new(win, 
-		Rect(120+(virIndex+i*rowspace), 195+lowRow, 100, 10), "- pan", -1.0, 1.0, params[3][i], 0.01)
+		Rect(120+(virIndex+i*rowspace), 190+lowRow, 100, 10), "- pan", -1.0, 1.0, params[3][i], 0.01)
 			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; 	
 				if(synthList[i] !=nil, { synthList[i].set(\pan, sl.value) });
@@ -321,7 +367,7 @@ panSlList.add(OSCIISlider.new(win,
 			})
 		);
 pitchSlList.add(OSCIISlider.new(win, 
-		Rect(120+(virIndex+i*rowspace), 225+lowRow, 100, 10), "- pitch", 0, 2.0, params[4][i], 0.01)
+		Rect(120+(virIndex+i*rowspace), 220+lowRow, 100, 10), "- pitch", 0, 2.0, params[4][i], 0.01)
 			.font_(GUI.font.new("Helvetica", 9))
 			.action_({arg sl; 	
 				if(synthList[i] !=nil, { synthList[i].set(\pitch, sl.value) });
@@ -330,6 +376,43 @@ pitchSlList.add(OSCIISlider.new(win,
 			})
 		);
 	
+loopRangeList.add(SCRangeSlider.new(win, Rect(120+(virIndex+i*rowspace), 250+lowRow, 100, 10))
+		//.canFocus_(false)
+		.focusColor_(Color.white.alpha_(0.1))
+		.lo_(params[7][i][0])
+		.hi_(params[7][i][1])
+		.knobColor_(HiliteGradient(Color.new(0,0, 0.2), Color.white))
+		.action_({arg sl; var startPos, endPos, numSelectedFrames;
+			
+			startPos = XQ.selections(poolName)[sfdropDownList[i].value][0] 
+			+ (sl.lo * XQ.selections(poolName)[sfdropDownList[i].value][1]);
+			
+			endPos = XQ.selections(poolName)[sfdropDownList[i].value][0] 
+				 + (XQ.selections(poolName)[sfdropDownList[i].value][1] * sl.hi);
+			
+			//endPos = startPos + (XQ.selections(poolName)[params[0][i]][1] * sl.hi);
+			//endPos = (XQ.selections(poolName)[params[0][i]][1] * sl.hi);
+			numSelectedFrames = ( XQ.selections(poolName)[sfdropDownList[i].value][1] * (sl.hi-sl.lo));
+			//[\selectionsize, XQ.selections(poolName)[sfdropDownList[i].value][1]].postln;
+			// [\slhi, sl.hi].postln;
+			params[7][i][0] = sl.lo;
+			params[7][i][1] = sl.hi;
+
+			[\startpos, startPos, \endpos, endPos].postln;
+
+			if(synthList[i] !=nil, { 
+				// [\synthlist_i, synthList[i]].postln;
+				synthList[i].set(\startPos, startPos);
+				synthList[i].set(\endPos, endPos);
+			});
+			
+			if(viewerList[i].isNil.not, {
+				viewerList[i].setBufferPlayerSelections(startPos, numSelectedFrames);
+			});
+			
+		});
+	);
+
 	if(try {XQ.buffers(poolName)} != nil, {
 		//"this is working------------------------------------".postln;
 		{stMonoList.wrapAt(i).string_(
@@ -340,7 +423,7 @@ pitchSlList.add(OSCIISlider.new(win,
 
 		ldSndsGBufferList = {arg arggBufferPoolName;
 			poolName = arggBufferPoolName.asSymbol;
-			[\oooooooopooooooooooolname, poolName].postln;
+			//[\oooooooopooooooooooolname, poolName].postln;
 			sndfiles = XQ.bufferNames(poolName);
 			//[\poolname, poolName, \sndfiles, sndfiles].postln;
 			
@@ -393,7 +476,7 @@ pitchSlList.add(OSCIISlider.new(win,
 			var t;
 			responder.remove;
 			synthList.size.do({arg i; synthList[i].free;});
-			bufferList = nil;
+			viewerList.do({|viewer| try{viewer.win.close} });
 			XQ.globalWidgetList.do({arg widget, i; if(widget === this, {t = i})});
 			try{XQ.globalWidgetList.removeAt(t)};
 		
@@ -441,7 +524,27 @@ pitchSlList.add(OSCIISlider.new(win,
 		});
 	}
 */
-
+	
+	// called from XiiSoundFileView when selected loop is moved
+	setLoopRange {arg chnl, startPos, numSelectedFrames;
+		var lo, hi, selfile;
+		selfile = sfdropDownList[chnl].value;
+		"-------aa".postln;
+		if(synthList[chnl] !=nil, { 
+		"-------bb".postln;
+			// [\synthlist_i, synthList[i]].postln;
+			synthList[chnl].set(\startPos, startPos);
+			synthList[chnl].set(\endPos, startPos+numSelectedFrames);
+		});
+		
+		lo = startPos/XQ.selections(poolName)[params[0][selfile]][1];
+		hi = (numSelectedFrames/XQ.selections(poolName)[params[0][selfile]][1])+lo;		[\lo, lo, \hi, hi].postln;
+		
+		loopRangeList[chnl]
+			.lo_(lo)
+			.hi_(hi);
+	}
+	
 	updatePoolMenu {
 		var poolname, poolindex, sndfiles;
 		poolname = selbPool.items.at(selbPool.value); // get the pool name (string)
@@ -450,23 +553,20 @@ pitchSlList.add(OSCIISlider.new(win,
 		//[\poolindex, poolindex].postln;
 		if(poolindex != nil, { // not first time pool is loaded
 			if(settingsPool.isNil, {
-				"new sound !!!!!!!!!!!!! ".postln;
+				//"new sound !!!!!!!!!!!!! ".postln;
 				//selbPool.valueAction_(poolindex); // nothing changed, but new poolarray or sound
 				//ldSndsNames.value(poolname);
-			"------- 111".postln;
 				selbPool.action.value(poolindex);
 			}, {
 				ldSndsGBufferList.value(settingsPool);
 				poolindex = selbPool.items.indexOfEqual(settingsPool); 
 				//selbPool.value_(poolindex); // nothing changed, but new poolarray or sound
-			"--------- 222".postln;
 				selbPool.action.value(poolindex);
 			}) 
 			// ldSndsGBufferList.value(poolname);
 		}, {
 			ldSndsGBufferList.value(XQ.globalBufferDict.keys.asArray[0]); // load first pool
 			//selbPool.value_(0); // loading a pool for the first time (index nil) 
-			"----- 333".postln;
 			selbPool.action.value(0);
 		});
 	}

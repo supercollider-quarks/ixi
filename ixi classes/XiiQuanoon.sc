@@ -53,6 +53,8 @@ XiiQuanoon {
 		.clearOnRefresh_(false)
 		.canFocus_(false)
 		.drawFunc_({
+			Pen.setShadow(1@1, 5, Color.black); // XXX
+
 			GUI.pen.translate(0.5,0.5);
 			8.do({|i| GUI.pen.line(Point(30+(i*30), 10), Point(30+(i*30), 670)) }); // strings
 			6.do({|i| GUI.pen.line(Point(10, 10+(i*132)), Point(260, 10+(i*132))) }); // octave bands

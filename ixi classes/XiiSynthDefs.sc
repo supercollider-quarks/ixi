@@ -485,7 +485,7 @@ XiiSynthDefs {
 
 
 		// -------------- quanoon makamat -----------------
-		
+		// try with a sound sample instead of noise as excitor
 		SynthDef(\xiiQuanoon, {arg outbus=0, freq=440, pan=0, amp=1, dur=4;
 			var pluck, period, string;
 			pluck = PinkNoise.ar(Decay.kr(Impulse.kr(0.005), 0.05));

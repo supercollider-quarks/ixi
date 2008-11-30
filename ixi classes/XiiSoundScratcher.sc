@@ -187,8 +187,8 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 								\outbus, outbus,
 								\dur, graindur,
 								\trate, graindensity.reciprocal * rateMultiplier,
-								\left, ((endPoint.x.min(startPoint.x)/680)*myTempBuffer.numFrames)/44100,
-								\right, ((endPoint.x.max(startPoint.x)/680)*myTempBuffer.numFrames)/44100,
+								\left, ((endPoint.x.min(startPoint.x)/680)*myTempBuffer.numFrames)/s.sampleRate,
+								\right, ((endPoint.x.max(startPoint.x)/680)*myTempBuffer.numFrames)/s.sampleRate,
 								\ratelow, ((endPoint.y.max(startPoint.y)/340) - 1).abs+0.5, // 680
 								\ratehigh, ((endPoint.y.min(startPoint.y)/340) - 1).abs+0.5,
 								\vol, meanpressure,
@@ -202,7 +202,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 								\outbus, outbus,
 								\dur, graindur,
 								\trate, graindensity.reciprocal * rateMultiplier,
-								\left, ((endPoint.x.min(startPoint.x)/680)*myTempBuffer.numFrames)/44100,
+								\left, ((endPoint.x.min(startPoint.x)/680)*myTempBuffer.numFrames)/s.sampleRate,
 								\rate, (((endPoint.y.max(startPoint.y)/340) - 1).abs+0.5 +
 								 ((endPoint.y.min(startPoint.y)/340) - 1).abs+0.5) / 2,
 								\vol, meanpressure,
@@ -215,8 +215,8 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 				}, {
 					if(synthesisStylePop.value != 4, { 
 						gPressure = 0;
-						pointlist.add(pointp);
-						pointsizelist.add(pressure);
+						//pointlist.add(pointp);
+						//pointsizelist.add(pressure);
 						this.refresh;
 						if(myTempBuffer.notNil, {
 							if(grainFlag == false, { synth.set(\gate,0)});
@@ -265,7 +265,14 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 			
 			if(char.asString == "d", {drawLineFlag = drawLineFlag.not});
 			if(char.asString == "r", {pointlist = pointlist.scramble});
-			if(char.asString == "z", { // undo creating a cirle or square
+			if(char.asString == "z", { // undo creating a grain, cirle or square
+				if((synthesisStylePop.value==2) || (synthesisStylePop.value == 3), {
+					if(pointlist.size > 0, {
+						pointlist.pop;
+						pointsizelist.pop;
+						this.refresh;
+					});
+				});
 				if((synthesisStylePop.value==5) || (synthesisStylePop.value == 6), { // grainCirles
 					if(circleList.size > 0, {
 						circleList.pop;
@@ -305,6 +312,8 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 				try{GUI.pen.moveTo(pointlist[0])};
 				(pointlist.size-1).do({arg i; var width;
 					width = (pointsize-1)*pointsizelist[i];
+					Pen.setShadow(1@1, 5, Color.black); // XXX
+
 					GUI.pen.color = Color.new(pointcolor.red*pointsizelist[i], 0, 0);
 					GUI.pen.width = width;
 					GUI.pen.line(pointlist[i], pointlist[i+1]);
@@ -544,8 +553,8 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 						proparray[0].top = 15+(300.rand);
 					});
 					grainCircleSynthList.do({arg synth, i;
-					synth.set(\left, ((circleList[i][0].left/680)*myTempBuffer.numFrames)/44100);
-					synth.set(\right,(((circleList[i][0].left+circleList[i][0].width)/680)*myTempBuffer.numFrames)/44100);
+					synth.set(\left, ((circleList[i][0].left/680)*myTempBuffer.numFrames)/s.sampleRate);
+					synth.set(\right,(((circleList[i][0].left+circleList[i][0].width)/680)*myTempBuffer.numFrames)/s.sampleRate);
 					// if the synth is graincircle
 					synth.set(\ratelow, ((circleList[i][0].top/340) - 1).abs+0.5);
 					synth.set(\ratehigh, (((circleList[i][0].top+circleList[i][0].height)/340) - 1).abs+0.5);
@@ -660,7 +669,7 @@ params = if(setting.isNil, {[0, 1, 0.05, 10, 1, 0, 0, 1, 1.0, 0]}, {setting[2]})
 				});
 			});
 
-		wacomRButt = OSCIIRadioButton(win, Rect(10, 263, 12, 12), "wacom ")
+		wacomRButt = OSCIIRadioButton(win, Rect(10, 263, 12, 12), "tablet ")
 						.font_(GUI.font.new("Helvetica", 9))
 						.action_({ arg butt;
 							mouseRButt.switchState;

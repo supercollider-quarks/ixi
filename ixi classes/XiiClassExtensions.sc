@@ -2,21 +2,26 @@
 
 + Function {
 
-	record {arg time, bus, channels=1;
+	record {arg time, bus, channels=1, ed=0;
 		var foundWidget = false;
+		var synth;
 		
 		XQ.globalWidgetList.do({|widget| 
 			if(widget.isKindOf(XiiRecorder), {
 				foundWidget = true;
 				widget.win.front;
-				widget.record(time, bus);
+				widget.record(time, bus, ed);
 			})
 		});
 		if(foundWidget == false, {
-			XQ.globalWidgetList.add(XiiRecorder.new(Server.default, channels).record(time, bus));
+			XQ.globalWidgetList.add(XiiRecorder.new(Server.default, channels).record(time, bus, ed));
 		});
-		this.play;
+		synth = this.play;
+		if(time.isNil.not, {
+			AppClock.sched(time, { synth.free });
+		});
 	}
+	
 }
 
 + SimpleNumber {
@@ -43,7 +48,29 @@
 		].at(sign)[this.round(1.0) % 12] ++ ((this.round(1.0) / 12).floor - 2).asInt;
 		^out;
 	}
+	
+	// - thor
+/*
+10.loop({arg i, break; i.postln; if(i == 3, {break.value(222)})})
+*/
 
+	loop {arg function;
+		var i = 0;
+		while ({ i < this }, { function.value(i, {|val| ^val }) ; i = i+1; });
+	}
+}
+
++ ArrayedCollection {
+
+	// - thor
+/*
+[11,22,33,44,55,66,77].loop({arg item, i, break; item.postln; if(item == 33, {break.value(222)})})
+*/
+
+	loop {arg function;
+		var i = 0; var item;
+		while ({ i < this.size }, { function.value(this.at(i), i, {|val| ^val }) ; i = i+1; });
+	}
 }
 
 + Array {
@@ -96,7 +123,8 @@
 		if (char == $c, { this.valueAction = 0.5; ^this });
 		if (char == $], { this.increment; ^this });
 		if (char == $[, { this.decrement; ^this });
-		if(modifiers == 8651009, { // check if Ctrl is down first
+		// [modifiers, unicode, keycode].postln;
+		if(modifiers&262144==262144, { // check if Ctrl is down first
 			if (unicode == 16rF700, { this.incrementCtrl; ^this });
 			if (unicode == 16rF703, { this.incrementCtrl; ^this });
 			if (unicode == 16rF701, { this.decrementCtrl; ^this });
@@ -115,7 +143,109 @@
 
 
 }
+/*
++ Buffer {
+	crop {arg startFrame, numFrames, overwrite=false, action;
+		var cond, tempbuf, tempbufnum, newbuf;
+		cond = Condition.new;
+		
+		Routine.run {
+			tempbuf = Buffer.alloc(server, numFrames, numChannels);
+			server.sync(cond);
+			this.copyData(tempbuf, 0, startFrame, numFrames);
+			server.sync(cond);
 
+			newbuf = Buffer.alloc(server, tempbuf.numFrames, tempbuf.numChannels, bufnum:bufnum);
+			server.sync(cond);
+			tempbuf.copyData(newbuf);
+			server.sync(cond);
+
+			tempbuf.free;	
+			tempbuf = nil;
+			
+			if(overwrite, { newbuf.write(this.path, "AIFF", "int16") });
+			server.sync(cond);
+			this.updateInfo(action); // update so the buffer object has the new buffer info
+		};
+	}
+}
+*/
+
++ Buffer {
+	/*
+		b = Buffer.read(s, "sounds/birta.aif");
+		b.updateInfo
+		b.play
+
+		b.crop(10000, 66666, false)
+		b.crop(10000, 6666, false)
+		b.updateInfo
+		b
+		
+		XQ.buffers("uno")[1].numFrames
+		XQ.buffers("uno")[1].play
+		
+		XQ.buffers("uno")[1]
+		XQ.buffers("uno")[1].crop(109000, 51000, true)
+
+a
+a = Buffer.read(s, "sounds/ixiquarks/aaqq.aif")
+a.play
+a.numFrames
+a.crop(10000, 14000)
+a.crop(1000, 4000)
+a.updateInfo
+
+*/
+	
+	crop {arg startFrame, numFrames, overwrite=false, action;
+		var cond, tempbuf, tempbufnum, newbuf;
+		cond = Condition.new;
+		Routine.run {
+			tempbuf = Buffer.alloc(server, numFrames, numChannels);
+			server.sync(cond);
+			this.copyData(tempbuf, 0, startFrame, numFrames);
+			newbuf = Buffer.alloc(server, tempbuf.numFrames, tempbuf.numChannels, bufnum:bufnum);
+			server.sync(cond);
+			tempbuf.copyData(newbuf);
+			tempbuf.free;	
+			tempbuf = nil;
+			if(overwrite, { newbuf.write(this.path, "AIFF", XQ.pref.bitDepth) });
+			this.updateInfo(action); // update so the buffer object has the new buffer info
+		};
+	}
+}
+
+
+/*
+		s.boot
+		b = Buffer.read(s, "sounds/a11wlk01.wav");
+		b.plot
+		b.numFrames
+		b.play
+		b
+		c= b.crop(100000, 66666, {|buf| buf.numFrames.postln;})
+		c.plot
+		c.numFrames
+		c.play
+		c
+		d= c.crop(10000, 6666, {|buf| buf.numFrames.postln;})
+		d.plot
+		d.numFrames
+		d.play
+		d
+
++ Buffer {
+	crop {arg startFrame, numFrames, action;
+		^Buffer.alloc(server, numFrames, numChannels, {|buf|
+			buf.updateInfo({
+				this.copyData(buf, 0, startFrame, numFrames);
+				buf.updateInfo(this.free(action));
+			});
+		});
+	}
+}
+*/
 
 + ArrayedCollection {
 	

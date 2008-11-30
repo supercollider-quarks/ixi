@@ -9,7 +9,7 @@ XiiWaveScope {
 	var inbus;
 	var <bufsize, buffer, synth;
 	var n, c, d, sl, style=0, sizeToggle=0, zx, zy, ai=0;
-	var onOffButt;
+	var onOffButt, onOffState = false;
 	
 	
 	*new { arg server, numChannels = 2, setting = nil;
@@ -162,7 +162,14 @@ XiiWaveScope {
 
 		this.updateColors;
 		
-		cmdPeriodFunc = { //onOffButt.valueAction_(0)
+		cmdPeriodFunc = { 
+			"running cmdfunc".postln;
+			if(onOffButt.value == 1, {
+				onOffButt.valueAction_(0);
+				AppClock.sched(0.5, {
+					onOffButt.valueAction_(1);
+				});
+			});
 		};
 		CmdPeriod.add(cmdPeriodFunc);
 

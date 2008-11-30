@@ -85,11 +85,13 @@ XiiBufferPool {
 			.enterKeyAction_({|sbs|
 				var viewer;
 				if(txtv.items.size > 0, {
+					[\buffer, bufferList[sbs.value]].postln;
 					viewer = XiiSoundFileView.new(
-							bufferList[sbs.value].path, 
-							bufferList[sbs.value].bufnum,
-							sbs.value, name, 
-							bufferListSelections[sbs.value]);
+							bufferList[sbs.value], 
+							sbs.value, // the index in the pool
+							name, // the poolname
+							XQ.selections(name.asSymbol)[sbs.value],
+							this);
 					soundFileWindowsList.add(viewer);
 				});
 			})
@@ -165,13 +167,25 @@ XiiBufferPool {
 			.action_({ arg butt;
 				var viewer;
 				if(txtv.items.size > 0, {
+							
+					[\buffer, bufferList[txtv.value]].postln;
+					viewer = XiiSoundFileView.new(
+							bufferList[txtv.value], 
+							txtv.value, // the index in the pool
+							name, // the poolname
+							XQ.selections(name.asSymbol)[txtv.value],
+							this);
+					soundFileWindowsList.add(viewer);
+			/*
 					viewer = XiiSoundFileView.new(
 							bufferList[txtv.value].path, 
 							bufferList[txtv.value].bufnum,
 							txtv.value, name, 
 							bufferListSelections[txtv.value]);
 					soundFileWindowsList.add(viewer);
+			*/
 				});
+			
 			});	
 
 		preRecButt = GUI.button.new(win, Rect(10, 167, 18, 18))
@@ -255,7 +269,7 @@ XiiBufferPool {
 							recordingName.string_(filename);
 						});
 		
-						r = XiiRecord(s, inbus, numChannels);
+						r = XiiRecord(s, inbus, numChannels, sampleFormat: XQ.pref.bitDepth);
 						r.start("sounds/ixiquarks/"++filename++".aif");
 						r.setAmp_(amp);
 						secTask.start;
@@ -471,6 +485,23 @@ XiiBufferPool {
 		name = argname;
 		win.name_(name);
 		this.sendBufferPoolToWidgets;
+	}
+	
+	/*
+	a = XiiBufferPool.new(s, 2, nil, "aa")
+	b = a.viewBuffer(XQ.buffers(XQ.poolNames[0])[0], 0, XQ.poolNames[0], [0,0], nil)
+	*/
+	viewBuffer {|buffer, index, poolname, selections, caller, chnl|
+		var viewer;
+		viewer = XiiSoundFileView.new(
+			buffer, 
+			index, // the index in the pool
+			poolname, // the poolname
+			selections, // the selection of the buffer
+			caller, chnl);
+		// soundFileWindowsList.add(viewer);
+		^viewer;
+	
 	}
 
 	getState { // for saving settings/presets - called from the XiiQuarks GUI

@@ -1,13 +1,13 @@
 XiiScaleSynth {
-	var <>xiigui;
+	var <>xiigui, <>win, params;
 
-	*new {arg server;
-		^super.new.initXiiScaleSynth(server);
+	*new {arg server, chnls, setting;
+		^super.new.initXiiScaleSynth(server, chnls, setting);
 	}
 
-	initXiiScaleSynth {arg argserver;
-		var win, xTable, yTable, trns1, trns2, synth, drone, tablet;
-		var screenX, screenY, tabletScreenY;
+	initXiiScaleSynth {arg argserver, argchnls, setting;
+		var xTable, yTable, trns1, trns2, synth, drone, tablet;
+		var screenX, screenY, tabletScreenY, point;
 		var setScale, setTrans, scales, scaleNames, scaleMenu;
 		var boxColList, makeColorList, server;
 		var transBuf, scaleBuf, outbus, outbusPoP, glvol;
@@ -17,6 +17,10 @@ XiiScaleSynth {
 		screenX = GUI.window.screenBounds.asArray[2]; 
 		screenY = GUI.window.screenBounds.asArray[3] - 44; // minus 50 for sliders at bottom
 		
+xiigui = nil;
+point = if(setting.isNil, {Point(0, 0)}, {setting[1]});
+params = if(setting.isNil, {[0,0]}, {setting[2]}); // not used for now
+
 		// the initials transformations of the base scale.
 		trns1 = 5; // first row up from base scale (which is in C)
 		trns2 = 7; // secon row up from the base scale.
@@ -25,7 +29,7 @@ XiiScaleSynth {
 		tabletScreenY = screenY - 40; // give space for the control bar at the bottom
 		
 		// --------  GUI 
-		win = GUI.window.new("- scalesynth -", Rect(0,0, screenX, screenY), border: true);
+		win = GUI.window.new("- scalesynth -", Rect(point.x, point.y, screenX, screenY), border: true);
 		//win.fullScreen;
 			boxColList = List.new;
 			17.do({arg j; var a;
@@ -122,7 +126,13 @@ XiiScaleSynth {
 		OSCIISlider.new(win, Rect(810, screenY-34, 60, 10), "- vol", 0, 1, 1, 0.01)
 			.action_({arg sl; glvol = sl.value; synth.set(\glvol, glvol) });
 
+		win.onClose_({
+			var t;
+			XQ.globalWidgetList.do({arg widget, i; if(widget == this, { t = i })});
+			try{ XQ.globalWidgetList.removeAt(t) };
+		});
 		win.front;
+
 		
 		// --- scale stuff ---
 			scaleMenu = GUI.popUpMenu.new(win, Rect(500, screenY-34, 80, 16));
@@ -213,5 +223,11 @@ SynthDef(\droneSynth,{ arg out=0, vol=0.2, volLag=0.1, freq = 261;
 		
 }
 
+
+	getState { // for save settings
+		var point;
+		point = Point(win.bounds.left, win.bounds.top);
+		^[2, point, params];
+	}
 
 }

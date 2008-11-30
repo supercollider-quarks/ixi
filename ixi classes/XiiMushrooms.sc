@@ -72,7 +72,7 @@ synthDefPrototype =
 oscResponder =  OSCresponderNode(s.addr,'/tr',{ arg thistime, responder, msg;
 	if(msg[2] == 840, {
 		if(freqAnalysisFlag, {	// analysing sound
-			fftOnsets.add( Point(	120+((thistime-time)/((myTempBuffer.numFrames/44100)/680)), 
+			fftOnsets.add( Point(	120+((thistime-time)/((myTempBuffer.numFrames/s.sampleRate)/680)), 
 								305-(msg[3]*550)) );  
 		}, {	// playing sound
 			freq = 200+(msg[3]*1000);
@@ -215,7 +215,7 @@ analyseBufButt = GUI.button.new(win, Rect(60, 130, 50, 18))
 				{bufPlot.drawOnsets}.defer;
 				1.wait;
 				onsetFramesList = bufPlot.getOnsetTimesList;
-				onsetFramesList.add((myTempBuffer.numFrames/44100));
+				onsetFramesList.add((myTempBuffer.numFrames/s.sampleRate));
 				// convert times into waits
 				onsetWaits = onsetFramesList.collect({arg item, i; 
 								if(i==0, 
@@ -233,7 +233,7 @@ analyseBufButt = GUI.button.new(win, Rect(60, 130, 50, 18))
 							\endloop, myTempBuffer.numFrames,
 							\fftbuf, fftbuf.bufnum, \trackbuf, trackbuf.bufnum, \amp, amp]);
 					if(drawIndexFlag == true, { startIndexDrawClock.value; });
-				SystemClock.sched(myTempBuffer.numFrames/44100, {
+				SystemClock.sched(myTempBuffer.numFrames/s.sampleRate, {
 						analysisSynth.free; 
 						freqAnalysisFlag = false;
 						indexDrawClock.stop;
@@ -316,7 +316,7 @@ startButt = GUI.button.new(win, Rect(60, 284, 50, 18))
 startPlayFunc = {
 	var onsetsList;
 	onsetsList = bufPlot.getOnsetsList;
-	 bufSec = (myTempBuffer.numFrames/myTempBuffer.numChannels)/44100;
+	 bufSec = (myTempBuffer.numFrames/myTempBuffer.numChannels)/s.sampleRate;
 	 time = Main.elapsedTime;
 	if(freqAnalysisFlag == false, {
 		if(drawIndexFlag == true, { startIndexDrawClock.value; });
@@ -367,7 +367,7 @@ startIndexDrawClock = {
 		0.1.wait;
 		inf.do({
 			var ind;
-			ind = (rate * ((Main.elapsedTime-time)*44100)%(myTempBuffer.numFrames));
+			ind = (rate * ((Main.elapsedTime-time)*s.sampleRate)%(myTempBuffer.numFrames));
 			{try{bufPlot.setIndex_(ind/(64.852*bufSec))}}.defer;
 			0.1.wait;
 		});

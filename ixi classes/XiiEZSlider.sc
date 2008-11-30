@@ -49,22 +49,22 @@ XiiEZSlider {
 		sliderView.keyDownAction = {arg me, char, modifiers, unicode, keycode;
 			if (char == $a, { this.recPlayPath(true); });
 			if (char == $c, { this.stop; });
-			if (char == $r, { this.valueAction = 1.0.rand; ^this });
-			if (char == $n, { this.valueAction = 0.0; ^this });
-			if (char == $x, { this.valueAction = 1.0; ^this });
+			if (char == $r, { me.valueAction = 1.0.rand; });
+			if (char == $n, { me.valueAction = 0.0;  });
+			if (char == $x, { me.valueAction = 1.0;  });
 			//if (char == $c, { this.valueAction = 0.5; ^this });
-			if (char == $], { this.increment; ^this });
-			if (char == $[, { this.decrement; ^this });
-			if(modifiers == 8651009, { // check if Ctrl is down first
-				if (unicode == 16rF700, { this.incrementCtrl; ^this });
-				if (unicode == 16rF703, { this.incrementCtrl; ^this });
-				if (unicode == 16rF701, { this.decrementCtrl; ^this });
-				if (unicode == 16rF702, { this.decrementCtrl; ^this });
+			if (char == $], { me.increment;  });
+			if (char == $[, { me.decrement;  });
+			if(modifiers&262144==262144, { // check if Ctrl is down first
+				if (unicode == 16rF700, { me.incrementCtrl;  });
+				if (unicode == 16rF703, { me.incrementCtrl;  });
+				if (unicode == 16rF701, { me.decrementCtrl;  });
+				if (unicode == 16rF702, { me.decrementCtrl;  });
 			}, { // if not, then normal
-				if (unicode == 16rF700, { this.increment; ^this });
-				if (unicode == 16rF703, { this.increment; ^this });
-				if (unicode == 16rF701, { this.decrement; ^this });
-				if (unicode == 16rF702, { this.decrement; ^this });
+				if (unicode == 16rF700, { me.increment;  });
+				if (unicode == 16rF703, { me.increment;  });
+				if (unicode == 16rF701, { me.decrement;  });
+				if (unicode == 16rF702, { me.decrement;  });
 			});
 		};
 		
@@ -142,6 +142,14 @@ XiiEZSlider {
 				}).play;
 			});
 		});
+	}
+	
+	pause {
+		playTask.stop;
+	}
+	
+	resume {
+		if(playTask.isNil.not, {playTask.start});
 	}
 	
 	stop {

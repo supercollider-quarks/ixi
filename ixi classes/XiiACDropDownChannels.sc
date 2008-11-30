@@ -11,6 +11,10 @@ XiiACDropDownChannels {
 	*setChannels {arg channels;
 		numChannels = channels;
 	}
+	
+	*getChannels {
+		^numChannels;
+	}
 		
 	*getStereoChnList {
 		var stereolist;

@@ -1,6 +1,5 @@
 
 // XQ is the storage for all environmental variables for ixiQuarks
-// it used to be kept in envir vars (~) but because of ProxySpace I put it in a storage class
 
 /*
 Testing:
@@ -12,7 +11,7 @@ XQ.poolNames
 
 // buffers
 XQ.buffers(XQ.poolNames[0]) 	// you need to know the poolname
-// selections
+// selections (contains [selStart, numFrames])
 XQ.selections(XQ.poolNames[0]) 	// you need to know the poolname
 // buffers and selections
 XQ.bufferList(XQ.poolNames[0]) 	// you need to know the poolname
@@ -100,6 +99,10 @@ XQ {
 			^[];
 		});
 	}
+	
+	*widgetsToFront {
+		globalWidgetList.do({|widget| widget.win.front;});
+	}
 
 	// read in the preference file and if it's not there, use default preferences
 	*preferences {
@@ -113,6 +116,8 @@ XQ {
 		"ixi-NOTE: you don't have the preferences.ixi file installed! Check ixiQuarks help".postln;
 			this.pref = ()
 				.emailSent_(true) // change to true when you have sent ixi an email
+				// .sampleRate_(44100) // gets from server
+				.bitDepth_("int16") // possible: "int16", "int24", "int32"
 				.numberOfChannels_(52) // number of audio channels used
 				.polyMachineTracks_(6) // how many tracks in polymachine (4 is default)
 				.bufferPlayerTracks_(16) // tracks in BufferPlayer (8, 16, 24 and 32 being ideal)

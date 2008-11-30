@@ -17,7 +17,7 @@ XiiMagClip {
 			chain = FFT(bufnum, in);
 			chain = PV_MagClip(chain, thresh);
 			// I need to delay the output of raw signal by the size of FFT buffer
-			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/44100) * dryvol) + (IFFT(chain) * vol));
+			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/SampleRate.ir(0)) * dryvol) + (IFFT(chain) * vol));
 		}).load(s);
 		
 		
@@ -27,7 +27,7 @@ XiiMagClip {
 			chain = FFT(bufnum, in);
 			chain = PV_MagClip(chain, thresh); 
 			// I need to delay the output of raw signal by the size of FFT buffer
-			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/44100) * dryvol) + (IFFT(chain).dup * vol));
+			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/SampleRate.ir(0)) * dryvol) + (IFFT(chain).dup * vol));
 		}).load(s);
 		
 		threshSpec = ControlSpec.new(0.01, 40, \exp, 0.01, 5); 
@@ -73,7 +73,7 @@ XiiMagSmear {
 			chain = FFT(bufnum, in);
 			chain = PV_MagSmear(chain, bins);
 			// I need to delay the output of raw signal by the size of FFT buffer
-			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/44100) * dryvol) + (IFFT(chain) * vol));
+			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/SampleRate.ir(0)) * dryvol) + (IFFT(chain) * vol));
 		}).load(s);
 		
 		
@@ -83,7 +83,7 @@ XiiMagSmear {
 			chain = FFT(bufnum, in);
 			chain = PV_MagSmear(chain, bins); 
 			// I need to delay the output of raw signal by the size of FFT buffer
-			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/44100) * dryvol) + (IFFT(chain).dup * vol));
+			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/SampleRate.ir(0)) * dryvol) + (IFFT(chain).dup * vol));
 		}).load(s);
 		
 		binsSpec = ControlSpec.new(1, 50, \lin, 1, 1); 
@@ -130,7 +130,7 @@ XiiMagShift {
 			chain = FFT(bufnum, in);
 			chain = PV_MagShift(chain, stretch, shift);
 			// I need to delay the output of raw signal by the size of FFT buffer
-			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/44100) * dryvol) + (IFFT(chain) * vol));
+			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/SampleRate.ir(0)) * dryvol) + (IFFT(chain) * vol));
 		}).load(s);
 		
 		
@@ -140,7 +140,7 @@ XiiMagShift {
 			chain = FFT(bufnum, in);
 			chain = PV_MagShift(chain, stretch, shift); 
 			// I need to delay the output of raw signal by the size of FFT buffer
-			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/44100) * dryvol) + (IFFT(chain).dup * vol));
+			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/SampleRate.ir(0)) * dryvol) + (IFFT(chain).dup * vol));
 		}).load(s);
 		
 		stretchSpec = ControlSpec.new(0.1, 5, \lin, 0.01, 1); 
@@ -189,7 +189,7 @@ XiiMagFreeze {
 			chain = FFT(bufnum, in);
 			chain = PV_MagFreeze(chain, freeze > 0.5 );
 			// I need to delay the output of raw signal by the size of FFT buffer
-			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/44100) * dryvol) + (IFFT(chain) * vol));
+			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/SampleRate.ir(0)) * dryvol) + (IFFT(chain) * vol));
 		}).load(s);
 		
 		
@@ -199,7 +199,7 @@ XiiMagFreeze {
 			chain = FFT(bufnum, in);
 			chain = PV_MagFreeze(chain, freeze > 0.5); 
 			// I need to delay the output of raw signal by the size of FFT buffer
-			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/44100) * dryvol) + (IFFT(chain).dup * vol));
+			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/SampleRate.ir(0)) * dryvol) + (IFFT(chain).dup * vol));
 		}).load(s);
 		
 		if(channels == 2, { 	// stereo
@@ -245,7 +245,7 @@ XiiRectComb {
 			chain = FFT(bufnum, in);
 			chain = PV_RectComb(chain, teeth, phase, width);
 			// I need to delay the output of raw signal by the size of FFT buffer
-			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/44100) * dryvol) + (IFFT(chain) * vol));
+			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/SampleRate.ir(0)) * dryvol) + (IFFT(chain) * vol));
 		}).load(s);
 		
 		
@@ -255,7 +255,7 @@ XiiRectComb {
 			chain = FFT(bufnum, in);
 			chain = PV_RectComb(chain, teeth, phase, width); 
 			// I need to delay the output of raw signal by the size of FFT buffer
-			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/44100) * dryvol) + (IFFT(chain).dup * vol));
+			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/SampleRate.ir(0)) * dryvol) + (IFFT(chain).dup * vol));
 		}).load(s);
 		
 		teethSpec = ControlSpec.new(0.01, 35, \lin, 0.01, 1); 
@@ -305,7 +305,7 @@ XiiBinScramble {
 			chain = FFT(bufnum, in);
 			chain = PV_BinScramble(chain, wipe, width, Impulse.kr(trig));
 			// I need to delay the output of raw signal by the size of FFT buffer
-			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/44100) * dryvol) + (IFFT(chain) * vol));
+			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/SampleRate.ir(0)) * dryvol) + (IFFT(chain) * vol));
 		}).load(s);
 		
 		
@@ -315,7 +315,7 @@ XiiBinScramble {
 			chain = FFT(bufnum, in);
 			chain = PV_BinScramble(chain, wipe, width, Impulse.kr(trig)); 
 			// I need to delay the output of raw signal by the size of FFT buffer
-			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/44100) * dryvol) + (IFFT(chain).dup * vol));
+			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/SampleRate.ir(0)) * dryvol) + (IFFT(chain).dup * vol));
 		}).load(s);
 		
 		trigSpec = ControlSpec.new(0, 5, \lin, 0.01, 0); 
@@ -362,7 +362,7 @@ XiiBinShift {
 			chain = FFT(bufnum, in);
 			chain = PV_BinShift(chain, stretch, shift);
 			// I need to delay the output of raw signal by the size of FFT buffer
-			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/44100) * dryvol) + (IFFT(chain) * vol));
+			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/SampleRate.ir(0)) * dryvol) + (IFFT(chain) * vol));
 		}).load(s);
 		
 		
@@ -372,7 +372,7 @@ XiiBinShift {
 			chain = FFT(bufnum, in);
 			chain = PV_BinShift(chain, stretch, shift); 
 			// I need to delay the output of raw signal by the size of FFT buffer
-			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/44100) * dryvol) + (IFFT(chain).dup * vol));
+			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/SampleRate.ir(0)) * dryvol) + (IFFT(chain).dup * vol));
 		}).load(s);
 		
 		stretchSpec = ControlSpec.new(0.1, 5, \lin, 0.01, 1); 
@@ -423,7 +423,7 @@ XiiSpectralDelay {
 			chain = chain.pvcollect(buffer.numFrames, {|mag, phase, index|
 				mag + DelayN.kr(mag, 2, delay);
 			}, frombin: 0, tobin: 256, zeroothers: 1);
-			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/44100) * dryvol) + (IFFT(chain) * vol));
+			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/SampleRate.ir(0)) * dryvol) + (IFFT(chain) * vol));
 		}).load(s);
 		
 		
@@ -435,7 +435,7 @@ XiiSpectralDelay {
 				mag + DelayN.kr(mag, 2, delay);
 			}, frombin: 0, tobin: 256, zeroothers: 1);
 			// I need to delay the output of raw signal by the size of FFT buffer
-			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/44100) * dryvol) + (IFFT(chain).dup * vol));
+			Out.ar(outbus, (DelayL.ar(in, 0.2, ((2*2048))/SampleRate.ir(0)) * dryvol) + (IFFT(chain).dup * vol));
 		}).load(s);
 		
 		delaySpec = ControlSpec.new(0.1, 2, \lin, 0.01, 1); 

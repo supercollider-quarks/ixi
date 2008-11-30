@@ -87,6 +87,8 @@ XixiPredator {
 		if(point.y-10 < stageRect.height, {
 	    	     ^{ var rot;
 				GUI.pen.use({
+				
+				Pen.setShadow(1@2, 10, Color.black); // XXX
 					GUI.pen.color = Color.black;
 					GUI.pen.width = 1;
 					GUI.pen.translate(point.x, point.y);
@@ -103,6 +105,7 @@ XixiPredator {
 			    		GUI.pen.fillOval(Rect(-10, -5, 20, 10));
 			     	GUI.pen.color = Color.black;
 			     	GUI.pen.strokeOval(Rect(-10, -5, 20, 10));
+	     	
 				});
 		     }
 	     });

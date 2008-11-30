@@ -8,8 +8,8 @@
 // if the gui is run from a setting
 
 XiiEffectGUI {
-	var <>win; 
-	var slider, specs, param, channels, inbus, outbus, tgt, addAct;
+	var <>win;
+	var <>slider, <>specs, <>param, channels, inbus, outbus, tgt, addAct;
 	var bufnum, synth, fxOn;
 	
 	*new { arg name, synthdef, param, ch, creator, setting=nil;
@@ -110,6 +110,9 @@ XiiEffectGUI {
 		         fxOn = false; 
 		         nodeLabel.string = "none"; 
 		         synth.free;
+				param[0].size.do({|i| // if automation 
+				   slider[i].pause;
+				});
 		      },{ 
 		         fxOn = true; 
 		         synthParams = Array.new; 
@@ -119,6 +122,9 @@ XiiEffectGUI {
 		         synthParams = ['outbus', outbus].add(synthParams.flop).flat; 
 		         synth = Synth.new(synthdef, synthParams, target: tgt.asTarget, addAction: addAct); 
 		         nodeLabel.string = synth.nodeID;
+				param[0].size.do({|i| // if automation 
+				   slider[i].resume;
+				});
 		       }) 
 		   }); 
 				

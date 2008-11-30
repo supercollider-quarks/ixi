@@ -96,6 +96,8 @@ XixiPrey {
 	draw {
 		^{
 			GUI.pen.use({
+				Pen.setShadow(1@2, 5, Color.black); // XXX
+
 				GUI.pen.color = Color.black;
 				GUI.pen.width = 1;
 				GUI.pen.translate(point.x, point.y);

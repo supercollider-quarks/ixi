@@ -73,7 +73,7 @@ XiiTrigRecorder {
 									});
 						recsynth.run(false);
 						recbuttOn = true;
-						buffer.write(filepath, "aiff", "int16", 0, 0, true);
+						buffer.write(filepath, "aiff", XQ.pref.bitDepth, 0, 0, true);
 					}, {
 						recsynth.free;
 						recbang.setState_(false);

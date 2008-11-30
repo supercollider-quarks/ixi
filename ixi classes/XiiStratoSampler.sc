@@ -58,7 +58,7 @@ comingFromFieldFlag = false;
 writtenBufferNames = List.new;
 runningFlag = false;
 
-buffer = Buffer.alloc(s, 44100 * bufferSecs, 1); 
+buffer = Buffer.alloc(s, s.sampleRate * bufferSecs, 1); 
 
 win = GUI.window.new("- stratosampler -", Rect(point.x, point.y, 820, 240));
 
@@ -148,7 +148,7 @@ newClearBufButt = GUI.button.new(win, Rect(60, 90, 50, 18))
 				s.bind({
 					buffer.free;
 					s.sync;
-					buffer = Buffer.alloc(s, 44100 * bufLengthBox.value, 1);
+					buffer = Buffer.alloc(s, s.sampleRate * bufLengthBox.value, 1);
 					s.sync;
 					bufPlot = XiiBufferPlot.new(buffer, win, Rect( 120, 5, 680, 220 ));
 					
@@ -214,7 +214,7 @@ writeBuffer = {
 	
 	s.bind({	// instead of using Condition
 		buffer.path = writtenPath; // for other instr
-		buffer.write(writtenPath, "aiff", "int16");
+		buffer.write(writtenPath, "aiff", XQ.pref.bitDepth);
 		s.sync;
 		copiedBuffer = Buffer.read(s, writtenPath);
 		s.sync;
@@ -336,7 +336,7 @@ startButt = GUI.button.new(win, Rect(77, 205, 33, 18))
 	
 startPlayFunc = {
 	startingPlayFlag = true;
-	 bufSec = ((buffer.numFrames/buffer.numChannels)/44100)+0.02; // the lookahead time in Limiter
+	 bufSec = ((buffer.numFrames/buffer.numChannels)/s.sampleRate)+0.02; // the lookahead time in Limiter
 	{bufPlot.redraw}.defer;
 	 fork{
 		 time = Main.elapsedTime;
@@ -370,7 +370,7 @@ startIndexDrawClock = {
 	indexDrawClock = Task({		 
 		inf.do({
 			var ind;
-			ind = ((Main.elapsedTime-time)*44100)%(buffer.numFrames);
+			ind = ((Main.elapsedTime-time)*s.sampleRate)%(buffer.numFrames);
 			{
 				win.isClosed.not.if({				
 					bufPlot.setIndex_(ind/(64.852*bufSec)) 
