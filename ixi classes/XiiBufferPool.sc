@@ -39,7 +39,7 @@ XiiBufferPool {
 		bufferListNames = []; // Cocoa dialog will fill this.
 		fileramarray = [];
 		
-		name = if(poolname==nil, {("bufferpool"+(bufferPoolNum+1).asString)}, {poolname});
+		name = if(poolname==nil, {("soundpool"+(bufferPoolNum+1).asString)}, {poolname});
 		filename = "";
 		inbus = 8;
 		numChannels = 2;
@@ -85,7 +85,7 @@ XiiBufferPool {
 			.enterKeyAction_({|sbs|
 				var viewer;
 				if(txtv.items.size > 0, {
-					[\buffer, bufferList[sbs.value]].postln;
+					// [\buffer, bufferList[sbs.value]].postln;
 					viewer = XiiSoundFileView.new(
 							bufferList[sbs.value], 
 							sbs.value, // the index in the pool
@@ -94,6 +94,21 @@ XiiBufferPool {
 							this);
 					soundFileWindowsList.add(viewer);
 				});
+			})
+			.mouseDownAction_({|view, x, y, modifiers, buttonNumber, clickCount|
+				var viewer;
+				if(clickCount == 2, {
+					if(txtv.items.size > 0, {
+						// [\buffer, bufferList[txtv.value]].postln;
+						viewer = XiiSoundFileView.new(
+								bufferList[txtv.value], 
+								txtv.value, // the index in the pool
+								name, // the poolname
+								XQ.selections(name.asSymbol)[txtv.value],
+								this);
+						soundFileWindowsList.add(viewer);
+					});
+			    })
 			})
 			.action_({ arg sbs; var f, filesize;
 				if(bufferListNames.size>0, {
@@ -417,7 +432,7 @@ XiiBufferPool {
 					this.sendBufferPoolToWidgets;
 					loadBufTask.stop;
 				});
-				"loading buffers ->  ".post; (i*100).post; " milliseconds".postln;
+				"loading sounds ->  ".post; (i*100).post; " milliseconds".postln;
 				0.1.wait; 
 				});
 			}).start;
