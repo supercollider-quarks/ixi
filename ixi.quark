@@ -8,7 +8,7 @@
 	\organization: 	"ixi audio",
 	\country: 		"uk - es - is",
 	\since: 		"2000",
-	\ext_dependancy: "see helpfile",
+	\ext_dependency: "see helpfile",
 	\helpdoc:		"ixi help/help.html",
 	\url:           "http://www.ixi-audio.net",
 	\dependencies: ["ixiViews", "SNBox"]
